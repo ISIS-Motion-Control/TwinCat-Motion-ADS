@@ -10,7 +10,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="babyIbex.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Beckhoff.TwinCAT.Ads" Version="5.0.458" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="babyIbex.jpg" />
   </ItemGroup>
 
 </Project>

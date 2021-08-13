@@ -5,8 +5,22 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="IBEX Lite" Height="450" Width="800">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="77*"/>
+        </Grid.ColumnDefinitions>
+        <Button Content="MoveAbs" HorizontalAlignment="Left" Margin="85,114,0,0" VerticalAlignment="Top" Click="Button_Click" Grid.Column="1"/>
+        <TextBox x:Name="positionText" HorizontalAlignment="Left" Margin="0,114,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" Grid.Column="1"/>
+        <TextBox x:Name="axisSelection" HorizontalAlignment="Left" Margin="0,51,0,0" Text="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="50" Grid.Column="1"/>
+        <Button x:Name="initAxis" Content="initAxis" HorizontalAlignment="Left" Margin="74,51,0,0" VerticalAlignment="Top" Click="initAxis_Click" Grid.Column="1"/>
+        <TextBlock x:Name="axisPositionRB" HorizontalAlignment="Left" Margin="236,116,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="114" Grid.Column="1" Text="placeholder"/>
+        <Button x:Name="moveRelButton" Content="MoveRel" HorizontalAlignment="Left" Margin="85,139,0,0" VerticalAlignment="Top" Click="moveRelButton_Click" Grid.Column="1" Width="54"/>
+        <Button x:Name="moveVelButton" Content="MoveRel" HorizontalAlignment="Left" Margin="85,164,0,0" VerticalAlignment="Top" Grid.Column="1" Width="54" Click="moveVelButton_Click"/>
+        <Image Grid.Column="1" HorizontalAlignment="Left" Height="247" Margin="422,123,0,0" VerticalAlignment="Top" Width="176" Source="/babyIbex.jpg"/>
+        <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="174,116,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="en-gb" Text="PosRB"/></TextBlock>
+        <Button x:Name="stopPosRead" Content="initAxis" HorizontalAlignment="Left" Margin="148,27,0,0" VerticalAlignment="Top" Grid.Column="1" Click="stopPosRead_Click"/>
 
     </Grid>
 </Window>

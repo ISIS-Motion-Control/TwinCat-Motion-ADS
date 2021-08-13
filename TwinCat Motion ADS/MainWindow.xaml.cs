@@ -15,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TwinCAT.Ads;
 
+
 namespace TwinCat_Motion_ADS
 {
    
@@ -23,137 +24,57 @@ namespace TwinCat_Motion_ADS
     /// </summary>
     public partial class MainWindow : Window
     {
+        TestClass testSystem = TestClass.Instance;
         public MainWindow()
         {
             InitializeComponent();
+
+
             ConsoleAllocator.ShowConsoleWindow();
-            TestClass testSystem = TestClass.Instance;
             testSystem.setupPLC();
         }
-    }
-
-    public sealed class TestClass
-    {
-        private static TestClass instance = null;
-        private static readonly object padlock = new object();
-        TestClass()
-        { 
-        }
-        public static TestClass Instance
+        public void setupBinds()
         {
-            get
-            {
-                lock (padlock)
-                {
-                    if (instance == null)
-                    {
-                        instance = new TestClass();
-                    }
-                    return instance;
-                }
-            }
+            Binding axisPositionBind = new Binding();
+            axisPositionBind.Mode = BindingMode.TwoWay;
+            axisPositionBind.Source = testSystem.testAxis;
+            axisPositionBind.Path = new PropertyPath("AxisPosition");
+            axisPositionBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            axisPositionBind.StringFormat= "F3";
+            BindingOperations.SetBinding(axisPositionRB, TextBlock.TextProperty, axisPositionBind);
         }
 
-
-
-        Axis axis1;
-        Axis axis2;
-        PLC plc;
-
-        public void setupPLC()
+        private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            plc = new PLC("5.65.74.200.1.1", 852);
-            if (plc.checkConnection())
-            { Console.WriteLine("Connection established"); };
-            axis1 = new Axis(1, plc);
-            axis2 = new Axis(2, plc);
-        }
-    }
-
-    public class PLC
-    {
-        private AdsClient _tcAds = new AdsClient();
-        public AdsClient TcAds
-        {
-            get { return _tcAds; }
-            set { _tcAds = value; }
+            double posCommanded = Convert.ToInt32(positionText.Text);
+            await testSystem.testAxis.moveAbsoluteAndWait(posCommanded, 20);
         }
 
-        public PLC(string ID, int PORT)
+        private void initAxis_Click(object sender, RoutedEventArgs e)
         {
-            TcAds.Connect(ID, PORT);
+            testSystem.axisInstance(Convert.ToUInt32(axisSelection.Text));
+            setupBinds(); //doesn't seem to be working right
+            
         }
-        public bool checkConnection()
+
+        private async void moveRelButton_Click(object sender, RoutedEventArgs e)
         {
-            return TcAds.IsConnected;
+            double posCommanded = Convert.ToInt32(positionText.Text);
+            await testSystem.testAxis.moveRelativeAndWait(posCommanded, 20);
+        }
+
+        private async void moveVelButton_Click(object sender, RoutedEventArgs e)
+        {
+            await testSystem.testAxis.moveVelocity( 20);
+        }
+
+        private void stopPosRead_Click(object sender, RoutedEventArgs e)
+        {
+            testSystem.testAxis.StopPositionRead();
         }
     }
 
 
-    //want to switch this around, let PLC inherit Test axis and let 
-    public partial class Axis
-    {
-        const byte eMoveAbsolute = 0;
-        const byte eMoveRelative = 1;
-        const byte eMoveVelocity = 3;
-        const byte eHome = 10;
-        private uint eCommandHandle;
-        private uint fVelocityHandle;
-        private uint fPositionHandle;
-        private uint bExecuteHandle;
-        private uint fActPositionHandle;
-
-        private PLC _plc;
-        public PLC Plc
-        {
-            get { return _plc; }
-            set { _plc = value; }
-        }
-
-
-        public Axis(int axisID, PLC plc)
-        {
-            Plc = plc;
-
-            eCommandHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.eCommand");
-            fVelocityHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.fVelocity");
-            fPositionHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.fPosition");
-            bExecuteHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.bExecute");
-            fActPositionHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stStatus.fActPosition");
-
-
-
-            moveAbsolute(30, 20);
-            double axisPos = (double)Plc.TcAds.ReadAny(fActPositionHandle, typeof(double));
-            Console.WriteLine("Current value is: " + axisPos);
-        }
-
-        private void setCommand(byte command)
-        {
-            Plc.TcAds.WriteAny(eCommandHandle, command);
-        }
-        private void setVelocity(double velocity)
-        {
-            Plc.TcAds.WriteAny(fVelocityHandle, velocity);
-        }
-        private void setPosition(double position)
-        {
-            Plc.TcAds.WriteAny(fPositionHandle, position);
-        }
-        private void execute()
-        {
-            Plc.TcAds.WriteAny(bExecuteHandle, true);
-        }
-
-        public bool moveAbsolute(double position, double velocity)
-        {
-            setCommand(eMoveAbsolute);
-            setVelocity(velocity);
-            setPosition(position);
-            execute();
-            return true;
-        }
-    }
     internal static class ConsoleAllocator
     {
         [DllImport(@"kernel32.dll", SetLastError = true)]
@@ -190,4 +111,5 @@ namespace TwinCat_Motion_ADS
             ShowWindow(handle, SwHide);
         }
     }
+
 }
