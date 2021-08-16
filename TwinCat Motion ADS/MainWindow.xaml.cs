@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using TwinCAT.Ads;
 
 
+
 namespace TwinCat_Motion_ADS
 {
    
@@ -25,14 +26,49 @@ namespace TwinCat_Motion_ADS
     public partial class MainWindow : Window
     {
         TestClass testSystem = TestClass.Instance;
+        String keyboardInput = string.Empty;
         public MainWindow()
         {
             InitializeComponent();
-
-
+            EventManager.RegisterClassHandler(typeof(Window),Keyboard.KeyUpEvent, new KeyEventHandler(keyUp), true);
+            
             ConsoleAllocator.ShowConsoleWindow();
             testSystem.setupPLC();
+
         }
+        
+        private async void keyUp(object sender, KeyEventArgs e)
+        {
+            if(e.Key == Key.Enter)
+            {
+                //transmit to function
+                //testSystem.testAxis.DtiPosition = keyboardInput;
+                await testSystem.testAxis.setDtiPosition(keyboardInput);
+                Console.WriteLine("The input was " + keyboardInput);
+                keyboardInput = string.Empty;
+                
+            }
+            else
+            {
+                if(e.Key== Key.D0 || e.Key == Key.D1 || e.Key == Key.D2 || e.Key == Key.D3 || e.Key == Key.D4 || e.Key == Key.D5 || e.Key == Key.D6 || e.Key == Key.D7 || e.Key == Key.D8 || e.Key == Key.D9)
+                {
+                    keyboardInput = keyboardInput + (e.Key.ToString())[1];
+                }
+                else if (e.Key ==Key.OemPeriod)
+                {
+                    keyboardInput = keyboardInput + ".";
+                }
+                else
+                {
+                    keyboardInput = keyboardInput + e.Key.ToString();
+                }
+            }
+        }
+
+
+
+
+
         public void setupBinds()
         {
             Binding axisPositionBind = new Binding();
@@ -68,9 +104,16 @@ namespace TwinCat_Motion_ADS
             await testSystem.testAxis.moveVelocity( 20);
         }
 
-        private void stopPosRead_Click(object sender, RoutedEventArgs e)
+        private async void stopPosRead_Click(object sender, RoutedEventArgs e)
         {
-            testSystem.testAxis.StopPositionRead();
+            //Console.WriteLine(testSystem.testAxis.DtiPosition);
+            //testSystem.testAxis.getDtiReadback();
+            //stopPosRead.IsEnabled = false;
+            mainWindowGrid.IsEnabled = false;
+            keyboardInput = string.Empty;
+            Console.WriteLine(await testSystem.testAxis.getDtiPositionValue());
+            //stopPosRead.IsEnabled = true;
+            mainWindowGrid.IsEnabled = true;
         }
     }
 

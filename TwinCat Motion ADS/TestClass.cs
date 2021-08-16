@@ -54,10 +54,24 @@ namespace TwinCat_Motion_ADS
             plc = new PLC("5.65.74.200.1.1", 852);
             if (plc.checkConnection())
             { Console.WriteLine("Connection established"); };
+
+            try
+            {
+                //Could check Run/Stop/Invalid status of this
+                ResultReadDeviceState testTask = plc.TcAds.ReadStateAsync(CancellationToken.None).Result;
+                Console.WriteLine(testTask.State.AdsState.ToString());
+
+            }
+            catch(TwinCAT.Ads.AdsErrorException)
+            {
+                Console.WriteLine("Target port not accessible");
+            }
+            testAxis = new Axis(1, plc);
+
         }
         public void axisInstance(uint axisId)
         {
-            testAxis = new Axis(axisId, plc);
+            testAxis.updateInstance(axisId);
         }
     }
 
@@ -111,6 +125,65 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        private string _dtiPosition = string.Empty;
+        public  string DtiPosition
+        {
+            //bit of a convoluted GET method but basically gives a "one-shot" get of the value before clearing. This can be used to check we've actually had a successful read from the DTI using an "isEmpty" comparator.
+            get {
+                string tempPosition = _dtiPosition;
+                _dtiPosition = string.Empty;
+                return tempPosition;
+            }
+            set { _dtiPosition = value; }
+        }
+
+        public async Task setDtiPosition(string dtiPos)
+        {
+            await Task.Run(()=>DtiPosition = dtiPos);
+        }
+
+        public void getDtiReadback()
+        {
+            string dtiRB = string.Empty;
+            Console.WriteLine("Making thread");
+            Thread printDti = new Thread(() =>
+            {            
+               while (true)
+               {
+                   
+                   dtiRB = DtiPosition;
+                   Console.WriteLine("DTIRB is " + dtiRB);
+                    if (dtiRB != string.Empty)
+                    {
+                        Console.WriteLine("WE DID IT REDDIT");
+                        break;
+                    }
+                   Thread.Sleep(50);
+               }
+            });
+            printDti.Start();
+        }
+
+        public async Task<string> getDtiPositionValue()
+        {
+            string dtiRB = string.Empty;
+            var getDtiTask = Task<string>.Run(async () =>
+            {
+                while (true)
+                {
+                    dtiRB = DtiPosition;
+                    await Task.Delay(5);
+                    if (dtiRB != string.Empty)
+                    {
+                        return dtiRB;
+                    }
+
+                }
+            });
+
+            return await getDtiTask;
+        }
+
         private PLC _plc;
         public PLC Plc
         {
@@ -120,8 +193,18 @@ namespace TwinCat_Motion_ADS
 
         public Axis(uint axisID, PLC plc)
         {
-            StopPositionRead();
             Plc = plc;
+            eCommandHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.eCommand");
+            fVelocityHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.fVelocity");
+            fPositionHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.fPosition");
+            bExecuteHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.bExecute");
+            fActPositionHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stStatus.fActPosition");
+            bDoneHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stStatus.bDone");
+            bBusyHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stStatus.bBusy");
+        }
+        public void updateInstance(uint axisID)
+        {
+            StopPositionRead();
             eCommandHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.eCommand");
             fVelocityHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.fVelocity");
             fPositionHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.fPosition");
@@ -284,7 +367,7 @@ namespace TwinCat_Motion_ADS
         {
             var result = await Plc.TcAds.ReadAnyAsync<double>(fActPositionHandle, CancellationToken.None);
             AxisPosition = result.Value;
-            Console.WriteLine(AxisPosition.ToString());
+            //Console.WriteLine(AxisPosition.ToString());
             return result.Value;
         }
         public async Task<bool> checkBusy()

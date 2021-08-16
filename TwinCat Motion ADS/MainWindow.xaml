@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
         Title="IBEX Lite" Height="450" Width="800">
-    <Grid>
+    <Grid x:Name="mainWindowGrid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*"/>
             <ColumnDefinition Width="77*"/>
@@ -18,7 +18,7 @@
         <TextBlock x:Name="axisPositionRB" HorizontalAlignment="Left" Margin="236,116,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="114" Grid.Column="1" Text="placeholder"/>
         <Button x:Name="moveRelButton" Content="MoveRel" HorizontalAlignment="Left" Margin="85,139,0,0" VerticalAlignment="Top" Click="moveRelButton_Click" Grid.Column="1" Width="54"/>
         <Button x:Name="moveVelButton" Content="MoveRel" HorizontalAlignment="Left" Margin="85,164,0,0" VerticalAlignment="Top" Grid.Column="1" Width="54" Click="moveVelButton_Click"/>
-        <Image Grid.Column="1" HorizontalAlignment="Left" Height="247" Margin="422,123,0,0" VerticalAlignment="Top" Width="176" Source="/babyIbex.jpg"/>
+        <Image Grid.Column="1" HorizontalAlignment="Left" Height="247" Margin="584,174,0,0" VerticalAlignment="Top" Width="176" Source="/babyIbex.jpg"/>
         <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="174,116,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="en-gb" Text="PosRB"/></TextBlock>
         <Button x:Name="stopPosRead" Content="initAxis" HorizontalAlignment="Left" Margin="148,27,0,0" VerticalAlignment="Top" Grid.Column="1" Click="stopPosRead_Click"/>
 
