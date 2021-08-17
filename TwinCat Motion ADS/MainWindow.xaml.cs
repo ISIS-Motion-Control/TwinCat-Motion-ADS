@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -31,22 +33,18 @@ namespace TwinCat_Motion_ADS
         {
             InitializeComponent();
             EventManager.RegisterClassHandler(typeof(Window),Keyboard.KeyUpEvent, new KeyEventHandler(keyUp), true);
-            
             ConsoleAllocator.ShowConsoleWindow();
             testSystem.setupPLC();
 
         }
-        
+
         private async void keyUp(object sender, KeyEventArgs e)
         {
             if(e.Key == Key.Enter)
             {
-                //transmit to function
-                //testSystem.testAxis.DtiPosition = keyboardInput;
                 await testSystem.testAxis.setDtiPosition(keyboardInput);
-                Console.WriteLine("The input was " + keyboardInput);
-                keyboardInput = string.Empty;
-                
+                //Console.WriteLine("The input was " + keyboardInput);
+                keyboardInput = string.Empty;                
             }
             else
             {
@@ -66,9 +64,6 @@ namespace TwinCat_Motion_ADS
         }
 
 
-
-
-
         public void setupBinds()
         {
             Binding axisPositionBind = new Binding();
@@ -78,43 +73,133 @@ namespace TwinCat_Motion_ADS
             axisPositionBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             axisPositionBind.StringFormat= "F3";
             BindingOperations.SetBinding(axisPositionRB, TextBlock.TextProperty, axisPositionBind);
+
+            Binding axisEnabledBind = new Binding();
+            axisEnabledBind.Mode = BindingMode.OneWay;
+            axisEnabledBind.Source = testSystem.testAxis;
+            axisEnabledBind.Path = new PropertyPath("AxisEnabled");
+            axisEnabledBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(enabledCheck, CheckBox.IsCheckedProperty, axisEnabledBind);
+
+            Binding axisFwEnabledBind = new Binding();
+            axisFwEnabledBind.Mode = BindingMode.OneWay;
+            axisFwEnabledBind.Source = testSystem.testAxis;
+            axisFwEnabledBind.Path = new PropertyPath("AxisFwEnabled");
+            axisFwEnabledBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(fwEnabledCheck, CheckBox.IsCheckedProperty, axisFwEnabledBind);
+
+            Binding axisBwEnabledBind = new Binding();
+            axisBwEnabledBind.Mode = BindingMode.OneWay;
+            axisBwEnabledBind.Source = testSystem.testAxis;
+            axisBwEnabledBind.Path = new PropertyPath("AxisBwEnabled");
+            axisBwEnabledBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(bwEnabledCheck, CheckBox.IsCheckedProperty, axisBwEnabledBind);
+
+            Binding testCancelledBind = new Binding();
+            testCancelledBind.Mode = BindingMode.OneWay;
+            testCancelledBind.Source = testSystem.testAxis;
+            testCancelledBind.Path = new PropertyPath("CancelTest");
+            testCancelledBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(testCancelledCheck, CheckBox.IsCheckedProperty, testCancelledBind);
+
+            Binding testPausedBind = new Binding();
+            testPausedBind.Mode = BindingMode.OneWay;
+            testPausedBind.Source = testSystem.testAxis;
+            testPausedBind.Path = new PropertyPath("PauseTest");
+            testPausedBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(testPausedCheck, CheckBox.IsCheckedProperty, testPausedBind);
         }
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            double posCommanded = Convert.ToInt32(positionText.Text);
-            await testSystem.testAxis.moveAbsoluteAndWait(posCommanded, 20);
+            double posCommanded = Convert.ToDouble(positionText.Text);
+            await testSystem.testAxis.moveAbsoluteAndWait(posCommanded, Convert.ToDouble(velocityTB.Text));
         }
 
         private void initAxis_Click(object sender, RoutedEventArgs e)
         {
             testSystem.axisInstance(Convert.ToUInt32(axisSelection.Text));
-            setupBinds(); //doesn't seem to be working right
+            setupBinds();
+            Console.WriteLine(testSystem.testAxis.AxisEnabled);
             
         }
 
         private async void moveRelButton_Click(object sender, RoutedEventArgs e)
         {
-            double posCommanded = Convert.ToInt32(positionText.Text);
-            await testSystem.testAxis.moveRelativeAndWait(posCommanded, 20);
+            double posCommanded = Convert.ToDouble(positionText.Text);
+            await testSystem.testAxis.moveRelativeAndWait(posCommanded, Convert.ToDouble(velocityTB.Text));
         }
 
         private async void moveVelButton_Click(object sender, RoutedEventArgs e)
         {
-            await testSystem.testAxis.moveVelocity( 20);
+            await testSystem.testAxis.moveVelocity(Convert.ToDouble(velocityTB.Text));
         }
 
         private async void stopPosRead_Click(object sender, RoutedEventArgs e)
         {
-            //Console.WriteLine(testSystem.testAxis.DtiPosition);
-            //testSystem.testAxis.getDtiReadback();
-            //stopPosRead.IsEnabled = false;
+
             mainWindowGrid.IsEnabled = false;
             keyboardInput = string.Empty;
             Console.WriteLine(await testSystem.testAxis.getDtiPositionValue());
-            //stopPosRead.IsEnabled = true;
             mainWindowGrid.IsEnabled = true;
         }
+
+        private async void stopMove_Click(object sender, RoutedEventArgs e)
+        {
+            await testSystem.testAxis.moveStop();
+        }
+
+        private async void move2High_Click(object sender, RoutedEventArgs e)
+        {
+            await testSystem.testAxis.moveToHighLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text)); //10 second timeout
+        }
+
+        private async void move2Low_Click(object sender, RoutedEventArgs e)
+        {
+            await testSystem.testAxis.moveToLowLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text)); //10 second timeout
+        }
+
+        private async void end2endTest_Click(object sender, RoutedEventArgs e)
+        {           
+            keyboardInput = string.Empty;
+            elementsEnabled(false);
+            await testSystem.testAxis.end2endCycleTesting(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), 1, 100);
+            elementsEnabled(true);
+            
+        }
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9]+");
+            e.Handled = regex.IsMatch(e.Text);
+        }
+
+        private void cancelTest_Click(object sender, RoutedEventArgs e)
+        {
+            testSystem.testAxis.CancelTest = !testSystem.testAxis.CancelTest;
+        }
+
+        private void pauseTest_Click(object sender, RoutedEventArgs e)
+        {
+            testSystem.testAxis.PauseTest = !testSystem.testAxis.PauseTest;
+            if (testSystem.testAxis.PauseTest)
+            {
+                pauseTest.Background = Brushes.Red;
+            }
+            else
+            {
+                pauseTest.Background = Brushes.Green;
+            }
+        }
+
+        //WIP method to disable UI elements - need one to enable
+        private void elementsEnabled(bool enable)
+        {
+            timeoutTB.IsEnabled = enable;
+            velocityTB.IsEnabled = enable;
+            dataOuput.IsEnabled = enable;
+        }
+
+
     }
 
 

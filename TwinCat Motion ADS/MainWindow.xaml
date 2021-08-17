@@ -11,16 +11,31 @@
             <ColumnDefinition Width="3*"/>
             <ColumnDefinition Width="77*"/>
         </Grid.ColumnDefinitions>
-        <Button Content="MoveAbs" HorizontalAlignment="Left" Margin="85,114,0,0" VerticalAlignment="Top" Click="Button_Click" Grid.Column="1"/>
+        <Button Focusable="False" Content="MoveAbs" HorizontalAlignment="Left" Margin="141,118,0,0" VerticalAlignment="Top" Click="Button_Click" Grid.Column="1" Width="100"/>
         <TextBox x:Name="positionText" HorizontalAlignment="Left" Margin="0,114,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" Grid.Column="1"/>
-        <TextBox x:Name="axisSelection" HorizontalAlignment="Left" Margin="0,51,0,0" Text="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="50" Grid.Column="1"/>
-        <Button x:Name="initAxis" Content="initAxis" HorizontalAlignment="Left" Margin="74,51,0,0" VerticalAlignment="Top" Click="initAxis_Click" Grid.Column="1"/>
-        <TextBlock x:Name="axisPositionRB" HorizontalAlignment="Left" Margin="236,116,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="114" Grid.Column="1" Text="placeholder"/>
-        <Button x:Name="moveRelButton" Content="MoveRel" HorizontalAlignment="Left" Margin="85,139,0,0" VerticalAlignment="Top" Click="moveRelButton_Click" Grid.Column="1" Width="54"/>
-        <Button x:Name="moveVelButton" Content="MoveRel" HorizontalAlignment="Left" Margin="85,164,0,0" VerticalAlignment="Top" Grid.Column="1" Width="54" Click="moveVelButton_Click"/>
+        <TextBox x:Name="axisSelection" HorizontalAlignment="Left" Margin="10,10,0,0" Text="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="50" Grid.ColumnSpan="2"/>
+        <Button Focusable="False" x:Name="initAxis" Content="initAxis" HorizontalAlignment="Left" Margin="36,9,0,0" VerticalAlignment="Top" Click="initAxis_Click" Grid.Column="1" Width="100"/>
+        <TextBlock x:Name="axisPositionRB" HorizontalAlignment="Left" Margin="49,137,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="75" Grid.Column="1" Text="placeholder"/>
+        <Button Focusable="False" x:Name="moveRelButton" Content="MoveRel" HorizontalAlignment="Left" Margin="141,143,0,0" VerticalAlignment="Top" Click="moveRelButton_Click" Grid.Column="1" Width="100"/>
+        <Button Focusable="False" x:Name="moveVelButton" Content="MoveVel" HorizontalAlignment="Left" Margin="141,168,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="moveVelButton_Click"/>
         <Image Grid.Column="1" HorizontalAlignment="Left" Height="247" Margin="584,174,0,0" VerticalAlignment="Top" Width="176" Source="/babyIbex.jpg"/>
-        <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="174,116,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="en-gb" Text="PosRB"/></TextBlock>
-        <Button x:Name="stopPosRead" Content="initAxis" HorizontalAlignment="Left" Margin="148,27,0,0" VerticalAlignment="Top" Grid.Column="1" Click="stopPosRead_Click"/>
+        <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="4,138,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="en-gb" Text="PosRB"/></TextBlock>
+        <Button Focusable="False" x:Name="dataOuput" Content="dataOutput" HorizontalAlignment="Left" Margin="36,38,0,0" VerticalAlignment="Top" Grid.Column="1" Click="stopPosRead_Click" Width="100"/>
+        <CheckBox x:Name="enabledCheck" Content="Enabled" Grid.Column="1" HorizontalAlignment="Left" Margin="0,168,0,0" VerticalAlignment="Top" IsEnabled="False"/>
+        <CheckBox x:Name="fwEnabledCheck" Content="FwEnabled" Grid.Column="1" HorizontalAlignment="Left" Margin="0,187,0,0" VerticalAlignment="Top" IsEnabled="False"/>
+        <CheckBox x:Name="bwEnabledCheck" Content="BwEnabled" Grid.Column="1" HorizontalAlignment="Left" Margin="0,205,0,0" VerticalAlignment="Top" IsEnabled="False"/>
+        <Button Focusable="False" x:Name="stopMove" Content="Stop" HorizontalAlignment="Left" Margin="141,193,0,0" VerticalAlignment="Top" Grid.Column="1" Click="stopMove_Click" Width="100"/>
+        <Button Focusable="False" x:Name="move2High" Content="Move2HighLimit" HorizontalAlignment="Left" Margin="141,218,0,0" VerticalAlignment="Top" Grid.Column="1" Click="move2High_Click" Width="100"/>
+        <Button Focusable="False" x:Name="move2Low" Content="MoveLowLimit" HorizontalAlignment="Left" Margin="141,243,0,0" VerticalAlignment="Top" Grid.Column="1" Click="move2Low_Click" Width="100"/>
+        <TextBox x:Name="timeoutTB" HorizontalAlignment="Left" Margin="408,119,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" Grid.Column="1" PreviewTextInput="NumberValidationTextBox"/>
+        <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="359,120,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="en-gb" Text="Timeout"/></TextBlock>
+        <TextBox x:Name="velocityTB" HorizontalAlignment="Left" Margin="408,144,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" Grid.Column="1"/>
+        <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="359,145,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="en-gb" Text="Velocity"/></TextBlock>
+        <Button Focusable="False" x:Name="end2endTest" Content="End2End Test" HorizontalAlignment="Left" Margin="141,296,0,0" VerticalAlignment="Top" Grid.Column="1" Click="end2endTest_Click" Width="100"/>
+        <Button Focusable="False" x:Name="cancelTest" Content="Cancel Test" HorizontalAlignment="Left" Margin="359,238,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="cancelTest_Click"/>
+        <Button x:Name="pauseTest" Content="Pause Test" HorizontalAlignment="Left" Margin="359,263,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="pauseTest_Click" Background="#FF2EFF00" Focusable="False"/>
+        <CheckBox x:Name="testCancelledCheck" Content="Cancelled" Grid.Column="1" HorizontalAlignment="Left" Margin="464,240,0,0" VerticalAlignment="Top" IsEnabled="False"/>
+        <CheckBox x:Name="testPausedCheck" Content="Paused" Grid.Column="1" HorizontalAlignment="Left" Margin="464,265,0,0" VerticalAlignment="Top" IsEnabled="False"/>
 
     </Grid>
 </Window>
