@@ -16,7 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TwinCAT.Ads;
-
+using Ookii.Dialogs.Wpf;
 
 
 namespace TwinCat_Motion_ADS
@@ -27,14 +27,25 @@ namespace TwinCat_Motion_ADS
     /// </summary>
     public partial class MainWindow : Window
     {
-        TestClass testSystem = TestClass.Instance;
+        //TestClass testSystem = TestClass.Instance;
         String keyboardInput = string.Empty;
+        
+        PLC Plc = new PLC("5.65.74.200.1.1", 852);
+        Axis testAxis;
+        string selectedFolder = string.Empty;
+
         public MainWindow()
         {
             InitializeComponent();
             EventManager.RegisterClassHandler(typeof(Window),Keyboard.KeyUpEvent, new KeyEventHandler(keyUp), true);
             ConsoleAllocator.ShowConsoleWindow();
-            testSystem.setupPLC();
+            Plc.setupPLC();
+            if(Plc.AdsState == AdsState.Invalid)
+            {
+                Console.WriteLine("Ads state is invalid");
+                elementsEnabled(false);
+            }
+            testAxis = new Axis(1, Plc);
 
         }
 
@@ -42,7 +53,7 @@ namespace TwinCat_Motion_ADS
         {
             if(e.Key == Key.Enter)
             {
-                await testSystem.testAxis.setDtiPosition(keyboardInput);
+                await testAxis.setDtiPosition(keyboardInput);
                 //Console.WriteLine("The input was " + keyboardInput);
                 keyboardInput = string.Empty;                
             }
@@ -68,7 +79,7 @@ namespace TwinCat_Motion_ADS
         {
             Binding axisPositionBind = new Binding();
             axisPositionBind.Mode = BindingMode.TwoWay;
-            axisPositionBind.Source = testSystem.testAxis;
+            axisPositionBind.Source = testAxis;
             axisPositionBind.Path = new PropertyPath("AxisPosition");
             axisPositionBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             axisPositionBind.StringFormat= "F3";
@@ -76,63 +87,75 @@ namespace TwinCat_Motion_ADS
 
             Binding axisEnabledBind = new Binding();
             axisEnabledBind.Mode = BindingMode.OneWay;
-            axisEnabledBind.Source = testSystem.testAxis;
+            axisEnabledBind.Source = testAxis;
             axisEnabledBind.Path = new PropertyPath("AxisEnabled");
             axisEnabledBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             BindingOperations.SetBinding(enabledCheck, CheckBox.IsCheckedProperty, axisEnabledBind);
 
             Binding axisFwEnabledBind = new Binding();
             axisFwEnabledBind.Mode = BindingMode.OneWay;
-            axisFwEnabledBind.Source = testSystem.testAxis;
+            axisFwEnabledBind.Source = testAxis;
             axisFwEnabledBind.Path = new PropertyPath("AxisFwEnabled");
             axisFwEnabledBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             BindingOperations.SetBinding(fwEnabledCheck, CheckBox.IsCheckedProperty, axisFwEnabledBind);
 
             Binding axisBwEnabledBind = new Binding();
             axisBwEnabledBind.Mode = BindingMode.OneWay;
-            axisBwEnabledBind.Source = testSystem.testAxis;
+            axisBwEnabledBind.Source = testAxis;
             axisBwEnabledBind.Path = new PropertyPath("AxisBwEnabled");
             axisBwEnabledBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             BindingOperations.SetBinding(bwEnabledCheck, CheckBox.IsCheckedProperty, axisBwEnabledBind);
 
             Binding testCancelledBind = new Binding();
             testCancelledBind.Mode = BindingMode.OneWay;
-            testCancelledBind.Source = testSystem.testAxis;
+            testCancelledBind.Source = testAxis;
             testCancelledBind.Path = new PropertyPath("CancelTest");
             testCancelledBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             BindingOperations.SetBinding(testCancelledCheck, CheckBox.IsCheckedProperty, testCancelledBind);
 
             Binding testPausedBind = new Binding();
             testPausedBind.Mode = BindingMode.OneWay;
-            testPausedBind.Source = testSystem.testAxis;
+            testPausedBind.Source = testAxis;
             testPausedBind.Path = new PropertyPath("PauseTest");
             testPausedBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             BindingOperations.SetBinding(testPausedCheck, CheckBox.IsCheckedProperty, testPausedBind);
+
+            Binding errorBind = new Binding();
+            errorBind.Mode = BindingMode.OneWay;
+            errorBind.Source = testAxis;
+            errorBind.Path = new PropertyPath("Error");
+            errorBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(errorCheck, CheckBox.IsCheckedProperty, errorBind);
         }
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
             double posCommanded = Convert.ToDouble(positionText.Text);
-            await testSystem.testAxis.moveAbsoluteAndWait(posCommanded, Convert.ToDouble(velocityTB.Text));
+            await testAxis.moveAbsoluteAndWait(posCommanded, Convert.ToDouble(velocityTB.Text));
         }
 
         private void initAxis_Click(object sender, RoutedEventArgs e)
         {
-            testSystem.axisInstance(Convert.ToUInt32(axisSelection.Text));
-            setupBinds();
-            Console.WriteLine(testSystem.testAxis.AxisEnabled);
-            
+            if(testAxis ==null)
+            {
+                testAxis = new Axis(Convert.ToUInt32(axisSelection.Text), Plc);
+            }
+            else
+            {
+                testAxis.updateInstance(Convert.ToUInt32(axisSelection.Text));
+            }         
+            setupBinds();         
         }
 
         private async void moveRelButton_Click(object sender, RoutedEventArgs e)
         {
             double posCommanded = Convert.ToDouble(positionText.Text);
-            await testSystem.testAxis.moveRelativeAndWait(posCommanded, Convert.ToDouble(velocityTB.Text));
+            await testAxis.moveRelativeAndWait(posCommanded, Convert.ToDouble(velocityTB.Text));
         }
 
         private async void moveVelButton_Click(object sender, RoutedEventArgs e)
         {
-            await testSystem.testAxis.moveVelocity(Convert.ToDouble(velocityTB.Text));
+            await testAxis.moveVelocity(Convert.ToDouble(velocityTB.Text));
         }
 
         private async void stopPosRead_Click(object sender, RoutedEventArgs e)
@@ -140,30 +163,32 @@ namespace TwinCat_Motion_ADS
 
             mainWindowGrid.IsEnabled = false;
             keyboardInput = string.Empty;
-            Console.WriteLine(await testSystem.testAxis.getDtiPositionValue());
+            Console.WriteLine(await testAxis.getDtiPositionValue());
             mainWindowGrid.IsEnabled = true;
         }
 
         private async void stopMove_Click(object sender, RoutedEventArgs e)
         {
-            await testSystem.testAxis.moveStop();
+            await testAxis.moveStop();
         }
 
         private async void move2High_Click(object sender, RoutedEventArgs e)
         {
-            await testSystem.testAxis.moveToHighLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text)); //10 second timeout
+            await testAxis.moveToHighLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text)); //10 second timeout
         }
 
         private async void move2Low_Click(object sender, RoutedEventArgs e)
         {
-            await testSystem.testAxis.moveToLowLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text)); //10 second timeout
+            await testAxis.moveToLowLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text)); //10 second timeout
         }
 
         private async void end2endTest_Click(object sender, RoutedEventArgs e)
         {           
             keyboardInput = string.Empty;
             elementsEnabled(false);
-            await testSystem.testAxis.end2endCycleTesting(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), 1, 100);
+            cancelTest.IsEnabled = true;
+            pauseTest.IsEnabled = true;
+            await testAxis.end2endCycleTesting(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), 1, Convert.ToInt32(cycleTB.Text));
             elementsEnabled(true);
             
         }
@@ -175,13 +200,13 @@ namespace TwinCat_Motion_ADS
 
         private void cancelTest_Click(object sender, RoutedEventArgs e)
         {
-            testSystem.testAxis.CancelTest = !testSystem.testAxis.CancelTest;
+            testAxis.CancelTest = !testAxis.CancelTest;
         }
 
         private void pauseTest_Click(object sender, RoutedEventArgs e)
         {
-            testSystem.testAxis.PauseTest = !testSystem.testAxis.PauseTest;
-            if (testSystem.testAxis.PauseTest)
+            testAxis.PauseTest = !testAxis.PauseTest;
+            if (testAxis.PauseTest)
             {
                 pauseTest.Background = Brushes.Red;
             }
@@ -197,9 +222,96 @@ namespace TwinCat_Motion_ADS
             timeoutTB.IsEnabled = enable;
             velocityTB.IsEnabled = enable;
             dataOuput.IsEnabled = enable;
+            initAxis.IsEnabled = enable;
+            dataOuput.IsEnabled = enable;
+            positionText.IsEnabled = enable;
+            moveAbsButton.IsEnabled = enable;
+            moveRelButton.IsEnabled = enable;
+            moveVelButton.IsEnabled = enable;
+            stopMove.IsEnabled = enable;
+            move2High.IsEnabled = enable;
+            move2Low.IsEnabled = enable;
+            end2endTest.IsEnabled = enable;
+            cancelTest.IsEnabled = enable;
+            pauseTest.IsEnabled = enable;
+            enableButton.IsEnabled = enable;
+            resetButton.IsEnabled = enable;
+            cycleTB.IsEnabled = enable;
         }
 
+        private void connect2PlcButton_Click(object sender, RoutedEventArgs e)
+        {
+            Plc.setupPLC();
+            if (Plc.AdsState == AdsState.Invalid)
+            {
+                Console.WriteLine("Ads state is invalid");
+                elementsEnabled(false);
+            }
+            else if (Plc.AdsState == AdsState.Stop)
+            {
+                Console.WriteLine("Device connected but PLC not running");
+                elementsEnabled(true);
+            }
+            else if (Plc.AdsState == AdsState.Run)
+            {
+                Console.WriteLine("Device connected and running");
+                elementsEnabled(true);
+            }
+        }
 
+        private async void enableButton_Click(object sender, RoutedEventArgs e)
+        {
+            await testAxis.setEnable(!testAxis.AxisEnabled);
+        }
+
+        private async void resetButton_Click(object sender, RoutedEventArgs e)
+        {
+            await testAxis.Reset();
+        }
+
+        private async void highLimReversal_Click(object sender, RoutedEventArgs e)
+        {
+            await testAxis.HighLimitReversal(Convert.ToDouble(velocityTB.Text),60,1,1);
+            Console.WriteLine(testAxis.AxisPosition);
+        }
+        private async void lowLimReversal_Click(object sender, RoutedEventArgs e)
+        {
+            await testAxis.LowLimitReversal(Convert.ToDouble(velocityTB.Text), 60, 1, 1);
+            Console.WriteLine(testAxis.AxisPosition);
+        }
+        private async void end2endReversal_Click(object sender, RoutedEventArgs e)
+        {
+            if (selectedFolder == string.Empty)
+            {
+                Console.WriteLine("No save directory selected");
+                return;
+            }
+            keyboardInput = string.Empty;
+            elementsEnabled(false);
+            cancelTest.IsEnabled = true;
+            pauseTest.IsEnabled = true;
+           if(await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text),1,60,1,10,1,1))
+            {
+                Console.WriteLine("Test Complete");
+            }
+           else
+            {
+                Console.WriteLine("Test did no complete");
+            }
+            elementsEnabled(true);
+        }
+
+        private void folderDirSelect_Click(object sender, RoutedEventArgs e)
+        {
+            var fbd = new VistaFolderBrowserDialog();
+            selectedFolder = String.Empty;
+            if (fbd.ShowDialog()==true)
+            {
+                selectedFolder = fbd.SelectedPath;
+            }
+            Console.WriteLine(selectedFolder);
+            testAxis.TestDirectory = selectedFolder;
+        }
     }
 
 
