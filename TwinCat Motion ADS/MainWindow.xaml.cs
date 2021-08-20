@@ -290,13 +290,13 @@ namespace TwinCat_Motion_ADS
             elementsEnabled(false);
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
-           if(await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text),1,60,1,10,1,1))
+           if(await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text),1,60,1,20,1,1))
             {
                 Console.WriteLine("Test Complete");
             }
            else
             {
-                Console.WriteLine("Test did no complete");
+                Console.WriteLine("Test did not complete");
             }
             elementsEnabled(true);
         }

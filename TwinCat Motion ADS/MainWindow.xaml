@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
         Title="IBEX Lite" Height="450" Width="800">
-    <Grid x:Name="mainWindowGrid">
+    <Grid x:Name="mainWindowGrid" Focusable="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*"/>
             <ColumnDefinition Width="77*"/>

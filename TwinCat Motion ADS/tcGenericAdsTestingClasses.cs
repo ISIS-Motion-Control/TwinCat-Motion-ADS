@@ -16,6 +16,13 @@ using CsvHelper.Configuration.Attributes;
 
 namespace TwinCat_Motion_ADS
 {
+    /*To -do list
+     * New wait for error or done on relative and absolute moves is great BUT doesn't account for if a limit hit. These never return anything. Should probably add a timeout on these
+     * 
+     * 
+     * 
+     * 
+     */
 
     public class PLC
     {
@@ -62,17 +69,14 @@ namespace TwinCat_Motion_ADS
     }
 
     public class Axis : INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
-
+    {    
+        //eCommand enumeration values
         const byte eMoveAbsolute = 0;
         const byte eMoveRelative = 1;
         const byte eMoveVelocity = 3;
         const byte eHome = 10;
+
+        //Motion PLC Handles - used for reading/writing PLC variables
         private uint eCommandHandle;
         private uint fVelocityHandle;
         private uint fPositionHandle;
@@ -87,74 +91,66 @@ namespace TwinCat_Motion_ADS
         private uint bErrorHandle;
         private uint bEnableHandle;
         private uint bResetHandle;
-
-
+        //Optional PLC handles
         private uint dti1Handle;
         private uint dti2Handle;
 
+        //Axis error
         private bool _error;
         public bool Error
         {
             get { return _error; }
             set { _error = value; OnPropertyChanged(); }
         }
-
+        //Request test pause
         private bool _pauseTest = false;
         public bool PauseTest
         {
             get { return _pauseTest; }
-            set { _pauseTest = value;
-                OnPropertyChanged();
-            }
+            set { _pauseTest = value; OnPropertyChanged();}
         }
+        //Request test cancellation
         private bool _cancelTest = false;
         public bool CancelTest
         {
             get { return _cancelTest; }
-            set { _cancelTest = value;
-                OnPropertyChanged();
-            }
+            set { _cancelTest = value; OnPropertyChanged();}
         }
-
+        //Axis position (encoder)
         private double _axisPosition;
         public double AxisPosition
         {
             get { return _axisPosition; }
-            set { _axisPosition = value;
-                OnPropertyChanged();
-            }
+            set { _axisPosition = value; OnPropertyChanged();}
         }
-
+        //Axis enabled status
         private bool _axisEnabled;
         public bool AxisEnabled
         {
             get { return _axisEnabled; }
             set { _axisEnabled = value; OnPropertyChanged(); }
         }
+        //Axis forward enabled status
         private bool _axisFwEnabled;
         public bool AxisFwEnabled
         {
             get { return _axisFwEnabled; }
             set { _axisFwEnabled = value; OnPropertyChanged(); }
         }
+        //Axis backward enabled status
         private bool _axisBwEnabled;
         public bool AxisBwEnabled
         {
             get { return _axisBwEnabled; }
             set { _axisBwEnabled = value; OnPropertyChanged(); }
         }
-        private string _testDirectory = string.Empty;
-        public string TestDirectory
-        {
-            get { return _testDirectory; }
-            set { _testDirectory = value; }
-        }
+        //Directory for saving test csv
+        public string TestDirectory { get; set; } = string.Empty;
 
-
+        //"One-shot" DTI read. Field is cleared when read
         private string _dtiPosition = string.Empty;
         public string DtiPosition
         {
-            //bit of a convoluted GET method but basically gives a "one-shot" get of the value before clearing. This can be used to check we've actually had a successful read from the DTI using an "isEmpty" comparator.
             get {
                 string tempPosition = _dtiPosition;
                 _dtiPosition = string.Empty;
@@ -162,33 +158,40 @@ namespace TwinCat_Motion_ADS
             }
             set { _dtiPosition = value; }
         }
+        //Asynchronous task for setting the DtiPosition field
         public async Task setDtiPosition(string dtiPos)
         {
             await Task.Run(() => DtiPosition = dtiPos);
         }
+        //PLC object to which the test axis belongs
+        public PLC Plc { get; set; }
+        //Current axis ID
+        public uint AxisID { get; set; }
 
-        private PLC _plc;
-        public PLC Plc
-        {
-            get { return _plc; }
-            set { _plc = value; }
-        }
-        private uint _axisID;
-        public uint AxisID
-        {
-            get { return _axisID; }
-            set { _axisID = value; }
-        }
-
+        /// <summary>
+        /// Axis Class Constructor
+        /// </summary>
+        /// <param name="axisID"></param>
+        /// <param name="plc"></param>
+        /// <param name="dti1Present"></param>
+        /// <param name="dti2Present"></param>
         public Axis(uint axisID, PLC plc, bool dti1Present = false, bool dti2Present = false)
         {
             Plc = plc;
             AxisID = axisID;
             updateInstance(axisID,dti1Present,dti2Present);
         }
+
+        /// <summary>
+        /// Update current axis instance  - generates new variable handles for testing a different axis ID
+        /// </summary>
+        /// <param name="axisID"></param>
+        /// <param name="dti1Present"></param>
+        /// <param name="dti2Present"></param>
         public void updateInstance(uint axisID, bool dti1Present = false, bool dti2Present = false)
         {
             StopPositionRead();
+            //These variable handles rely on the twinCAT standard solution naming.
             eCommandHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.eCommand");
             fVelocityHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.fVelocity");
             fPositionHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.fPosition");
@@ -203,8 +206,7 @@ namespace TwinCat_Motion_ADS
             bErrorHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stStatus.bError");
             bEnableHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.bEnable");
             bResetHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.bReset");
-            StartPositionRead();
-            
+            StartPositionRead();            
             //Create variable handles for DTIs if user requested
             if (dti1Present)
             {
@@ -224,31 +226,68 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-
+        /// <summary>
+        /// Set the command on the axis
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
         private async Task setCommand(byte command)
         {
             await Plc.TcAds.WriteAnyAsync(eCommandHandle, command, CancellationToken.None);
         }
+        
+        /// <summary>
+        /// Set the velocity on the axis
+        /// </summary>
+        /// <param name="velocity"></param>
+        /// <returns></returns>
         private async Task setVelocity(double velocity)
         {
             await Plc.TcAds.WriteAnyAsync(fVelocityHandle, velocity, CancellationToken.None);
         }
+
+        /// <summary>
+        /// Set the position on the axis
+        /// </summary>
+        /// <param name="position"></param>
+        /// <returns></returns>
         private async Task setPosition(double position)
         {
             await Plc.TcAds.WriteAnyAsync(fPositionHandle, position, CancellationToken.None);
         }
+
+        /// <summary>
+        /// Set the execute on the axis TRUE
+        /// </summary>
+        /// <returns></returns>
         private async Task execute()
         {
             await Plc.TcAds.WriteAnyAsync(bExecuteHandle, true, CancellationToken.None);
         }
+
+        /// <summary>
+        /// Set the enable flag on the axis
+        /// </summary>
+        /// <param name="enable"></param>
+        /// <returns></returns>
         public async Task setEnable(bool enable)
         {
             await Plc.TcAds.WriteAnyAsync(bEnableHandle, enable, CancellationToken.None);
         }
+
+        /// <summary>
+        /// Reset the axis
+        /// </summary>
+        /// <returns></returns>
         public async Task Reset()
         {
             await Plc.TcAds.WriteAnyAsync(bResetHandle, true, CancellationToken.None);
         }
+
+        /// <summary>
+        /// Trigger a data read of DTI 1
+        /// </summary>
+        /// <returns></returns>
         public async Task TriggerDti1()
         {
             if (dti1Handle == 0)
@@ -257,6 +296,11 @@ namespace TwinCat_Motion_ADS
             }
             await Plc.TcAds.WriteAnyAsync(dti1Handle, true, CancellationToken.None);
         }
+
+        /// <summary>
+        /// Trigger a data read of DTI 2
+        /// </summary>
+        /// <returns></returns>
         public async Task TriggerDti2()
         {
             if (dti2Handle == 0)
@@ -266,6 +310,12 @@ namespace TwinCat_Motion_ADS
             await Plc.TcAds.WriteAnyAsync(dti2Handle, true, CancellationToken.None);
         }
 
+        /// <summary>
+        /// Send an absolute move command to the axis
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="velocity"></param>
+        /// <returns>True if the command sucessfully sends. False is the axis is busy, in an error state</returns>
         public async Task<bool> moveAbsolute(double position, double velocity)
         {
             if (await read_bBusy())
@@ -303,17 +353,48 @@ namespace TwinCat_Motion_ADS
             await execute();
             return true;
         }
+        
+        /// <summary>
+        /// Send a move absolute command to the axis and wait for completion. There is no timeout on this.
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="velocity"></param>
+        /// <returns>True if move completed sucessfully, False if any part of the command fails.</returns>
         public async Task<bool> moveAbsoluteAndWait(double position, double velocity)
         {
+            var tokenSourceDone = new CancellationTokenSource();
+            var tokenSourceError = new CancellationTokenSource();
+
             if (await moveAbsolute(position, velocity))
             {
                 await Task.Delay(40);   //delay to system to allow PLC to react to move command
-                await waitForDone();
-                return true;
+                var doneTask = waitForDone(tokenSourceDone.Token);
+                var errorTask = checkForError(tokenSourceError.Token);
+                var waitingTask = new List<Task>{ doneTask, errorTask };
+                
+                if(await Task.WhenAny(waitingTask)==doneTask)
+                {
+                    Console.WriteLine("Move absolute complete");
+                    tokenSourceError.Cancel();
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine("Error on move absolute");
+                    tokenSourceDone.Cancel();
+                    return true;
+                }
             }
             Console.WriteLine("Axis busy - command rejected");
             return false;
         }
+
+        /// <summary>
+        /// Send a relative move command to the axis
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="velocity"></param>
+        /// <returns>True if the command sucessfully sends. False is the axis is busy, in an error state</returns>
         public async Task<bool> moveRelative(double position, double velocity)
         {
             if (await read_bBusy())
@@ -350,17 +431,46 @@ namespace TwinCat_Motion_ADS
             await execute();
             return true;
         }
+
+        /// <summary>
+        /// Send a move relative command to the axis and wait for completion. There is no timeout on this.
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="velocity"></param>
+        /// <returns>True if the command sucessfully sends. False is the axis is busy, in an error state</returns>
         public async Task<bool> moveRelativeAndWait(double position, double velocity)
         {
+            var tokenSourceDone = new CancellationTokenSource();
+            var tokenSourceError = new CancellationTokenSource();
+
             if (await moveRelative(position,velocity))
             {
                 await Task.Delay(40);
-                await waitForDone();
-                return true;
+                var doneTask = waitForDone(tokenSourceDone.Token);
+                var errorTask = checkForError(tokenSourceError.Token);
+                var waitingTask = new List<Task> { doneTask, errorTask };
+                if (await Task.WhenAny(waitingTask) == doneTask)
+                {
+                    Console.WriteLine("Move relative complete");
+                    tokenSourceError.Cancel();
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine("Error on move relative");
+                    tokenSourceDone.Cancel();
+                    return true;
+                }
             }
             Console.WriteLine("Axis busy - command rejected");
             return false;
         }
+        
+        /// <summary>
+        /// Send a continuos velocity move to the axis
+        /// </summary>
+        /// <param name="velocity"></param>
+        /// <returns></returns>
         public async Task<bool> moveVelocity(double velocity)
         {
             if (await read_bBusy())
@@ -395,40 +505,80 @@ namespace TwinCat_Motion_ADS
             await execute();
             return true;
         }
+        
+        /// <summary>
+        /// Send a halt command to the axis
+        /// </summary>
+        /// <returns></returns>
         public async Task moveStop()
         {
             await Plc.TcAds.WriteAnyAsync(bStopHandle, true, CancellationToken.None);
         }
-     
-        public async Task<bool> waitForDone()
+        
+        /// <summary>
+        /// Monitor and return true when bDone is true on axis
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> waitForDone(CancellationToken wToken)
         {
             bool doneStatus = await read_bDone();
             while (doneStatus != true)
             {
                 doneStatus = await read_bDone();
+                //Cancellation method for task otherwise task will never complete if no done signal ever received
+                if (wToken.IsCancellationRequested)
+                {
+                    throw new TaskCanceledException();
+                }              
             }
-            Console.WriteLine("!!!DONE!!!");
+            return true;
+        }
+
+        /// <summary>
+        /// Monitor and return true when bError is true on axis
+        /// </summary>
+        /// <param name="wToken"></param>
+        /// <returns></returns>
+        public async Task<bool> checkForError(CancellationToken wToken)
+        {
+            bool errorStatus = await read_bError();
+            while(errorStatus!=true)
+            {
+                errorStatus = await read_bError();
+                if (wToken.IsCancellationRequested)
+                {
+                    throw new TaskCanceledException();
+                }                
+            }
+            Console.WriteLine("Axis error");
             return true;
         }
         
+        /// <summary>
+        /// Move the axis to the high limit
+        /// </summary>
+        /// <param name="velocity"></param>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
         public async Task<bool> moveToHighLimit(double velocity, int timeout)
         {
+            //Check to see if already on the high limit
             if(await read_bFwEnabled() == false)
             {
                 Console.WriteLine("Already at high limit");
                 return true;
             }
-            if(velocity <0)
+            //"Correct" the velocity setting if required
+            if (velocity <0)
             {
-                Console.WriteLine("Incorrect velocity setting");
-                return false;
+                velocity = velocity * -1;
             }
+            //Send a move velocity command
             if (await moveVelocity(velocity) == false)
             {
                 Console.WriteLine("Command rejected");
                 return false;
-            }; //starts the velocity move
-            
+            };           
             //Start a task to check the FwEnabled bool that only returns when flag is hit (fwEnabled == false)
             Task checkFwHitTask = Task<bool>.Run(async () =>
             {
@@ -439,13 +589,14 @@ namespace TwinCat_Motion_ADS
                 return true;
             });
             var cancelToken = new CancellationTokenSource();
+            //Create a new task to monitor a timeoutTask and the fw limit task. 
             if(await Task.WhenAny(checkFwHitTask, Task.Delay(TimeSpan.FromSeconds(timeout),cancelToken.Token))==checkFwHitTask)
             {
                 Console.WriteLine("Forward limit reached");
                 cancelToken.Cancel();
                 return true;
             }
-            else
+            else //Timeout on command
             {
                 Console.WriteLine("Timeout on move to forward limit");
                 await moveStop();
@@ -453,24 +604,31 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        /// <summary>
+        /// Move the axis to the low limit
+        /// </summary>
+        /// <param name="velocity"></param>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
         public async Task<bool> moveToLowLimit(double velocity, int timeout)
         {
+            //Check to see if already on the low limit
             if (await read_bBwEnabled() == false)
             {
                 Console.WriteLine("Already at low limit");
                 return true;
             }
+            //"Correct" the velocity setting if required
             if (velocity > 0)
             {
-                Console.WriteLine("Incorrect velocity setting");
-                return false;
+                velocity = velocity * -1;
             }
+            //Send a move velocity command
             if (await moveVelocity(velocity) == false)
             {
                 Console.WriteLine("Command rejected");
                 return false;
-            }; //starts the velocity move
-
+            }; 
             //Start a task to check the BwEnabled bool that only returns when flag is hit (BwEnabled == false)
             Task checkBwHitTask = Task<bool>.Run(async () =>
             {
@@ -481,13 +639,14 @@ namespace TwinCat_Motion_ADS
                 return true;
             });
             var cancelToken = new CancellationTokenSource();
+            //Create a new task to monitor a timeoutTask and the fw limit task.
             if (await Task.WhenAny(checkBwHitTask, Task.Delay(TimeSpan.FromSeconds(timeout),cancelToken.Token)) == checkBwHitTask)
             {
                 Console.WriteLine("Backward limit reached");
                 cancelToken.Cancel();
                 return true;
             }
-            else
+            else //Timeout on command
             {
                 Console.WriteLine("Timeout on move to backward limit");
                 await moveStop();
@@ -495,47 +654,54 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        /// <summary>
+        /// Perform a reversing sequence to find the high limit position
+        /// </summary>
+        /// <param name="velocity"></param>
+        /// <param name="timeout">(seconds)</param>
+        /// <param name="extraReversalTime">(seconds) Additional reversal time after regaining the FwEnable signal to back away from the switch</param>
+        /// <param name="settleTime">(seconds) Time after hitting the limit for the axis to settle</param>
+        /// <returns></returns>
         public async Task<bool> HighLimitReversal(double velocity, int timeout, int extraReversalTime, int settleTime)
-        {
+        {   
+            //Only allow the command if already on the high limit
             if (await read_bFwEnabled() == true)
             {
                 Console.WriteLine("Not on high limit. Reversal command rejected");
                 return false;
             }
+            //Correct the velocity setting if needed
             if (velocity < 0)
             {
                 velocity = velocity *-1;
-
             }
+            //Reject 0 velocity value
             if (velocity == 0)
             {
                 Console.WriteLine("Cannot have velocity of zero");
                 return false;
             }
-
             //Start a reversal off the limit switch
             if (await moveVelocity(-velocity) == false)
             {
                 Console.WriteLine("Reversal command rejected");
                 return false;
             }
-            
-
-            //Start a task to check the bool that only returns when flag is hit (BwEnabled == false)
+            //Start a task to monitor when the FwEnable signal is regained
             Task checkFwEnableTask = Task<bool>.Run(async () =>
             {
                 while (await read_bFwEnabled() == false)
                 {
                     await Task.Delay(10);
                 }
+                //Additional time delay for reversing off of switch
                 await Task.Delay(TimeSpan.FromSeconds(extraReversalTime));
                 return true;
-            });
-            
+            });           
             var cancelToken = new CancellationTokenSource();
+            //Monitor the checkFwEnableTask and a timeout task
             if (await Task.WhenAny(checkFwEnableTask, Task.Delay(TimeSpan.FromSeconds(timeout), cancelToken.Token)) == checkFwEnableTask)
-            {
-                //Console.WriteLine("Reversal complete");     
+            {   
                 await moveStop();
                 cancelToken.Cancel();
             }
@@ -545,25 +711,27 @@ namespace TwinCat_Motion_ADS
                 await moveStop();
                 return false;
             }
-            //Now to move back on to fwLimit
+            //Velocity move back on to high limit
             if (await moveVelocity(velocity) == false)
             {
                 Console.WriteLine("Approach high limit command rejected ");
                 return false;
             }
+            //Restart the checkFwEnable task to find when it is hit. Run at much faster rate
             checkFwEnableTask = Task<bool>.Run(async () =>
             {
                 while (await read_bFwEnabled() == true)
                 {
                     await Task.Delay(1);    //much faster check time
                 }
+                //Allow axis time to settle
                 await Task.Delay(TimeSpan.FromSeconds(settleTime));
                 return true;
             });
             var cancelToken2 = new CancellationTokenSource();
+            //Monitor the checkFwEnableTask and a timeout task
             if (await Task.WhenAny(checkFwEnableTask, Task.Delay(TimeSpan.FromSeconds(timeout), cancelToken2.Token)) == checkFwEnableTask)
             {
-                //Console.WriteLine("On high limit");
                 cancelToken2.Cancel();
                 return true;
             }
@@ -574,47 +742,55 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
         }
-
+        
+        /// <summary>
+        /// Perform a reversing sequence to find the low limit position
+        /// </summary>
+        /// <param name="velocity"></param>
+        /// <param name="timeout">(seconds)</param>
+        /// <param name="extraReversalTime">(seconds) Additional reversal time after regaining the FwEnable signal to back away from the switch</param>
+        /// <param name="settleTime">(seconds) Time after hitting the limit for the axis to settle</param>
+        /// <returns></returns>
         public async Task<bool> LowLimitReversal(double velocity, int timeout, int extraReversalTime, int settleTime)
         {
+            //Only allow the command if already on the low limit
             if (await read_bBwEnabled() == true)
             {
                 Console.WriteLine("Not on low limit. Reversal command rejected");
                 return false;
             }
+            //Correct the velocity setting if needed
             if (velocity > 0)
             {
                 velocity = velocity * -1;
             }
+            //Reject 0 velocity value
             if (velocity == 0)
             {
                 Console.WriteLine("Cannot have velocity of zero");
                 return false;
             }
-
             //Start a reversal off the limit switch
             if (await moveVelocity(-velocity) == false)
             {
                 Console.WriteLine("Reversal command rejected");
                 return false;
             }
-
-
-            //Start a task to check the bool that only returns when flag is hit (BwEnabled == false)
+            //Start a task to monitor when the BwEnable signal is regained
             Task checkBwEnableTask = Task<bool>.Run(async () =>
             {
                 while (await read_bBwEnabled() == false)
                 {
                     await Task.Delay(10);
                 }
+                //Additional time delay for reversing off of switch
                 await Task.Delay(TimeSpan.FromSeconds(extraReversalTime));
                 return true;
             });
-
             var cancelToken = new CancellationTokenSource();
+            //Monitor the checkBwEnableTask and a timeout task
             if (await Task.WhenAny(checkBwEnableTask, Task.Delay(TimeSpan.FromSeconds(timeout), cancelToken.Token)) == checkBwEnableTask)
-            {
-                //Console.WriteLine("Reversal complete");     
+            {   
                 await moveStop();
                 cancelToken.Cancel();
             }
@@ -624,22 +800,25 @@ namespace TwinCat_Motion_ADS
                 await moveStop();
                 return false;
             }
-            //Now to move back on to fwLimit
+            //Velocity move back on to low limit
             if (await moveVelocity(velocity) == false)
             {
                 Console.WriteLine("Approach low limit command rejected ");
                 return false;
             }
+            //Restart the checkBwEnable task to find when it is hit. Run at much faster rate
             checkBwEnableTask = Task<bool>.Run(async () =>
             {
                 while (await read_bBwEnabled() == true)
                 {
                     await Task.Delay(1);    //much faster check time
                 }
+                //Allow axis time to settle
                 await Task.Delay(TimeSpan.FromSeconds(settleTime));
                 return true;
             });
             var cancelToken2 = new CancellationTokenSource();
+            //Monitor the checkFwEnableTask and a timeout task
             if (await Task.WhenAny(checkBwEnableTask, Task.Delay(TimeSpan.FromSeconds(timeout), cancelToken2.Token)) == checkBwEnableTask)
             {
                 //Console.WriteLine("On high limit");
@@ -764,7 +943,7 @@ namespace TwinCat_Motion_ADS
         public async Task<bool> end2endCycleTestingWithReversal(double setVelocity, double reversalVelocity, int timeout, int cycleDelay, int cycles, int resersalExtraTime, int reversalSettleTime, bool dtiPresent = false)
         {
             var currentTime = DateTime.Now;
-            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-End2EndwithReversalTest-setVelo({1}) revVelo({2}) settleTime({3}) - {4} cycles", currentTime,setVelocity,reversalVelocity,reversalSettleTime,cycles);
+            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {5} -End2EndwithReversalTest-setVelo({1}) revVelo({2}) settleTime({3}) - {4} cycles", currentTime,setVelocity,reversalVelocity,reversalSettleTime,cycles,AxisID);
 
             string fileName = @"\" + formattedTitle + ".csv";
             var stream = File.Open(TestDirectory+fileName, FileMode.Append);
@@ -903,43 +1082,74 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-
+        /// <summary>
+        /// Read the axis bDone status
+        /// </summary>
+        /// <returns></returns>
         public async Task<bool> read_bDone()
         {
             var result = await Plc.TcAds.ReadAnyAsync<bool>(bDoneHandle, CancellationToken.None);
-            //Console.WriteLine(result.Value.ToString()); //debugging line
             return result.Value;
         }
+
+        /// <summary>
+        /// Read the axis position value
+        /// </summary>
+        /// <returns></returns>
         public async Task<double> read_AxisPosition()
         {
             var result = await Plc.TcAds.ReadAnyAsync<double>(fActPositionHandle, CancellationToken.None);
             AxisPosition = result.Value;
             return result.Value;
         }
+
+        /// <summary>
+        /// Read the axis busy status
+        /// </summary>
+        /// <returns></returns>
         public async Task<bool> read_bBusy()
         {
             var result = await Plc.TcAds.ReadAnyAsync<bool>(bBusyHandle, CancellationToken.None);
-            //Console.WriteLine(result.Value.ToString()); //debugging line
             return result.Value;
         }
+
+        /// <summary>
+        /// Read the axis bEnabled status
+        /// </summary>
+        /// <returns></returns>
         public async Task<bool> read_bEnabled()
         {
             var result = await Plc.TcAds.ReadAnyAsync<bool>(bEnabledHandle, CancellationToken.None);
             AxisEnabled = result.Value;
             return result.Value;
         }
+
+        /// <summary>
+        /// Read the axis forward enabled status
+        /// </summary>
+        /// <returns></returns>
         public async Task<bool> read_bFwEnabled()
         {
             var result = await Plc.TcAds.ReadAnyAsync<bool>(bFwEnabledHandle, CancellationToken.None);
             AxisFwEnabled = result.Value;
             return result.Value;
         }
+        
+        /// <summary>
+        /// Read the axis backward enabled status
+        /// </summary>
+        /// <returns></returns>
         public async Task<bool> read_bBwEnabled()
         {
             var result = await Plc.TcAds.ReadAnyAsync<bool>(bBwEnabledHandle, CancellationToken.None);
             AxisBwEnabled = result.Value;
             return result.Value;
         }
+        
+        /// <summary>
+        /// Read the axis error status
+        /// </summary>
+        /// <returns></returns>
         public async Task<bool> read_bError()
         {
             var result = await Plc.TcAds.ReadAnyAsync<bool>(bErrorHandle, CancellationToken.None);
@@ -1053,6 +1263,11 @@ namespace TwinCat_Motion_ADS
             // Return the block.
             return block;
         }
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
     }
 
     public class end2endReversalCSV
@@ -1079,5 +1294,6 @@ namespace TwinCat_Motion_ADS
             Dti1Position = dti1Position;
             Dti2Position = dti2Position;
         }
+        
     }
 }
