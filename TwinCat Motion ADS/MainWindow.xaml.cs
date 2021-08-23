@@ -131,7 +131,7 @@ namespace TwinCat_Motion_ADS
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
             double posCommanded = Convert.ToDouble(positionText.Text);
-            await testAxis.moveAbsoluteAndWait(posCommanded, Convert.ToDouble(velocityTB.Text));
+            await testAxis.moveAbsoluteAndWait(posCommanded, Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
         }
 
         private void initAxis_Click(object sender, RoutedEventArgs e)
@@ -271,12 +271,12 @@ namespace TwinCat_Motion_ADS
 
         private async void highLimReversal_Click(object sender, RoutedEventArgs e)
         {
-            await testAxis.HighLimitReversal(Convert.ToDouble(velocityTB.Text),60,1,1);
+            await testAxis.HighLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), 1,1);
             Console.WriteLine(testAxis.AxisPosition);
         }
         private async void lowLimReversal_Click(object sender, RoutedEventArgs e)
         {
-            await testAxis.LowLimitReversal(Convert.ToDouble(velocityTB.Text), 60, 1, 1);
+            await testAxis.LowLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), 1, 1);
             Console.WriteLine(testAxis.AxisPosition);
         }
         private async void end2endReversal_Click(object sender, RoutedEventArgs e)
@@ -290,7 +290,7 @@ namespace TwinCat_Motion_ADS
             elementsEnabled(false);
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
-           if(await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text),1,60,1,20,1,1))
+           if(await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text),1, Convert.ToInt32(timeoutTB.Text), 1,Convert.ToInt32(cycleTB.Text),1,1))
             {
                 Console.WriteLine("Test Complete");
             }
@@ -311,6 +311,16 @@ namespace TwinCat_Motion_ADS
             }
             Console.WriteLine(selectedFolder);
             testAxis.TestDirectory = selectedFolder;
+        }
+
+        private async void uniDirecitonalTest_Click(object sender, RoutedEventArgs e)
+        {
+            await testAxis.uniDirectionalAccuracyTest(0, 2, 2, 10, -1.5, 1, 5, 0, 1);
+        }
+
+        private async void uniDirecitonalTest_Copy_Click(object sender, RoutedEventArgs e)
+        {
+            await testAxis.biDirectionalAccuracyTest(0, 2, 4, 10, 1.5, 1, 5,2, 0, 1);
         }
     }
 

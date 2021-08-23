@@ -16,12 +16,10 @@ using CsvHelper.Configuration.Attributes;
 
 namespace TwinCat_Motion_ADS
 {
-    /*To -do list
-     * New wait for error or done on relative and absolute moves is great BUT doesn't account for if a limit hit. These never return anything. Should probably add a timeout on these
-     * 
-     * 
-     * 
-     * 
+    /*To -do list    
+     * Add the new cancel and pause tasks to the uni and bidirectional accuracy test
+     * Add a repeatability test
+     * Anymore cleanup I can do? Some of these tests are very repeat heavy
      */
 
     public class PLC
@@ -147,17 +145,23 @@ namespace TwinCat_Motion_ADS
         //Directory for saving test csv
         public string TestDirectory { get; set; } = string.Empty;
 
-        //"One-shot" DTI read. Field is cleared when read
         private string _dtiPosition = string.Empty;
         public string DtiPosition
         {
-            get {
-                string tempPosition = _dtiPosition;
-                _dtiPosition = string.Empty;
-                return tempPosition;
+            get
+            {
+
+                return _dtiPosition;
             }
             set { _dtiPosition = value; }
         }
+        private string readAndClearDtiPosition()
+        {
+            string tempPosition = DtiPosition;
+            DtiPosition = string.Empty;
+            return tempPosition;
+        }
+
         //Asynchronous task for setting the DtiPosition field
         public async Task setDtiPosition(string dtiPos)
         {
@@ -353,41 +357,135 @@ namespace TwinCat_Motion_ADS
             await execute();
             return true;
         }
-        
+
         /// <summary>
-        /// Send a move absolute command to the axis and wait for completion. There is no timeout on this.
+        /// Send a move absolute command to the axis and wait for completion.
         /// </summary>
         /// <param name="position"></param>
         /// <param name="velocity"></param>
         /// <returns>True if move completed sucessfully, False if any part of the command fails.</returns>
-        public async Task<bool> moveAbsoluteAndWait(double position, double velocity)
+        public async Task<bool> moveAbsoluteAndWait(double position, double velocity, int timeout = 0)
         {
-            var tokenSourceDone = new CancellationTokenSource();
-            var tokenSourceError = new CancellationTokenSource();
+            CancellationTokenSource ct = new CancellationTokenSource();
 
             if (await moveAbsolute(position, velocity))
             {
                 await Task.Delay(40);   //delay to system to allow PLC to react to move command
-                var doneTask = waitForDone(tokenSourceDone.Token);
-                var errorTask = checkForError(tokenSourceError.Token);
-                var waitingTask = new List<Task>{ doneTask, errorTask };
+                Task<bool> doneTask = waitForDone(ct.Token);
+                Task<bool> errorTask = checkForError(ct.Token);
+                Task<bool> limitTask;
+                List<Task> waitingTask;
+                
+                //Check direction of travel for monitoring limits
+                double currentPosition = await read_AxisPosition();
+                if(position>currentPosition)
+                {
+                    limitTask = checkFwLimitTask(true, ct.Token);
+                }
+                else
+                {
+                    limitTask = checkBwLimitTask(true, ct.Token);
+                }
+                //Check if we need a timeout task
+                if (timeout > 0)
+                {
+                    Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token);
+                    waitingTask = new List<Task> { doneTask, errorTask,limitTask, timeoutTask };
+                }
+                else
+                {
+                    waitingTask = new List<Task> { doneTask, errorTask,limitTask };
+                }
                 
                 if(await Task.WhenAny(waitingTask)==doneTask)
                 {
                     Console.WriteLine("Move absolute complete");
-                    tokenSourceError.Cancel();
+                    ct.Cancel();
                     return true;
+                }
+                else if(await Task.WhenAny(waitingTask) == errorTask)
+                {
+                    Console.WriteLine("Error on move absolute");
+                    ct.Cancel();
+                    return false;
+                }
+                else if(await Task.WhenAny(waitingTask) == limitTask)
+                {
+                    Console.WriteLine("Limit hit before position reached");
+                    ct.Cancel();
+                    return false;
                 }
                 else
                 {
-                    Console.WriteLine("Error on move absolute");
-                    tokenSourceDone.Cancel();
-                    return true;
+                    Console.WriteLine("Timeout on moveabs");
+                    await moveStop();
+                    ct.Cancel();
+                    return false;
                 }
             }
             Console.WriteLine("Axis busy - command rejected");
             return false;
         }
+
+        private async Task<bool> checkFwLimitTask(bool limitStatus, CancellationToken wToken, int msDelay = 50)
+        {
+            //if limitStatus true, watch for FwEnabled flag to go false and complete the task
+            while (await read_bFwEnabled() == limitStatus)
+            {
+                if (wToken.IsCancellationRequested)
+                {
+                    throw new TaskCanceledException();
+                }
+                await Task.Delay(msDelay);
+            }
+            return true;
+        }
+        private async Task<bool> checkBwLimitTask(bool limitStatus, CancellationToken wToken, int msDelay = 50)
+        {
+            //if limitStatus true, watch for BwEnabled flag to go false and complete the task
+            while (await read_bBwEnabled() == limitStatus)
+            {
+                if (wToken.IsCancellationRequested)
+                {
+                    throw new TaskCanceledException();
+                }
+                await Task.Delay(msDelay);
+            }
+            return true;
+        }
+        private async Task<bool> checkCancellationRequestTask(CancellationToken wToken)
+        {
+            while(CancelTest ==false)
+            {
+                await Task.Delay(10);
+                if(wToken.IsCancellationRequested)
+                {
+                    throw new TaskCanceledException();
+                }
+            }
+            return true;
+        }
+        private async Task<bool> checkPauseRequestTask(CancellationToken wToken)
+        {
+            if(PauseTest)
+            {
+                Console.WriteLine("Test Paused");
+            }
+            while (PauseTest)
+            {
+                await Task.Delay(10);
+                if (CancelTest)
+                {
+                    return true;
+                }
+                if (wToken.IsCancellationRequested)
+                {
+                    throw new TaskCanceledException();
+                }
+            }
+            return true;
+        }
+
 
         /// <summary>
         /// Send a relative move command to the axis
@@ -438,28 +536,62 @@ namespace TwinCat_Motion_ADS
         /// <param name="position"></param>
         /// <param name="velocity"></param>
         /// <returns>True if the command sucessfully sends. False is the axis is busy, in an error state</returns>
-        public async Task<bool> moveRelativeAndWait(double position, double velocity)
+        public async Task<bool> moveRelativeAndWait(double position, double velocity, int timeout=0)
         {
-            var tokenSourceDone = new CancellationTokenSource();
-            var tokenSourceError = new CancellationTokenSource();
+            CancellationTokenSource ct = new CancellationTokenSource();
 
             if (await moveRelative(position,velocity))
             {
                 await Task.Delay(40);
-                var doneTask = waitForDone(tokenSourceDone.Token);
-                var errorTask = checkForError(tokenSourceError.Token);
-                var waitingTask = new List<Task> { doneTask, errorTask };
-                if (await Task.WhenAny(waitingTask) == doneTask)
+                Task<bool> doneTask = waitForDone(ct.Token);
+                Task<bool> errorTask = checkForError(ct.Token);
+                Task<bool> limitTask;
+                List<Task> waitingTask;
+                
+                //Check direction of travel for monitoring limits
+                if (position > 0)
                 {
-                    Console.WriteLine("Move relative complete");
-                    tokenSourceError.Cancel();
-                    return true;
+                    limitTask = checkFwLimitTask(true, ct.Token);
                 }
                 else
                 {
-                    Console.WriteLine("Error on move relative");
-                    tokenSourceDone.Cancel();
+                    limitTask = checkBwLimitTask(true, ct.Token);
+                }
+                //Check if we need a timeout task
+                if (timeout > 0)
+                {
+                    Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token);
+                    waitingTask = new List<Task> { doneTask, errorTask, limitTask, timeoutTask };
+                }
+                else
+                {
+                    waitingTask = new List<Task> { doneTask, errorTask, limitTask };
+                }
+
+                if (await Task.WhenAny(waitingTask) == doneTask)
+                {
+                    Console.WriteLine("Move relative complete");
+                    ct.Cancel();
                     return true;
+                }
+                else if (await Task.WhenAny(waitingTask) == errorTask)
+                {
+                    Console.WriteLine("Error on move relative");
+                    ct.Cancel();
+                    return false;
+                }
+                else if (await Task.WhenAny(waitingTask) == limitTask)
+                {
+                    Console.WriteLine("Limit hit before position reached");
+                    ct.Cancel();
+                    return false;
+                }
+                else
+                {
+                    Console.WriteLine("Timeout on moverel");
+                    await moveStop();
+                    ct.Cancel();
+                    return false;
                 }
             }
             Console.WriteLine("Axis busy - command rejected");
@@ -568,6 +700,11 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("Already at high limit");
                 return true;
             }
+            if (velocity == 0)
+            {
+                Console.WriteLine("0 velocity not valid");
+                return false;
+            }
             //"Correct" the velocity setting if required
             if (velocity <0)
             {
@@ -578,26 +715,30 @@ namespace TwinCat_Motion_ADS
             {
                 Console.WriteLine("Command rejected");
                 return false;
-            };           
+            };
             //Start a task to check the FwEnabled bool that only returns when flag is hit (fwEnabled == false)
-            Task checkFwHitTask = Task<bool>.Run(async () =>
-            {
-                while (await read_bFwEnabled() == true)
-                {
-                    await Task.Delay(50);
-                }
-                return true;
-            });
-            var cancelToken = new CancellationTokenSource();
+            CancellationTokenSource ct = new CancellationTokenSource();
+            Task<bool> limitTask = checkFwLimitTask(true,ct.Token);
+            List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task. 
-            if(await Task.WhenAny(checkFwHitTask, Task.Delay(TimeSpan.FromSeconds(timeout),cancelToken.Token))==checkFwHitTask)
+            if(timeout==0)
+            {
+                waitingTask = new List<Task> { limitTask };
+            }
+            else
+            {
+                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token)};
+            }
+
+            if(await Task.WhenAny(waitingTask)==limitTask)
             {
                 Console.WriteLine("Forward limit reached");
-                cancelToken.Cancel();
+                ct.Cancel();
                 return true;
             }
             else //Timeout on command
             {
+                await Task.Delay(20);
                 Console.WriteLine("Timeout on move to forward limit");
                 await moveStop();
                 return false;
@@ -618,6 +759,11 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("Already at low limit");
                 return true;
             }
+            if (velocity == 0)
+            {
+                Console.WriteLine("0 velocity not valid");
+                return false;
+            }
             //"Correct" the velocity setting if required
             if (velocity > 0)
             {
@@ -628,26 +774,30 @@ namespace TwinCat_Motion_ADS
             {
                 Console.WriteLine("Command rejected");
                 return false;
-            }; 
+            };
             //Start a task to check the BwEnabled bool that only returns when flag is hit (BwEnabled == false)
-            Task checkBwHitTask = Task<bool>.Run(async () =>
-            {
-                while (await read_bBwEnabled() == true)
-                {
-                    await Task.Delay(50);
-                }
-                return true;
-            });
-            var cancelToken = new CancellationTokenSource();
+            CancellationTokenSource ct = new CancellationTokenSource();
+            Task<bool> limitTask = checkBwLimitTask(true, ct.Token);
+            List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task.
-            if (await Task.WhenAny(checkBwHitTask, Task.Delay(TimeSpan.FromSeconds(timeout),cancelToken.Token)) == checkBwHitTask)
+            if (timeout == 0)
+            {
+                waitingTask = new List<Task> { limitTask };
+            }
+            else
+            {
+                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token) };
+            }
+
+            if (await Task.WhenAny(waitingTask) == limitTask)
             {
                 Console.WriteLine("Backward limit reached");
-                cancelToken.Cancel();
+                ct.Cancel();
                 return true;
             }
             else //Timeout on command
             {
+                await Task.Delay(20);
                 Console.WriteLine("Timeout on move to backward limit");
                 await moveStop();
                 return false;
@@ -688,25 +838,28 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
             //Start a task to monitor when the FwEnable signal is regained
-            Task checkFwEnableTask = Task<bool>.Run(async () =>
+            CancellationTokenSource ct = new CancellationTokenSource();
+            Task<bool> limitTask = checkFwLimitTask(false, ct.Token);
+            List<Task> waitingTask;
+            //Create a new task to monitor a timeoutTask and the fw limit task. 
+            if (timeout == 0)
             {
-                while (await read_bFwEnabled() == false)
-                {
-                    await Task.Delay(10);
-                }
-                //Additional time delay for reversing off of switch
-                await Task.Delay(TimeSpan.FromSeconds(extraReversalTime));
-                return true;
-            });           
-            var cancelToken = new CancellationTokenSource();
-            //Monitor the checkFwEnableTask and a timeout task
-            if (await Task.WhenAny(checkFwEnableTask, Task.Delay(TimeSpan.FromSeconds(timeout), cancelToken.Token)) == checkFwEnableTask)
-            {   
-                await moveStop();
-                cancelToken.Cancel();
+                waitingTask = new List<Task> { limitTask };
             }
             else
             {
+                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token) };
+            }
+            //Monitor the checkFwEnableTask and a timeout task
+            if (await Task.WhenAny(waitingTask) == limitTask)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(extraReversalTime));
+                await moveStop();
+                ct.Cancel();
+            }
+            else
+            {
+                await Task.Delay(20);
                 Console.WriteLine("Timeout on reversal");
                 await moveStop();
                 return false;
@@ -718,25 +871,29 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
             //Restart the checkFwEnable task to find when it is hit. Run at much faster rate
-            checkFwEnableTask = Task<bool>.Run(async () =>
+            waitingTask.Clear();
+            CancellationTokenSource ct2 = new CancellationTokenSource();
+            limitTask = checkFwLimitTask(true, ct2.Token);
+            //Create a new task to monitor a timeoutTask and the fw limit task. 
+            if (timeout == 0)
             {
-                while (await read_bFwEnabled() == true)
-                {
-                    await Task.Delay(1);    //much faster check time
-                }
-                //Allow axis time to settle
-                await Task.Delay(TimeSpan.FromSeconds(settleTime));
-                return true;
-            });
-            var cancelToken2 = new CancellationTokenSource();
+                Console.WriteLine("new task");
+                waitingTask = new List<Task> { limitTask };
+            }
+            else
+            {
+                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct2.Token) };
+            }
             //Monitor the checkFwEnableTask and a timeout task
-            if (await Task.WhenAny(checkFwEnableTask, Task.Delay(TimeSpan.FromSeconds(timeout), cancelToken2.Token)) == checkFwEnableTask)
+            if (await Task.WhenAny(waitingTask) == limitTask)
             {
-                cancelToken2.Cancel();
+                await Task.Delay(TimeSpan.FromSeconds(settleTime));
+                ct2.Cancel();
                 return true;
             }
             else
             {
+                await Task.Delay(20);
                 Console.WriteLine("Timeout on move to limit");
                 await moveStop();
                 return false;
@@ -776,26 +933,29 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("Reversal command rejected");
                 return false;
             }
-            //Start a task to monitor when the BwEnable signal is regained
-            Task checkBwEnableTask = Task<bool>.Run(async () =>
+            //Start a task to monitor when the FwEnable signal is regained
+            CancellationTokenSource ct = new CancellationTokenSource();
+            Task<bool> limitTask = checkBwLimitTask(false, ct.Token);
+            List<Task> waitingTask;
+            //Create a new task to monitor a timeoutTask and the fw limit task. 
+            if (timeout == 0)
             {
-                while (await read_bBwEnabled() == false)
-                {
-                    await Task.Delay(10);
-                }
-                //Additional time delay for reversing off of switch
-                await Task.Delay(TimeSpan.FromSeconds(extraReversalTime));
-                return true;
-            });
-            var cancelToken = new CancellationTokenSource();
-            //Monitor the checkBwEnableTask and a timeout task
-            if (await Task.WhenAny(checkBwEnableTask, Task.Delay(TimeSpan.FromSeconds(timeout), cancelToken.Token)) == checkBwEnableTask)
-            {   
-                await moveStop();
-                cancelToken.Cancel();
+                waitingTask = new List<Task> { limitTask };
             }
             else
             {
+                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token) };
+            }
+            //Monitor the checkBwEnableTask and a timeout task
+            if (await Task.WhenAny(waitingTask) == limitTask)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(extraReversalTime));
+                await moveStop();
+                ct.Cancel();
+            }
+            else
+            {
+                await Task.Delay(20);
                 Console.WriteLine("Timeout on reversal");
                 await moveStop();
                 return false;
@@ -807,32 +967,36 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
             //Restart the checkBwEnable task to find when it is hit. Run at much faster rate
-            checkBwEnableTask = Task<bool>.Run(async () =>
+            waitingTask.Clear();
+            CancellationTokenSource ct2 = new CancellationTokenSource();
+            limitTask = checkBwLimitTask(true, ct2.Token);
+            //Create a new task to monitor a timeoutTask and the fw limit task. 
+            if (timeout == 0)
             {
-                while (await read_bBwEnabled() == true)
-                {
-                    await Task.Delay(1);    //much faster check time
-                }
-                //Allow axis time to settle
-                await Task.Delay(TimeSpan.FromSeconds(settleTime));
-                return true;
-            });
-            var cancelToken2 = new CancellationTokenSource();
+                Console.WriteLine("new task");
+                waitingTask = new List<Task> { limitTask };
+            }
+            else
+            {
+                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct2.Token) };
+            }
             //Monitor the checkFwEnableTask and a timeout task
-            if (await Task.WhenAny(checkBwEnableTask, Task.Delay(TimeSpan.FromSeconds(timeout), cancelToken2.Token)) == checkBwEnableTask)
+            if (await Task.WhenAny(waitingTask) == limitTask)
             {
-                //Console.WriteLine("On high limit");
-                cancelToken2.Cancel();
+                await Task.Delay(TimeSpan.FromSeconds(settleTime));
+                ct2.Cancel();
                 return true;
             }
             else
             {
+                await Task.Delay(20);
                 Console.WriteLine("Timeout on move to limit");
                 await moveStop();
                 return false;
             }
         }
 
+        //No longer in use. Measuring position after stopping not useful if at high velocity
         public async Task<bool> end2endCycleTesting(double velocity, int timeout, int cycleDelay, int cycles, bool readDTI=false)
         {
             if (timeout <= 0)
@@ -940,8 +1104,24 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> end2endCycleTestingWithReversal(double setVelocity, double reversalVelocity, int timeout, int cycleDelay, int cycles, int resersalExtraTime, int reversalSettleTime, bool dtiPresent = false)
+        public async Task<bool> end2endCycleTestingWithReversal(double setVelocity, double reversalVelocity, int timeout, int cycleDelay, int cycles, int resersalExtraTime, int reversalSettleTime, bool dti1Present = false, bool dti2Present=false)
         {
+            if (cycles == 0)
+            {
+                Console.WriteLine("0 cycle count invalid");
+                return false;
+            }
+            if (reversalVelocity == 0)
+            {
+                Console.WriteLine("0 reversal velocity invalid");
+                return false;
+            }
+            if (setVelocity == 0)
+            {
+                Console.WriteLine("0 velocity invalid");
+                return false;
+            }
+
             var currentTime = DateTime.Now;
             string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {5} -End2EndwithReversalTest-setVelo({1}) revVelo({2}) settleTime({3}) - {4} cycles", currentTime,setVelocity,reversalVelocity,reversalSettleTime,cycles,AxisID);
 
@@ -957,11 +1137,6 @@ namespace TwinCat_Motion_ADS
                 csv.NextRecord();
             }
 
-                //If no timeout set. Make it really high and likely not timeout
-                if (timeout <= 0)
-            {
-                timeout = 100000;
-            }
 
             Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
             setVelocity = Math.Abs(setVelocity);
@@ -972,41 +1147,22 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
             
-            //Create an ongoing task to monitor for a cancellation request. This will only trigger on start of each test cycle.
-            var cancelTaskToken = new CancellationTokenSource();
-            var cancelTask = Task.Run(() =>
-            {
-                while (CancelTest == false) ;
-            }, cancelTaskToken.Token);
-            var pauseTaskToken = new CancellationTokenSource();
+            CancellationTokenSource ctToken = new CancellationTokenSource();
+            CancellationTokenSource ptToken = new CancellationTokenSource();
+            Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
+
 
             //Start running test cycles
             end2endReversalCSV record1;
             end2endReversalCSV record2;
             for (int i = 1; i <= cycles; i++)
             {
-                //Create a task each cycle to monitor for the pause. This is done as a task as a basic "while(paused)" would block UI and not allow an unpause
-                var pauseTask = Task.Run(() =>
-                {
-                    if (PauseTest)
-                    {
-                        Console.WriteLine("Test paused");
-                    }
-                    while (PauseTest)
-                    {
-                        if (CancelTest)
-                        {
-                            return;
-                        }
-                    }
-                }, pauseTaskToken.Token);               
-                await pauseTask; //awaiting pause task before allowing to continue with this cycle
-
-                //Do a check each cycle to see if we wanted to cancel
-                if (cancelTask.IsCompleted)
+                Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
+                await pauseTaskRequest;
+                if (cancelRequestTask.IsCompleted)
                 {
                     //Cancelled the test
-                    pauseTaskToken.Cancel();
+                    ptToken.Cancel();
                     CancelTest = false;
                     Console.WriteLine("Test cancelled");
                     return false;
@@ -1079,8 +1235,347 @@ namespace TwinCat_Motion_ADS
                 record1 = null;
                 record2 = null;
             }
+            ctToken.Cancel();
             return true;
         }
+
+        //no timeout implemented
+        public async Task<bool> uniDirectionalAccuracyTest(double initialSetpoint, double velocity, uint cycles, uint steps, double stepSize, int settleTime, double reversalDistance, int timeout, int cycleDelay, bool dti1present = false, bool dti2present = false)
+        {
+            if (cycles == 0)
+            {
+                Console.WriteLine("0 cycle count invalid");
+                return false;
+            }
+            if (steps == 0)
+            {
+                Console.WriteLine("0 step count invalid");
+                return false;
+            }
+            if (velocity == 0)
+            {
+                Console.WriteLine("0 velocity invalid");
+                return false;
+            }
+            if (stepSize == 0)
+            {
+                Console.WriteLine("0 step size invalid");
+                return false;
+            }
+            List<uniDirectionalAccuracyCSV> recordList = new List<uniDirectionalAccuracyCSV>();
+            var currentTime = DateTime.Now;
+            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {8} -uniDirectionalAccuracyTest-IntialSP({1}) Velo({2}) Steps({3}) StepSize({4}) SettleTime({5}) ReversalDistance({6}) - {7} cycles", currentTime, initialSetpoint, velocity, steps, stepSize, settleTime, reversalDistance, cycles, AxisID);
+
+            string fileName = @"\" + formattedTitle + ".csv";
+            var stream = File.Open(TestDirectory + fileName, FileMode.Append);
+            var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
+            {HasHeaderRecord = false,};
+            
+            StreamWriter writer = new StreamWriter(stream);
+            CsvWriter csv = new CsvWriter(writer, config);
+
+            using (stream)
+            using (writer)
+            using (csv)
+            {
+                csv.WriteHeader<uniDirectionalAccuracyCSV>();
+                csv.NextRecord();
+            }
+
+            //If no timeout set. Make it really high and likely not timeout
+            if (timeout <= 0)
+            {
+                timeout = 100000;
+            }
+
+            Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
+            velocity = Math.Abs(velocity);  //Only want positive velocity
+            //Create an ongoing task to monitor for a cancellation request. This will only trigger on start of each test cycle.
+            var cancelTaskToken = new CancellationTokenSource();
+            var cancelTask = Task.Run(() =>
+            {
+                while (CancelTest == false) ;
+            }, cancelTaskToken.Token);
+            var pauseTaskToken = new CancellationTokenSource();
+
+
+
+            double reversalPosition;
+            if (stepSize > 0)
+            {
+                reversalPosition = initialSetpoint- reversalDistance;
+            }
+            else
+            {
+                reversalPosition = initialSetpoint + reversalDistance;
+            }
+            stopWatch.Start();
+            for (uint i = 1; i <= cycles; i++)
+            {
+                Console.WriteLine("Cycle " + i);
+                //Create a task each cycle to monitor for the pause. This is done as a task as a basic "while(paused)" would block UI and not allow an unpause
+                var pauseTask = Task.Run(() =>
+                {
+                    if (PauseTest)
+                    {
+                        Console.WriteLine("Test paused");
+                    }
+                    while (PauseTest)
+                    {
+                        if (CancelTest)
+                        {
+                            return;
+                        }
+                    }
+                }, pauseTaskToken.Token);
+                await pauseTask; //awaiting pause task before allowing to continue with this cycle
+
+                //Do a check each cycle to see if we wanted to cancel
+                if (cancelTask.IsCompleted)
+                {
+                    //Cancelled the test
+                    pauseTaskToken.Cancel();
+                    CancelTest = false;
+                    Console.WriteLine("Test cancelled");
+                    return false;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(cycleDelay)); //inter-cycle delay wait
+                double TargetPosition = initialSetpoint;
+
+                //Start test at reversal position then moving to initial setpoint          
+                if (await moveAbsoluteAndWait(reversalPosition, velocity) == false)
+                {
+                    Console.WriteLine("Failed to move to reversal position");
+                    stopWatch.Stop();
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(settleTime));
+                
+
+                for (uint j = 0; j <= steps; j++)
+                {
+                    //Do the step move
+                    if (await moveAbsoluteAndWait(TargetPosition, velocity) == false)
+                    {
+                        Console.WriteLine("Failed to move to target position");
+                        stopWatch.Stop();
+                        return false;
+                    }
+                    //Wait for a settle time
+                    await Task.Delay(TimeSpan.FromSeconds(settleTime));
+                    //Log the data
+                    double tmpAxisPosition = await read_AxisPosition();
+                    recordList.Add(new uniDirectionalAccuracyCSV(i, j, "Testing", TargetPosition, tmpAxisPosition));
+                    //Update target position
+
+                    TargetPosition = TargetPosition + stepSize;
+                }
+                
+                //Write the cycle data
+                using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
+                using (writer = new StreamWriter(stream))
+                using (csv = new CsvWriter(writer, config))
+                {
+                    csv.WriteRecords(recordList);
+                }
+                recordList.Clear();
+            }
+            stopWatch.Stop();
+            Console.WriteLine("Test Complete. Test took "+stopWatch.Elapsed+"ms");
+            return true;
+        }
+
+        //no timeout implemented
+        public async Task<bool> biDirectionalAccuracyTest(double initialSetpoint, double velocity, uint cycles, uint steps, double stepSize, int settleTime, double reversalDistance,double overshoot, int timeout, int cycleDelay, bool dti1present = false, bool dti2present = false)
+        {
+            List<uniDirectionalAccuracyCSV> recordList = new List<uniDirectionalAccuracyCSV>();
+            var currentTime = DateTime.Now;
+            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {8} -biDirectionalAccuracyTest-IntialSP({1}) Velo({2}) Steps({3}) StepSize({4}) SettleTime({5}) ReversalDistance({6}) - {7} cycles", currentTime, initialSetpoint, velocity, steps, stepSize, settleTime, reversalDistance, cycles, AxisID);
+
+            string fileName = @"\" + formattedTitle + ".csv";
+            var stream = File.Open(TestDirectory + fileName, FileMode.Append);
+            var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
+            { HasHeaderRecord = false, };
+
+            StreamWriter writer = new StreamWriter(stream);
+            CsvWriter csv = new CsvWriter(writer, config);
+
+            if (cycles == 0)
+            {
+                Console.WriteLine("0 cycle count invalid");
+                return false;
+            }
+            if (steps == 0)
+            {
+                Console.WriteLine("0 step count invalid");
+                return false;
+            }
+            if (velocity == 0)
+            {
+                Console.WriteLine("0 velocity invalid");
+                return false;
+            }
+            if (stepSize == 0)
+            {
+                Console.WriteLine("0 step size invalid");
+                return false;
+            }
+
+
+            using (stream)
+            using (writer)
+            using (csv)
+            {
+                csv.WriteHeader<uniDirectionalAccuracyCSV>();
+                csv.NextRecord();
+            }
+
+            //If no timeout set. Make it really high and likely not timeout
+            if (timeout <= 0)
+            {
+                timeout = 100000;
+            }
+
+            Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
+            velocity = Math.Abs(velocity);  //Only want positive velocity
+            //Create an ongoing task to monitor for a cancellation request. This will only trigger on start of each test cycle.
+            var cancelTaskToken = new CancellationTokenSource();
+            var cancelTask = Task.Run(() =>
+            {
+                while (CancelTest == false) ;
+            }, cancelTaskToken.Token);
+            var pauseTaskToken = new CancellationTokenSource();
+
+
+
+            double reversalPosition;
+            if (stepSize > 0)
+            {
+                reversalPosition = initialSetpoint - reversalDistance;
+            }
+            else
+            {
+                reversalPosition = initialSetpoint + reversalDistance;
+            }
+            double overshootPosition;
+            if (stepSize > 0)
+            {
+                overshootPosition = initialSetpoint + ((steps-1)*stepSize)+ overshoot;
+            }
+            else
+            {
+                overshootPosition = initialSetpoint + ((steps - 1) * stepSize) - overshoot;
+            }
+
+            stopWatch.Start();
+            for (uint i = 1; i <= cycles; i++)
+            {
+                Console.WriteLine("Cycle " + i);
+                //Create a task each cycle to monitor for the pause. This is done as a task as a basic "while(paused)" would block UI and not allow an unpause
+                var pauseTask = Task.Run(() =>
+                {
+                    if (PauseTest)
+                    {
+                        Console.WriteLine("Test paused");
+                    }
+                    while (PauseTest)
+                    {
+                        if (CancelTest)
+                        {
+                            return;
+                        }
+                    }
+                }, pauseTaskToken.Token);
+                await pauseTask; //awaiting pause task before allowing to continue with this cycle
+
+                //Do a check each cycle to see if we wanted to cancel
+                if (cancelTask.IsCompleted)
+                {
+                    //Cancelled the test
+                    pauseTaskToken.Cancel();
+                    CancelTest = false;
+                    Console.WriteLine("Test cancelled");
+                    return false;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(cycleDelay)); //inter-cycle delay wait
+                double TargetPosition = initialSetpoint;
+
+                //Start test at reversal position then moving to initial setpoint          
+                if (await moveAbsoluteAndWait(reversalPosition, velocity) == false)
+                {
+                    Console.WriteLine("Failed to move to reversal position");
+                    stopWatch.Stop();
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(settleTime));
+
+                //going up the steps
+                for (uint j = 0; j <= steps; j++)
+                {
+                    //Do the step move
+                    if (await moveAbsoluteAndWait(TargetPosition, velocity) == false)
+                    {
+                        Console.WriteLine("Failed to move to target position");
+                        stopWatch.Stop();
+                        return false;
+                    }
+                    //Wait for a settle time
+                    await Task.Delay(TimeSpan.FromSeconds(settleTime));
+                    //Log the data
+                    double tmpAxisPosition = await read_AxisPosition();
+                    recordList.Add(new uniDirectionalAccuracyCSV(i, j, "Forward approach", TargetPosition, tmpAxisPosition));
+                    //Update target position
+
+                    TargetPosition = TargetPosition + stepSize;
+                }
+                TargetPosition = TargetPosition - stepSize;
+                //Overshoot the final position before coming back down
+                if (await moveAbsoluteAndWait(overshootPosition, velocity) == false)
+                {
+                    Console.WriteLine("Failed to move to overshoot position");
+                    stopWatch.Stop();
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(settleTime));
+                //going down the steps. Need the cast here as we require j to go negative to cancel the loop
+                for (int j = (int)steps; j >= 0; j--)
+                {
+                    Console.WriteLine("Moving down. Step: " + j);
+                    //Do the step move
+                    if (await moveAbsoluteAndWait(TargetPosition, velocity) == false)
+                    {
+                        Console.WriteLine("Failed to move to target position");
+                        stopWatch.Stop();
+                        return false;
+                    }
+                    //Wait for a settle time
+                    await Task.Delay(TimeSpan.FromSeconds(settleTime));
+                    //Log the data
+                    double tmpAxisPosition = await read_AxisPosition();
+                    recordList.Add(new uniDirectionalAccuracyCSV(i, (uint)j, "Backward approach", TargetPosition, tmpAxisPosition));
+                    //Update target position
+
+                    TargetPosition = TargetPosition - stepSize;
+                }
+
+                //Write the cycle data
+                using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
+                using (writer = new StreamWriter(stream))
+                using (csv = new CsvWriter(writer, config))
+                {
+                    csv.WriteRecords(recordList);
+                }
+                recordList.Clear();
+            }
+            stopWatch.Stop();
+            Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed);
+            return true;
+        }
+
+
+
 
         /// <summary>
         /// Read the axis bDone status
@@ -1196,8 +1691,6 @@ namespace TwinCat_Motion_ADS
             taskFwEnabled = null;
             taskBwEnabled = null;
         }
-        
-        
 
         public async Task<string> getDtiPositionValue()
         {
@@ -1207,7 +1700,8 @@ namespace TwinCat_Motion_ADS
             {
                 while (true)
                 {
-                    dtiRB = DtiPosition;
+                    //dtiRB = DtiPosition;
+                    dtiRB = readAndClearDtiPosition();
                     await Task.Delay(50);
                     if (dtiRB != string.Empty)
                     {
@@ -1293,7 +1787,34 @@ namespace TwinCat_Motion_ADS
             LimitPosition = limitPosition;
             Dti1Position = dti1Position;
             Dti2Position = dti2Position;
+        }    
+    }
+    public class uniDirectionalAccuracyCSV
+    {
+        [Name("Cycle")]
+        public uint Cycle { get; set; }
+        [Name("Step")]
+        public uint Step { get; set; }
+        [Name("Status")]
+        public string Status { get; set; }
+        [Name("TargetPosition")]
+        public double TargetPosition { get; set; }
+        [Name("EncoderPosition")]
+        public double EncoderPosition { get; set; }
+        [Name("Dti1Position")]
+        public string Dti1Position { get; set; }
+        [Name("Dti2Position")]
+        public string Dti2Position { get; set; }
+
+        public uniDirectionalAccuracyCSV(uint cycle, uint step, string status, double targetPosition, double encoderPosition, string dti1Position = "", string dti2Position = "")
+        {
+            Cycle = cycle;
+            Step = step;
+            Status = status;
+            TargetPosition = targetPosition;
+            EncoderPosition = encoderPosition;
+            Dti1Position = dti1Position;
+            Dti2Position = dti2Position;
         }
-        
     }
 }
