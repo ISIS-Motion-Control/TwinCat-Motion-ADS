@@ -17,7 +17,8 @@ using CsvHelper.Configuration.Attributes;
 namespace TwinCat_Motion_ADS
 {
     /*To -do list    
-     * Add the new cancel and pause tasks to the uni and bidirectional accuracy test
+     * Why does data logger lose focus?
+     * Add a try/catch to the DTI handle creation
      * Add a repeatability test
      * Anymore cleanup I can do? Some of these tests are very repeat heavy
      */
@@ -214,7 +215,7 @@ namespace TwinCat_Motion_ADS
             //Create variable handles for DTIs if user requested
             if (dti1Present)
             {
-                dti1Handle = Plc.TcAds.CreateVariableHandle("MAIN.bDti1");
+                    dti1Handle = Plc.TcAds.CreateVariableHandle("DTI.ch1");
             }
             else
             {
@@ -877,7 +878,6 @@ namespace TwinCat_Motion_ADS
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if (timeout == 0)
             {
-                Console.WriteLine("new task");
                 waitingTask = new List<Task> { limitTask };
             }
             else
@@ -973,7 +973,6 @@ namespace TwinCat_Motion_ADS
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if (timeout == 0)
             {
-                Console.WriteLine("new task");
                 waitingTask = new List<Task> { limitTask };
             }
             else
@@ -1104,7 +1103,7 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> end2endCycleTestingWithReversal(double setVelocity, double reversalVelocity, int timeout, int cycleDelay, int cycles, int resersalExtraTime, int reversalSettleTime, bool dti1Present = false, bool dti2Present=false)
+        public async Task<bool> end2endCycleTestingWithReversal(double setVelocity, double reversalVelocity, int timeout, int cycleDelay, int cycles, int resersalExtraTime, int reversalSettleTime, bool dti1present = false, bool dti2present=false)
         {
             if (cycles == 0)
             {
@@ -1136,7 +1135,6 @@ namespace TwinCat_Motion_ADS
                 csv.WriteHeader<end2endReversalCSV>();
                 csv.NextRecord();
             }
-
 
             Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
             setVelocity = Math.Abs(setVelocity);
@@ -1179,14 +1177,31 @@ namespace TwinCat_Motion_ADS
                     await Task.Delay(TimeSpan.FromSeconds(reversalSettleTime));//Allow axis to settle before reversal
                     if(await HighLimitReversal(reversalVelocity, timeout, resersalExtraTime, reversalSettleTime))
                     {
-                        //THIS IS WHERE WE'D DO A DTI PRESENT BOOL CHECK. Then do an extra dti trigger and save
+                        //Do we need to check the DTIs?
+                        string dti1Data = string.Empty;
+                        string dti2Data = string.Empty;
+                        if (dti1present)
+                        {
+                            await TriggerDti1();
+                            await Task.Delay(500);
+                            dti1Data = readAndClearDtiPosition();
+                            Console.WriteLine(dti1Data);
+                        }
+                        if (dti2present)
+                        {
+                            await TriggerDti2();
+                            await Task.Delay(500);
+                            dti2Data = readAndClearDtiPosition();
+                        }
                         double tmpAxisPosition = await read_AxisPosition();                       
-                        record1 = new end2endReversalCSV(i, "Low limit to high limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition);
+                        record1 = new end2endReversalCSV(i, "Low limit to high limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition,dti1Data,dti2Data);
                         Console.WriteLine("Cycle " + i + "- Low limit to high limit: " + stopWatch.ElapsedMilliseconds + "ms. High limit triggered at "+tmpAxisPosition);
                     }
                     else
                     {
                         Console.WriteLine("High limit reversal failed");
+                        ctToken.Cancel();
+                        ptToken.Cancel();
                         return false;
                     }
                 }
@@ -1194,6 +1209,8 @@ namespace TwinCat_Motion_ADS
                 {
                     stopWatch.Stop();
                     Console.WriteLine("Move to high failed");
+                    ctToken.Cancel();
+                    ptToken.Cancel();
                     return false;
                 }
 
@@ -1206,14 +1223,31 @@ namespace TwinCat_Motion_ADS
                     await Task.Delay(TimeSpan.FromSeconds(reversalSettleTime));//Allow axis to settle before reversal
                     if (await LowLimitReversal(reversalVelocity, timeout, resersalExtraTime, reversalSettleTime))
                     {
-                        //THIS IS WHERE WE'D DO A DTI PRESENT BOOL CHECK. Then do an extra dti trigger and save
+                        //Do we need to check the DTIs?
+                        string dti1Data = string.Empty;
+                        string dti2Data = string.Empty;
+                        if (dti1present)
+                        {
+                            await TriggerDti1();
+                            await Task.Delay(500);
+                            dti1Data = readAndClearDtiPosition();
+                            Console.WriteLine(dti1Data);
+                        }
+                        if (dti2present)
+                        {
+                            await TriggerDti2();
+                            await Task.Delay(500);
+                            dti2Data = readAndClearDtiPosition();
+                        }
                         double tmpAxisPosition = await read_AxisPosition();
-                        record2 = new end2endReversalCSV(i, "High limit to low limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition);
+                        record2 = new end2endReversalCSV(i, "High limit to low limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition,dti1Data,dti2Data);
                         Console.WriteLine("Cycle " + i + "- High limit to low limit: " + stopWatch.ElapsedMilliseconds + "ms. Low limit triggered at " + tmpAxisPosition);
                     }
                     else
                     {
                         Console.WriteLine("Low limit reversal failed");
+                        ctToken.Cancel();
+                        ptToken.Cancel();
                         return false;
                     }
                 }
@@ -1221,6 +1255,8 @@ namespace TwinCat_Motion_ADS
                 {
                     stopWatch.Stop();
                     Console.WriteLine("Move to low failed");
+                    ctToken.Cancel();
+                    ptToken.Cancel();
                     return false;
                 }
                 using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
@@ -1282,23 +1318,13 @@ namespace TwinCat_Motion_ADS
                 csv.NextRecord();
             }
 
-            //If no timeout set. Make it really high and likely not timeout
-            if (timeout <= 0)
-            {
-                timeout = 100000;
-            }
+            CancellationTokenSource ctToken = new CancellationTokenSource();
+            CancellationTokenSource ptToken = new CancellationTokenSource();
+            Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
 
             Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
             velocity = Math.Abs(velocity);  //Only want positive velocity
             //Create an ongoing task to monitor for a cancellation request. This will only trigger on start of each test cycle.
-            var cancelTaskToken = new CancellationTokenSource();
-            var cancelTask = Task.Run(() =>
-            {
-                while (CancelTest == false) ;
-            }, cancelTaskToken.Token);
-            var pauseTaskToken = new CancellationTokenSource();
-
-
 
             double reversalPosition;
             if (stepSize > 0)
@@ -1314,27 +1340,12 @@ namespace TwinCat_Motion_ADS
             {
                 Console.WriteLine("Cycle " + i);
                 //Create a task each cycle to monitor for the pause. This is done as a task as a basic "while(paused)" would block UI and not allow an unpause
-                var pauseTask = Task.Run(() =>
-                {
-                    if (PauseTest)
-                    {
-                        Console.WriteLine("Test paused");
-                    }
-                    while (PauseTest)
-                    {
-                        if (CancelTest)
-                        {
-                            return;
-                        }
-                    }
-                }, pauseTaskToken.Token);
-                await pauseTask; //awaiting pause task before allowing to continue with this cycle
-
-                //Do a check each cycle to see if we wanted to cancel
-                if (cancelTask.IsCompleted)
+                Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
+                await pauseTaskRequest;
+                if (cancelRequestTask.IsCompleted)
                 {
                     //Cancelled the test
-                    pauseTaskToken.Cancel();
+                    ptToken.Cancel();
                     CancelTest = false;
                     Console.WriteLine("Test cancelled");
                     return false;
@@ -1344,10 +1355,12 @@ namespace TwinCat_Motion_ADS
                 double TargetPosition = initialSetpoint;
 
                 //Start test at reversal position then moving to initial setpoint          
-                if (await moveAbsoluteAndWait(reversalPosition, velocity) == false)
+                if (await moveAbsoluteAndWait(reversalPosition, velocity,timeout) == false)
                 {
                     Console.WriteLine("Failed to move to reversal position");
                     stopWatch.Stop();
+                    ctToken.Cancel();
+                    ptToken.Cancel();
                     return false;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(settleTime));
@@ -1356,17 +1369,37 @@ namespace TwinCat_Motion_ADS
                 for (uint j = 0; j <= steps; j++)
                 {
                     //Do the step move
-                    if (await moveAbsoluteAndWait(TargetPosition, velocity) == false)
+                    if (await moveAbsoluteAndWait(TargetPosition, velocity,timeout) == false)
                     {
                         Console.WriteLine("Failed to move to target position");
                         stopWatch.Stop();
+                        ctToken.Cancel();
+                        ptToken.Cancel();
                         return false;
                     }
                     //Wait for a settle time
                     await Task.Delay(TimeSpan.FromSeconds(settleTime));
+                    
+                    //Do we need to check the DTIs?
+                    string dti1Data = string.Empty;
+                    string dti2Data = string.Empty;
+                    if(dti1present)
+                    {
+                        await TriggerDti1();
+                        await Task.Delay(500);
+                        dti1Data = readAndClearDtiPosition();
+                        Console.WriteLine(dti1Data);
+                    }
+                    if (dti2present)
+                    {
+                        await TriggerDti2();
+                        await Task.Delay(500);
+                        dti2Data = readAndClearDtiPosition();
+                    }
+
                     //Log the data
                     double tmpAxisPosition = await read_AxisPosition();
-                    recordList.Add(new uniDirectionalAccuracyCSV(i, j, "Testing", TargetPosition, tmpAxisPosition));
+                    recordList.Add(new uniDirectionalAccuracyCSV(i, j, "Testing", TargetPosition, tmpAxisPosition,dti1Data,dti2Data));
                     //Update target position
 
                     TargetPosition = TargetPosition + stepSize;
@@ -1383,6 +1416,8 @@ namespace TwinCat_Motion_ADS
             }
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took "+stopWatch.Elapsed+"ms");
+            ctToken.Cancel();
+            ptToken.Cancel();
             return true;
         }
 
@@ -1431,24 +1466,13 @@ namespace TwinCat_Motion_ADS
                 csv.NextRecord();
             }
 
-            //If no timeout set. Make it really high and likely not timeout
-            if (timeout <= 0)
-            {
-                timeout = 100000;
-            }
-
             Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
             velocity = Math.Abs(velocity);  //Only want positive velocity
             //Create an ongoing task to monitor for a cancellation request. This will only trigger on start of each test cycle.
-            var cancelTaskToken = new CancellationTokenSource();
-            var cancelTask = Task.Run(() =>
-            {
-                while (CancelTest == false) ;
-            }, cancelTaskToken.Token);
-            var pauseTaskToken = new CancellationTokenSource();
-
-
-
+            CancellationTokenSource ctToken = new CancellationTokenSource();
+            CancellationTokenSource ptToken = new CancellationTokenSource();
+            Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
+            
             double reversalPosition;
             if (stepSize > 0)
             {
@@ -1473,27 +1497,12 @@ namespace TwinCat_Motion_ADS
             {
                 Console.WriteLine("Cycle " + i);
                 //Create a task each cycle to monitor for the pause. This is done as a task as a basic "while(paused)" would block UI and not allow an unpause
-                var pauseTask = Task.Run(() =>
-                {
-                    if (PauseTest)
-                    {
-                        Console.WriteLine("Test paused");
-                    }
-                    while (PauseTest)
-                    {
-                        if (CancelTest)
-                        {
-                            return;
-                        }
-                    }
-                }, pauseTaskToken.Token);
-                await pauseTask; //awaiting pause task before allowing to continue with this cycle
-
-                //Do a check each cycle to see if we wanted to cancel
-                if (cancelTask.IsCompleted)
+                Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
+                await pauseTaskRequest;
+                if (cancelRequestTask.IsCompleted)
                 {
                     //Cancelled the test
-                    pauseTaskToken.Cancel();
+                    ptToken.Cancel();
                     CancelTest = false;
                     Console.WriteLine("Test cancelled");
                     return false;
@@ -1503,7 +1512,7 @@ namespace TwinCat_Motion_ADS
                 double TargetPosition = initialSetpoint;
 
                 //Start test at reversal position then moving to initial setpoint          
-                if (await moveAbsoluteAndWait(reversalPosition, velocity) == false)
+                if (await moveAbsoluteAndWait(reversalPosition, velocity,timeout) == false)
                 {
                     Console.WriteLine("Failed to move to reversal position");
                     stopWatch.Stop();
@@ -1515,7 +1524,7 @@ namespace TwinCat_Motion_ADS
                 for (uint j = 0; j <= steps; j++)
                 {
                     //Do the step move
-                    if (await moveAbsoluteAndWait(TargetPosition, velocity) == false)
+                    if (await moveAbsoluteAndWait(TargetPosition, velocity,timeout) == false)
                     {
                         Console.WriteLine("Failed to move to target position");
                         stopWatch.Stop();
@@ -1523,16 +1532,32 @@ namespace TwinCat_Motion_ADS
                     }
                     //Wait for a settle time
                     await Task.Delay(TimeSpan.FromSeconds(settleTime));
+                    //Do we need to check the DTIs?
+                    string dti1Data = string.Empty;
+                    string dti2Data = string.Empty;
+                    if (dti1present)
+                    {
+                        await TriggerDti1();
+                        await Task.Delay(500);
+                        dti1Data = readAndClearDtiPosition();
+                        Console.WriteLine(dti1Data);
+                    }
+                    if (dti2present)
+                    {
+                        await TriggerDti2();
+                        await Task.Delay(500);
+                        dti2Data = readAndClearDtiPosition();
+                    }
                     //Log the data
                     double tmpAxisPosition = await read_AxisPosition();
-                    recordList.Add(new uniDirectionalAccuracyCSV(i, j, "Forward approach", TargetPosition, tmpAxisPosition));
+                    recordList.Add(new uniDirectionalAccuracyCSV(i, j, "Forward approach", TargetPosition, tmpAxisPosition,dti1Data,dti2Data));
                     //Update target position
 
                     TargetPosition = TargetPosition + stepSize;
                 }
                 TargetPosition = TargetPosition - stepSize;
                 //Overshoot the final position before coming back down
-                if (await moveAbsoluteAndWait(overshootPosition, velocity) == false)
+                if (await moveAbsoluteAndWait(overshootPosition, velocity,timeout) == false)
                 {
                     Console.WriteLine("Failed to move to overshoot position");
                     stopWatch.Stop();
@@ -1544,7 +1569,7 @@ namespace TwinCat_Motion_ADS
                 {
                     Console.WriteLine("Moving down. Step: " + j);
                     //Do the step move
-                    if (await moveAbsoluteAndWait(TargetPosition, velocity) == false)
+                    if (await moveAbsoluteAndWait(TargetPosition, velocity, timeout) == false)
                     {
                         Console.WriteLine("Failed to move to target position");
                         stopWatch.Stop();
@@ -1552,9 +1577,25 @@ namespace TwinCat_Motion_ADS
                     }
                     //Wait for a settle time
                     await Task.Delay(TimeSpan.FromSeconds(settleTime));
+                    //Do we need to check the DTIs?
+                    string dti1Data = string.Empty;
+                    string dti2Data = string.Empty;
+                    if (dti1present)
+                    {
+                        await TriggerDti1();
+                        await Task.Delay(500);
+                        dti1Data = readAndClearDtiPosition();
+                        Console.WriteLine(dti1Data);
+                    }
+                    if (dti2present)
+                    {
+                        await TriggerDti2();
+                        await Task.Delay(500);
+                        dti2Data = readAndClearDtiPosition();
+                    }
                     //Log the data
                     double tmpAxisPosition = await read_AxisPosition();
-                    recordList.Add(new uniDirectionalAccuracyCSV(i, (uint)j, "Backward approach", TargetPosition, tmpAxisPosition));
+                    recordList.Add(new uniDirectionalAccuracyCSV(i, (uint)j, "Backward approach", TargetPosition, tmpAxisPosition,dti1Data,dti2Data));
                     //Update target position
 
                     TargetPosition = TargetPosition - stepSize;
@@ -1573,9 +1614,6 @@ namespace TwinCat_Motion_ADS
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed);
             return true;
         }
-
-
-
 
         /// <summary>
         /// Read the axis bDone status

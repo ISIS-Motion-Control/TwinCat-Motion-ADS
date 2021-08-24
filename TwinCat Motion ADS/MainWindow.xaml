@@ -48,6 +48,9 @@
         <Button Focusable="False" x:Name="folderDirSelect" Content="Select Directory" HorizontalAlignment="Left" Margin="11,397,0,0" VerticalAlignment="Top" Click="folderDirSelect_Click" Width="100" Grid.ColumnSpan="2"/>
         <Button Focusable="False" x:Name="uniDirecitonalTest" Content="uniDirectional" HorizontalAlignment="Left" Margin="265,387,0,0" VerticalAlignment="Top" Grid.Column="1" Width="120" Click="uniDirecitonalTest_Click"/>
         <Button Focusable="False" x:Name="uniDirecitonalTest_Copy" Content="biDirectional" HorizontalAlignment="Left" Margin="390,387,0,0" VerticalAlignment="Top" Grid.Column="1" Width="120" Click="uniDirecitonalTest_Copy_Click"/>
+        <Button x:Name="dti1_button" Focusable="False" Content="Trigger DTI1" HorizontalAlignment="Left" Margin="285,10,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="dti1_button_Click"/>
+        <CheckBox x:Name="dti1Checkbox" Content="DTI 1" Grid.Column="1" HorizontalAlignment="Left" Margin="660,40,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="dti2Checkbox" Content="DTI 2" Grid.Column="1" HorizontalAlignment="Left" Margin="660,60,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>
