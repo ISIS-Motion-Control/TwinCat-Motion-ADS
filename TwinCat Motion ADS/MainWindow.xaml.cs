@@ -32,6 +32,7 @@ namespace TwinCat_Motion_ADS
         PLC Plc = new PLC("5.79.68.132.1.1", 852);
         //PLC Plc = new PLC("5.65.74.200.1.1", 852);
         Axis testAxis;
+        PneumaticAxis pneumaticAxis;
         string selectedFolder = string.Empty;
 
         public MainWindow()
@@ -54,7 +55,15 @@ namespace TwinCat_Motion_ADS
         {
             if(e.Key == Key.Enter)
             {
-                await testAxis.setDtiPosition(keyboardInput);
+                if(useDTIonAirCheck.IsChecked.Value)
+                {
+                    await pneumaticAxis.setDtiPosition(keyboardInput);
+                }
+                else
+                {
+                    await testAxis.setDtiPosition(keyboardInput);
+                }
+                
                 //Console.WriteLine("The input was " + keyboardInput);
                 keyboardInput = string.Empty;                
             }
@@ -164,7 +173,8 @@ namespace TwinCat_Motion_ADS
 
             mainWindowGrid.IsEnabled = false;
             keyboardInput = string.Empty;
-            Console.WriteLine(await testAxis.getDtiPositionValue());
+            CancellationTokenSource ct = new CancellationTokenSource();
+            Console.WriteLine(await testAxis.getDtiPositionValue(ct));
             mainWindowGrid.IsEnabled = true;
         }
 
@@ -327,7 +337,88 @@ namespace TwinCat_Motion_ADS
 
         private async void dti1_button_Click(object sender, RoutedEventArgs e)
         {
-            await testAxis.TriggerDti1();
+            await pneumaticAxis.TriggerDti1();
+        }
+
+        private void initPneumatic_Click(object sender, RoutedEventArgs e)
+        {
+            if (pneumaticAxis == null)
+            {
+                pneumaticAxis = new PneumaticAxis(Plc, dti1Checkbox.IsChecked.Value, dti2Checkbox.IsChecked.Value);
+            }
+            else
+            {
+                pneumaticAxis = null;
+                pneumaticAxis = new PneumaticAxis(Plc, dti1Checkbox.IsChecked.Value, dti2Checkbox.IsChecked.Value);
+            }
+            pneumaticAxis.startLimitRead();
+            Binding pneumaticExtendedBinding = new Binding
+            {
+                Mode = BindingMode.OneWay,
+                Source = pneumaticAxis,
+                Path = new PropertyPath("ExtendedLimit"),
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            BindingOperations.SetBinding(pneumaticExtended, CheckBox.IsCheckedProperty, pneumaticExtendedBinding);
+
+            Binding pneumaticRetractedBinding = new Binding
+            {
+                Mode = BindingMode.OneWay,
+                Source = pneumaticAxis,
+                Path = new PropertyPath("RetractedLimit"),
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            BindingOperations.SetBinding(pneumaticRetracted, CheckBox.IsCheckedProperty, pneumaticRetractedBinding);
+
+            Binding cylinderBinding = new Binding
+            {
+                Mode = BindingMode.OneWay,
+                Source = pneumaticAxis,
+                Path = new PropertyPath("Cylinder"),
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            BindingOperations.SetBinding(CylinderAir, CheckBox.IsCheckedProperty, cylinderBinding);
+        }
+
+        private async void shutterEnd2End_button_Click(object sender, RoutedEventArgs e)
+        {
+            await pneumaticAxis.End2EndTest(10, 12, 500, 2, 3, 0, 0, true, false);
+        }
+
+        private void shutterTestFolderDir_button_Click(object sender, RoutedEventArgs e)
+        {
+            var fbd = new VistaFolderBrowserDialog();
+            selectedFolder = String.Empty;
+            if (fbd.ShowDialog() == true)
+            {
+                selectedFolder = fbd.SelectedPath;
+            }
+            Console.WriteLine(selectedFolder);
+            pneumaticAxis.TestDirectory = selectedFolder;
+        }
+
+        private async void dt1Data_button_Click(object sender, RoutedEventArgs e)
+        {
+            //Console.WriteLine(pneumaticAxis.readAndClearDtiPosition());
+            CancellationTokenSource ct = new CancellationTokenSource();
+            Console.WriteLine(await pneumaticAxis.getDtiPositionValue(ct, 2000,50));
+        }
+
+        private async void extendCylinder_button_Click(object sender, RoutedEventArgs e)
+        {
+            if(await pneumaticAxis.extendCylinderAndWait()==false)
+            { 
+                Console.WriteLine("FAILED");
+            }
+            
+        }
+
+        private async void retractCylinder_button_Click(object sender, RoutedEventArgs e)
+        {
+            if (await pneumaticAxis.retractCylinderAndWait()==false)
+            {
+                Console.WriteLine("FAILED");
+            }
         }
     }
 

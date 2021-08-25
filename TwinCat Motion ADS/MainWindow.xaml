@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
-        Title="IBEX Lite" Height="450" Width="800">
+        Title="IBEX Lite" Height="450" Width="800" Icon="/ibexHead.jpg" WindowStartupLocation="CenterScreen">
     <Grid x:Name="mainWindowGrid" Focusable="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*"/>
@@ -18,7 +18,7 @@
         <TextBlock x:Name="axisPositionRB" HorizontalAlignment="Left" Margin="49,137,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="75" Grid.Column="1" Text="placeholder"/>
         <Button Focusable="False" x:Name="moveRelButton" Content="MoveRel" HorizontalAlignment="Left" Margin="141,143,0,0" VerticalAlignment="Top" Click="moveRelButton_Click" Grid.Column="1" Width="100"/>
         <Button Focusable="False" x:Name="moveVelButton" Content="MoveVel" HorizontalAlignment="Left" Margin="141,168,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="moveVelButton_Click"/>
-        <Image Grid.Column="1" HorizontalAlignment="Left" Height="247" Margin="584,174,0,0" VerticalAlignment="Top" Width="176" Source="/babyIbex.jpg"/>
+        <Image Grid.Column="1" HorizontalAlignment="Left" Height="216" Margin="635,248,0,0" VerticalAlignment="Top" Width="135" Source="/babyIbex.jpg"/>
         <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="4,138,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="en-gb" Text="PosRB"/></TextBlock>
         <Button Focusable="False" x:Name="dataOuput" Content="dataOutput" HorizontalAlignment="Left" Margin="36,38,0,0" VerticalAlignment="Top" Grid.Column="1" Click="stopPosRead_Click" Width="100"/>
         <CheckBox x:Name="enabledCheck" Content="Enabled" Grid.Column="1" HorizontalAlignment="Left" Margin="0,168,0,0" VerticalAlignment="Top" IsEnabled="False"/>
@@ -36,7 +36,7 @@
         <Button x:Name="pauseTest" Content="Pause Test" HorizontalAlignment="Left" Margin="359,263,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="pauseTest_Click" Background="#FF2EFF00" Focusable="False"/>
         <CheckBox x:Name="testCancelledCheck" Content="Cancelled" Grid.Column="1" HorizontalAlignment="Left" Margin="464,240,0,0" VerticalAlignment="Top" IsEnabled="False"/>
         <CheckBox x:Name="testPausedCheck" Content="Paused" Grid.Column="1" HorizontalAlignment="Left" Margin="464,265,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-        <Button Focusable="False" x:Name="connect2PlcButton" Content="Connect to PLC" HorizontalAlignment="Left" Margin="660,10,0,0" VerticalAlignment="Top" Click="connect2PlcButton_Click" Grid.Column="1" Width="100"/>
+        <Button Focusable="False" x:Name="connect2PlcButton" Content="Connect to PLC" HorizontalAlignment="Left" Margin="412,10,0,0" VerticalAlignment="Top" Click="connect2PlcButton_Click" Grid.Column="1" Width="100"/>
         <CheckBox x:Name="errorCheck" Content="Error" Grid.Column="1" HorizontalAlignment="Left" Margin="1,236,0,0" VerticalAlignment="Top" IsEnabled="False"/>
         <Button x:Name="enableButton" Focusable="False" Content="Enable/Disable" HorizontalAlignment="Left" Margin="169,10,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="enableButton_Click"/>
         <Button x:Name="resetButton" Focusable="False" Content="Reset" HorizontalAlignment="Left" Margin="169,38,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="resetButton_Click"/>
@@ -49,8 +49,19 @@
         <Button Focusable="False" x:Name="uniDirecitonalTest" Content="uniDirectional" HorizontalAlignment="Left" Margin="265,387,0,0" VerticalAlignment="Top" Grid.Column="1" Width="120" Click="uniDirecitonalTest_Click"/>
         <Button Focusable="False" x:Name="uniDirecitonalTest_Copy" Content="biDirectional" HorizontalAlignment="Left" Margin="390,387,0,0" VerticalAlignment="Top" Grid.Column="1" Width="120" Click="uniDirecitonalTest_Copy_Click"/>
         <Button x:Name="dti1_button" Focusable="False" Content="Trigger DTI1" HorizontalAlignment="Left" Margin="285,10,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="dti1_button_Click"/>
-        <CheckBox x:Name="dti1Checkbox" Content="DTI 1" Grid.Column="1" HorizontalAlignment="Left" Margin="660,40,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="dti2Checkbox" Content="DTI 2" Grid.Column="1" HorizontalAlignment="Left" Margin="660,60,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="dti1Checkbox" Content="DTI 1" Grid.Column="1" HorizontalAlignment="Left" Margin="412,45,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="dti2Checkbox" Content="DTI 2" Grid.Column="1" HorizontalAlignment="Left" Margin="412,65,0,0" VerticalAlignment="Top"/>
+        <Button Focusable="False" x:Name="initPneumatic" Content="Initialise Pneumatic Axis" HorizontalAlignment="Left" Margin="572,14,0,0" VerticalAlignment="Top" Click="initPneumatic_Click" Grid.Column="1" Width="188"/>
+        <CheckBox x:Name="pneumaticExtended" Content="ExtendedLimit" Grid.Column="1" HorizontalAlignment="Left" Margin="572,68,0,0" VerticalAlignment="Top" IsEnabled="False"/>
+        <CheckBox x:Name="pneumaticRetracted" Content="RetractedLimit" Grid.Column="1" HorizontalAlignment="Left" Margin="572,86,0,0" VerticalAlignment="Top" IsEnabled="False"/>
+        <CheckBox x:Name="CylinderAir" Content="Cylinder AIR ON" Grid.Column="1" HorizontalAlignment="Left" Margin="572,48,0,0" VerticalAlignment="Top" IsEnabled="False"/>
+        <Button Focusable="False" x:Name="shutterEnd2End_button" Content="Shutter End 2 End" HorizontalAlignment="Left" Margin="572,109,0,0" VerticalAlignment="Top" Grid.Column="1" Click="shutterEnd2End_button_Click" Width="124"/>
+        <Button Focusable="False" x:Name="shutterTestFolderDir_button" Content="Shutter tests directory" HorizontalAlignment="Left" Margin="572,133,0,0" VerticalAlignment="Top" Click="shutterTestFolderDir_button_Click" Width="124" Grid.Column="1"/>
+        <Button x:Name="triggerDti1_button" Focusable="False" Content="DTI1 Trig" HorizontalAlignment="Left" Margin="706,56,0,0" VerticalAlignment="Top" Grid.Column="1" Width="54" Click="dti1_button_Click"/>
+        <Button Focusable="False" x:Name="dt1Data_button" Content="DTI Data" HorizontalAlignment="Left" Margin="706,84,0,0" VerticalAlignment="Top" Grid.Column="1" Click="dt1Data_button_Click" Width="54"/>
+        <CheckBox x:Name="useDTIonAirCheck" Content="Use DTI on AIR" Grid.Column="1" HorizontalAlignment="Left" Margin="412,85,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="extendCylinder_button" Focusable="False" Content="Extend cylinder" HorizontalAlignment="Left" Margin="575,162,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="extendCylinder_button_Click"/>
+        <Button x:Name="retractCylinder_button" Focusable="False" Content="Retract cylinder" HorizontalAlignment="Left" Margin="575,188,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="retractCylinder_button_Click"/>
 
     </Grid>
 </Window>
