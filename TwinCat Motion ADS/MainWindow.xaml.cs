@@ -29,7 +29,7 @@ namespace TwinCat_Motion_ADS
     {
         //TestClass testSystem = TestClass.Instance;
         String keyboardInput = string.Empty;
-        PLC Plc = new PLC("5.79.68.132.1.1", 852);
+        PLC Plc;
         //PLC Plc = new PLC("5.65.74.200.1.1", 852);
         Axis testAxis;
         PneumaticAxis pneumaticAxis;
@@ -40,22 +40,36 @@ namespace TwinCat_Motion_ADS
             InitializeComponent();
             EventManager.RegisterClassHandler(typeof(Window),Keyboard.KeyUpEvent, new KeyEventHandler(keyUp), true);
             ConsoleAllocator.ShowConsoleWindow();
+            Plc = new PLC(amsNetIdTb.Text, 852); //5.65.74.200.1.1
+            //Plc = new PLC("5.65.74.200.1.1", 852);
             Plc.setupPLC();
-            if(Plc.AdsState == AdsState.Invalid)
+            if (Plc.AdsState == AdsState.Invalid)
             {
                 Console.WriteLine("Ads state is invalid");
                 elementsEnabled(false);
             }
+            else if (Plc.AdsState == AdsState.Stop)
+            {
+                Console.WriteLine("Device connected but PLC not running");
+                elementsEnabled(true);
+            }
+            else if (Plc.AdsState == AdsState.Run)
+            {
+                Console.WriteLine("Device connected and running");
+                elementsEnabled(true);
+            }
             //testAxis = new Axis(1, Plc);  //Uncomment for no DTI
-            testAxis = new Axis(1, Plc);
+            
 
         }
 
         private async void keyUp(object sender, KeyEventArgs e)
         {
+            if (testAxis == null)
+            { return; }
             if(e.Key == Key.Enter)
             {
-                if(useDTIonAirCheck.IsChecked.Value)
+                if(useDTIonAirCheck.IsChecked.Value && pneumaticAxis!=null)
                 {
                     await pneumaticAxis.setDtiPosition(keyboardInput);
                 }
@@ -252,6 +266,7 @@ namespace TwinCat_Motion_ADS
 
         private void connect2PlcButton_Click(object sender, RoutedEventArgs e)
         {
+            Plc = new PLC(amsNetIdTb.Text, 852);
             Plc.setupPLC();
             if (Plc.AdsState == AdsState.Invalid)
             {

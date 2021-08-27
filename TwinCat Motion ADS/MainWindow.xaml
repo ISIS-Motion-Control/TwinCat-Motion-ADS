@@ -62,6 +62,7 @@
         <CheckBox x:Name="useDTIonAirCheck" Content="Use DTI on AIR" Grid.Column="1" HorizontalAlignment="Left" Margin="412,85,0,0" VerticalAlignment="Top"/>
         <Button x:Name="extendCylinder_button" Focusable="False" Content="Extend cylinder" HorizontalAlignment="Left" Margin="575,162,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="extendCylinder_button_Click"/>
         <Button x:Name="retractCylinder_button" Focusable="False" Content="Retract cylinder" HorizontalAlignment="Left" Margin="575,188,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="retractCylinder_button_Click"/>
+        <TextBox x:Name="amsNetIdTb" HorizontalAlignment="Left" Margin="285,40,0,0" Text="5.79.68.132.1.1" TextWrapping="Wrap" VerticalAlignment="Top" Width="100" Grid.Column="1"/>
 
     </Grid>
 </Window>
