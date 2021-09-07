@@ -246,9 +246,7 @@ namespace TwinCat_Motion_ADS
         {
             timeoutTB.IsEnabled = enable;
             velocityTB.IsEnabled = enable;
-            dataOuput.IsEnabled = enable;
             initAxis.IsEnabled = enable;
-            dataOuput.IsEnabled = enable;
             positionText.IsEnabled = enable;
             moveAbsButton.IsEnabled = enable;
             moveRelButton.IsEnabled = enable;
@@ -262,6 +260,12 @@ namespace TwinCat_Motion_ADS
             enableButton.IsEnabled = enable;
             resetButton.IsEnabled = enable;
             cycleTB.IsEnabled = enable;
+            highLimReversal.IsEnabled = enable;
+            lowLimReversal_Copy.IsEnabled = enable;
+            dti1_button.IsEnabled = enable;
+            end2endTestWithReversal.IsEnabled = enable;
+            uniDirecitonalTest.IsEnabled = enable;
+            biDirecitonalTest.IsEnabled = enable;
         }
 
         private void connect2PlcButton_Click(object sender, RoutedEventArgs e)

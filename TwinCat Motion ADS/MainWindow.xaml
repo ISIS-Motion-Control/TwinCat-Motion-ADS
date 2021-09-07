@@ -5,64 +5,384 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
-        Title="IBEX Lite" Height="450" Width="800" Icon="/ibexHead.jpg" WindowStartupLocation="CenterScreen">
+        Title="IBEX Lite" Height="600" Width="1000" Icon="/ibexHead.jpg" WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Background="#181735">
+
     <Grid x:Name="mainWindowGrid" Focusable="True">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*"/>
-            <ColumnDefinition Width="77*"/>
+            <ColumnDefinition Width="143*"/>
+            <ColumnDefinition Width="857*"/>
         </Grid.ColumnDefinitions>
-        <Button x:Name="moveAbsButton" Focusable="False" Content="MoveAbs" HorizontalAlignment="Left" Margin="141,118,0,0" VerticalAlignment="Top" Click="Button_Click" Grid.Column="1" Width="100"/>
-        <TextBox x:Name="positionText" HorizontalAlignment="Left" Margin="0,114,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" Grid.Column="1"/>
-        <TextBox x:Name="axisSelection" HorizontalAlignment="Left" Margin="10,10,0,0" Text="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="50" Grid.ColumnSpan="2"/>
-        <Button Focusable="False" x:Name="initAxis" Content="initAxis" HorizontalAlignment="Left" Margin="36,9,0,0" VerticalAlignment="Top" Click="initAxis_Click" Grid.Column="1" Width="100"/>
-        <TextBlock x:Name="axisPositionRB" HorizontalAlignment="Left" Margin="49,137,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="75" Grid.Column="1" Text="placeholder"/>
-        <Button Focusable="False" x:Name="moveRelButton" Content="MoveRel" HorizontalAlignment="Left" Margin="141,143,0,0" VerticalAlignment="Top" Click="moveRelButton_Click" Grid.Column="1" Width="100"/>
-        <Button Focusable="False" x:Name="moveVelButton" Content="MoveVel" HorizontalAlignment="Left" Margin="141,168,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="moveVelButton_Click"/>
-        <Image Grid.Column="1" HorizontalAlignment="Left" Height="216" Margin="635,248,0,0" VerticalAlignment="Top" Width="135" Source="/babyIbex.jpg"/>
-        <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="4,138,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="en-gb" Text="PosRB"/></TextBlock>
-        <Button Focusable="False" x:Name="dataOuput" Content="dataOutput" HorizontalAlignment="Left" Margin="36,38,0,0" VerticalAlignment="Top" Grid.Column="1" Click="stopPosRead_Click" Width="100"/>
-        <CheckBox x:Name="enabledCheck" Content="Enabled" Grid.Column="1" HorizontalAlignment="Left" Margin="0,168,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-        <CheckBox x:Name="fwEnabledCheck" Content="FwEnabled" Grid.Column="1" HorizontalAlignment="Left" Margin="0,187,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-        <CheckBox x:Name="bwEnabledCheck" Content="BwEnabled" Grid.Column="1" HorizontalAlignment="Left" Margin="0,205,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-        <Button Focusable="False" x:Name="stopMove" Content="Stop" HorizontalAlignment="Left" Margin="141,193,0,0" VerticalAlignment="Top" Grid.Column="1" Click="stopMove_Click" Width="100"/>
-        <Button Focusable="False" x:Name="move2High" Content="Move2HighLimit" HorizontalAlignment="Left" Margin="141,218,0,0" VerticalAlignment="Top" Grid.Column="1" Click="move2High_Click" Width="100"/>
-        <Button Focusable="False" x:Name="move2Low" Content="MoveLowLimit" HorizontalAlignment="Left" Margin="141,243,0,0" VerticalAlignment="Top" Grid.Column="1" Click="move2Low_Click" Width="100"/>
-        <TextBox x:Name="timeoutTB" HorizontalAlignment="Left" Margin="408,121,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" Grid.Column="1" PreviewTextInput="NumberValidationTextBox"/>
-        <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="321,121,0,0" TextWrapping="Wrap" VerticalAlignment="Top" TextAlignment="Right" Width="80"><Run Text="Timeout"/><Run Text=" ("/><Run Language="en-gb" Text="s"/><Run Text=")"/></TextBlock>
-        <TextBox x:Name="velocityTB" HorizontalAlignment="Left" Margin="408,144,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" Grid.Column="1"/>
-        <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="321,145,0,0" TextWrapping="Wrap" VerticalAlignment="Top" TextAlignment="Right" Width="80"><Run Language="en-gb" Text="Velocity"/></TextBlock>
-        <Button Focusable="False" x:Name="end2endTest" Content="End2End Test" HorizontalAlignment="Left" Margin="141,296,0,0" VerticalAlignment="Top" Grid.Column="1" Click="end2endTest_Click" Width="100"/>
-        <Button Focusable="False" x:Name="cancelTest" Content="Cancel Test" HorizontalAlignment="Left" Margin="359,238,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="cancelTest_Click"/>
-        <Button x:Name="pauseTest" Content="Pause Test" HorizontalAlignment="Left" Margin="359,263,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="pauseTest_Click" Background="#FF2EFF00" Focusable="False"/>
-        <CheckBox x:Name="testCancelledCheck" Content="Cancelled" Grid.Column="1" HorizontalAlignment="Left" Margin="464,240,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-        <CheckBox x:Name="testPausedCheck" Content="Paused" Grid.Column="1" HorizontalAlignment="Left" Margin="464,265,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-        <Button Focusable="False" x:Name="connect2PlcButton" Content="Connect to PLC" HorizontalAlignment="Left" Margin="412,10,0,0" VerticalAlignment="Top" Click="connect2PlcButton_Click" Grid.Column="1" Width="100"/>
-        <CheckBox x:Name="errorCheck" Content="Error" Grid.Column="1" HorizontalAlignment="Left" Margin="1,236,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-        <Button x:Name="enableButton" Focusable="False" Content="Enable/Disable" HorizontalAlignment="Left" Margin="169,10,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="enableButton_Click"/>
-        <Button x:Name="resetButton" Focusable="False" Content="Reset" HorizontalAlignment="Left" Margin="169,38,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="resetButton_Click"/>
-        <TextBox x:Name="cycleTB" HorizontalAlignment="Left" Margin="408,167,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" Grid.Column="1"/>
-        <TextBlock Grid.Column="1" Margin="321,169,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" TextAlignment="Right" HorizontalAlignment="Left"><Run Language="en-gb" Text="Cycles"/></TextBlock>
-        <Button Focusable="False" x:Name="highLimReversal" Content="HighLimReversal" HorizontalAlignment="Left" Margin="141,337,0,0" VerticalAlignment="Top" Grid.Column="1" Click="highLimReversal_Click" Width="100"/>
-        <Button Focusable="False" x:Name="lowLimReversal_Copy" Content="LowLimReversal" HorizontalAlignment="Left" Margin="141,362,0,0" VerticalAlignment="Top" Grid.Column="1" Click="lowLimReversal_Click" Width="100"/>
-        <Button Focusable="False" x:Name="end2endTestWithReversal" Content="End2EndwRev Test" HorizontalAlignment="Left" Margin="131,387,0,0" VerticalAlignment="Top" Grid.Column="1" Width="120" Click="end2endReversal_Click"/>
-        <Button Focusable="False" x:Name="folderDirSelect" Content="Select Directory" HorizontalAlignment="Left" Margin="11,397,0,0" VerticalAlignment="Top" Click="folderDirSelect_Click" Width="100" Grid.ColumnSpan="2"/>
-        <Button Focusable="False" x:Name="uniDirecitonalTest" Content="uniDirectional" HorizontalAlignment="Left" Margin="265,387,0,0" VerticalAlignment="Top" Grid.Column="1" Width="120" Click="uniDirecitonalTest_Click"/>
-        <Button Focusable="False" x:Name="uniDirecitonalTest_Copy" Content="biDirectional" HorizontalAlignment="Left" Margin="390,387,0,0" VerticalAlignment="Top" Grid.Column="1" Width="120" Click="uniDirecitonalTest_Copy_Click"/>
-        <Button x:Name="dti1_button" Focusable="False" Content="Trigger DTI1" HorizontalAlignment="Left" Margin="285,10,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="dti1_button_Click"/>
-        <CheckBox x:Name="dti1Checkbox" Content="DTI 1" Grid.Column="1" HorizontalAlignment="Left" Margin="412,45,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="dti2Checkbox" Content="DTI 2" Grid.Column="1" HorizontalAlignment="Left" Margin="412,65,0,0" VerticalAlignment="Top"/>
-        <Button Focusable="False" x:Name="initPneumatic" Content="Initialise Pneumatic Axis" HorizontalAlignment="Left" Margin="572,14,0,0" VerticalAlignment="Top" Click="initPneumatic_Click" Grid.Column="1" Width="188"/>
-        <CheckBox x:Name="pneumaticExtended" Content="ExtendedLimit" Grid.Column="1" HorizontalAlignment="Left" Margin="572,68,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-        <CheckBox x:Name="pneumaticRetracted" Content="RetractedLimit" Grid.Column="1" HorizontalAlignment="Left" Margin="572,86,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-        <CheckBox x:Name="CylinderAir" Content="Cylinder AIR ON" Grid.Column="1" HorizontalAlignment="Left" Margin="572,48,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-        <Button Focusable="False" x:Name="shutterEnd2End_button" Content="Shutter End 2 End" HorizontalAlignment="Left" Margin="572,109,0,0" VerticalAlignment="Top" Grid.Column="1" Click="shutterEnd2End_button_Click" Width="124"/>
-        <Button Focusable="False" x:Name="shutterTestFolderDir_button" Content="Shutter tests directory" HorizontalAlignment="Left" Margin="572,133,0,0" VerticalAlignment="Top" Click="shutterTestFolderDir_button_Click" Width="124" Grid.Column="1"/>
-        <Button x:Name="triggerDti1_button" Focusable="False" Content="DTI1 Trig" HorizontalAlignment="Left" Margin="706,56,0,0" VerticalAlignment="Top" Grid.Column="1" Width="54" Click="dti1_button_Click"/>
-        <Button Focusable="False" x:Name="dt1Data_button" Content="DTI Data" HorizontalAlignment="Left" Margin="706,84,0,0" VerticalAlignment="Top" Grid.Column="1" Click="dt1Data_button_Click" Width="54"/>
-        <CheckBox x:Name="useDTIonAirCheck" Content="Use DTI on AIR" Grid.Column="1" HorizontalAlignment="Left" Margin="412,85,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="extendCylinder_button" Focusable="False" Content="Extend cylinder" HorizontalAlignment="Left" Margin="575,162,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="extendCylinder_button_Click"/>
-        <Button x:Name="retractCylinder_button" Focusable="False" Content="Retract cylinder" HorizontalAlignment="Left" Margin="575,188,0,0" VerticalAlignment="Top" Grid.Column="1" Width="100" Click="retractCylinder_button_Click"/>
-        <TextBox x:Name="amsNetIdTb" HorizontalAlignment="Left" Margin="285,40,0,0" Text="5.79.68.132.1.1" TextWrapping="Wrap" VerticalAlignment="Top" Width="100" Grid.Column="1"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="0.15*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+            <Button x:Name="NcAxis"
+                    Content="NC Axis"
+                    Style="{StaticResource HeaderButton}"/>
+            <Button x:Name="AirAxis"
+                    Content="AirAxis"
+                    Style="{StaticResource HeaderButton}"/>
+        </StackPanel>
+        
+        <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+            <StackPanel Orientation="Horizontal">
+                <TextBox x:Name="amsNetIdTb" 
+                             Text="5.79.68.132.1.1" 
+                             Height="20"
+                             VerticalAlignment="Top"
+                             Margin="10,5,0,0"/>
+                <Button x:Name="connect2PlcButton" 
+                            Focusable="False" 
+                            Content="Connect to PLC" 
+                            Click="connect2PlcButton_Click" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,5,0,0"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                <CheckBox x:Name="dti1Checkbox" 
+                      Content="DTI 1 Connected?" 
+                      HorizontalAlignment="Left" 
+                      VerticalAlignment="Top"
+                      Margin="10,5,0,0"/>
+                <Button x:Name="dti1_button" 
+                        Focusable="False" 
+                        Content="Trigger DTI1" 
+                        Width="100" 
+                        Click="dti1_button_Click"
+                        Margin="5,0,0,0"
+                        Height="20"/>
+
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <CheckBox x:Name="dti2Checkbox" 
+                      Content="DTI 2 Connected?" 
+                      HorizontalAlignment="Left" 
+                      VerticalAlignment="Top"
+                      Margin="10,0,0,0"/>
+
+            </StackPanel>
+
+
+
+        </StackPanel>
+
+
+
+
+        <StackPanel x:Name="StackPanel___MainWindow" Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,74,0,0" Grid.RowSpan="2">
+            <StackPanel Orientation="Vertical" Margin="0,10,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <TextBox x:Name="axisSelection" 
+                             HorizontalAlignment="Left" 
+                             Margin="10,0,0,0" 
+                             Text="1"
+                             Height="20" Width="40" />
+                    <Button x:Name="initAxis" 
+                            Focusable="False" 
+                            Content="initAxis" 
+                            Click="initAxis_Click" 
+                            Width="80"
+                            Height="20"
+                            Margin="5,0,0,0"/>
+                </StackPanel>
+
+                <StackPanel x:Name="AxisStatus" Orientation="Vertical" Margin="5,0" >
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock  Text="SP"
+                                    Margin="0,5,0,0"
+                                    Style="{StaticResource defaultTB}"/>
+                        <TextBox x:Name="positionText" 
+                             Text="0" 
+                             Width="60" 
+                             Height="20"
+                             VerticalAlignment="Center"
+                             Margin="40,5,0,0"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock  Text="PosRB"
+                                    Margin="0,5,0,0"
+                                    Style="{StaticResource defaultTB}"/>
+                        <TextBlock x:Name="axisPositionRB" 
+                                     Width="60" 
+                                    Text="0000"
+                                    Margin="15,5,0,0"
+                                   Style="{StaticResource defaultTB}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock  HorizontalAlignment="Left" 
+                                    VerticalAlignment="Top"  
+                                    Text="Velo."
+                                    Style="{StaticResource defaultTB}"/>
+                        <TextBox x:Name="velocityTB" 
+                                 HorizontalAlignment="Left" 
+                                 Text="0" 
+                                 VerticalAlignment="Top" 
+                                 Width="60"
+                                 Height="20"
+                                 Margin="24,0,0,0"/>
+                    </StackPanel>
+
+                    <CheckBox x:Name="enabledCheck" 
+                          Content="Enabled" 
+                          IsEnabled="False" 
+                          Height="20" 
+                          Width="100"
+                          HorizontalAlignment="Left"
+                          Margin="0,5,0,0"/>
+                    <CheckBox x:Name="fwEnabledCheck" 
+                          Content="FwEnabled" 
+                          IsEnabled="False" 
+                          Height="20" 
+                          Width="100"
+                          HorizontalAlignment="Left"
+                          Margin="0,5,0,0"/>
+                    <CheckBox x:Name="bwEnabledCheck" 
+                          Content="BwEnabled" 
+                          IsEnabled="False" 
+                          Width="100" 
+                          Height="20"
+                          HorizontalAlignment="Left"
+                          Margin="0,5,0,0"/>
+                    <CheckBox x:Name="errorCheck" 
+                          Content="Error"   
+                          IsEnabled="False" 
+                          Width="100" 
+                          Height="20" 
+                          HorizontalAlignment="Left"
+                          Margin="0,5,0,0"/>
+                    <Button x:Name="enableButton" 
+                            Focusable="False" 
+                            Content="Enable/Disable" 
+                            Click="enableButton_Click"
+                            Margin="0,5,0,0"
+                            Height="20"/>
+                    <Button x:Name="resetButton" 
+                            Focusable="False" 
+                            Content="Reset" 
+                            Click="resetButton_Click"
+                            Margin="0,5,0,0"
+                            Height="20"/>
+                    <Image HorizontalAlignment="Center" 
+                           Height="216" 
+                           VerticalAlignment="Center" 
+                           Width="135" 
+                           Source="/babyIbex.jpg"/>
+                    <Button x:Name="folderDirSelect" 
+                            Focusable="False"
+                            Content="Select Directory" 
+                            Click="folderDirSelect_Click"
+                            Height="20"/>
+
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="10,0,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel x:Name="BasicCommands1" Orientation="Vertical" >
+                        <Button x:Name="moveAbsButton" 
+                            Focusable="False" 
+                            Content="MoveAbs" 
+                            Click="Button_Click"
+                            Margin="0,10,0,0"/>
+                        <Button x:Name="moveRelButton" 
+                            Focusable="False"  
+                            Content="MoveRel" 
+                            Click="moveRelButton_Click"
+                            Margin="0,10,0,0"/>
+                        <Button x:Name="moveVelButton"
+                            Focusable="False"  
+                            Content="MoveVel" 
+                            Click="moveVelButton_Click"
+                            Margin="0,10,0,0"/>
+                        <Button x:Name="move2High" 
+                            Focusable="False"
+                            Content="Move2HighLimit"  
+                            Click="move2High_Click"
+                            Margin="0,10,0,0"/>
+                        <Button x:Name="move2Low" 
+                            Focusable="False"
+                            Content="Move2LowLimit" 
+                            Click="move2Low_Click"
+                            Margin="0,10,0,0"/>
+                    </StackPanel>
+                    <StackPanel x:Name="BasicCommands2" Orientation="Vertical" Margin="10,0,0,0">
+                        <Button x:Name="stopMove"
+                            Focusable="False"  
+                            Content="Stop" 
+                            Click="stopMove_Click"
+                            Margin="0,10,0,0"/>
+                        <Button x:Name="highLimReversal" 
+                            Focusable="False" 
+                            Content="HighLimReversal" 
+                            Click="highLimReversal_Click" 
+                            Margin="0,10,0,0"/>
+                        <Button x:Name="lowLimReversal_Copy" 
+                            Focusable="False" 
+                            Content="LowLimReversal" 
+                            Click="lowLimReversal_Click"
+                            Margin="0,10,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                    <StackPanel x:Name="Tests" Orientation="Vertical" >
+                        <Button x:Name="end2endTest"
+                                Focusable="False"  
+                                Content="End2End Test" 
+                                Click="end2endTest_Click"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource myBlueButton}"/>
+                        <Button x:Name="end2endTestWithReversal" 
+                                Focusable="False" 
+                                Content="End2EndwRev Test"                            
+                                Click="end2endReversal_Click"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource myBlueButton}"/>
+                        <Button x:Name="uniDirecitonalTest" 
+                                Focusable="False" 
+                                Content="uniDirectional" 
+                                Click="uniDirecitonalTest_Click"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource myBlueButton}"/>
+                        <Button x:Name="biDirecitonalTest" 
+                                Focusable="False" 
+                                Content="biDirectional" 
+                                Click="uniDirecitonalTest_Copy_Click"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource myBlueButton}"/>
+
+
+
+                    </StackPanel>
+                    <StackPanel Orientation="Vertical" Margin="10,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="cancelTest" 
+                                    Focusable="False" 
+                                    Content="Cancel Test" 
+                                    Click="cancelTest_Click"
+                                    Margin="0,10,0,0"/>
+                            <CheckBox x:Name="testCancelledCheck" 
+                                      Content="Cancelled" 
+                                      HorizontalAlignment="Left" 
+                                      VerticalAlignment="Center" 
+                                      IsEnabled="False"
+                                      Margin="5,15,0,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="pauseTest" 
+                                    Focusable="False"
+                                    Content="Pause Test" 
+                                    Click="pauseTest_Click" 
+                                    Margin="0,10,0,0"/>
+                            <CheckBox x:Name="testPausedCheck" 
+                                      Content="Paused"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center" 
+                                      IsEnabled="False"
+                                      Margin="5,15,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                    <StackPanel x:Name="TestParams1" Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock HorizontalAlignment="Left" 
+                                       VerticalAlignment="Top" 
+                                       Width="80"
+                                       Text="Timeout:"
+                                       Style="{StaticResource defaultTB}"/>
+                            <TextBox x:Name="timeoutTB" 
+                                     HorizontalAlignment="Left" 
+                                     Text="0"  
+                                     VerticalAlignment="Top" 
+                                     Width="60" 
+                                     PreviewTextInput="NumberValidationTextBox"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Width="80" 
+                                       HorizontalAlignment="Left"
+                                       Text="Cycles:"
+                                       Style="{StaticResource defaultTB}"/>
+                            <TextBox x:Name="cycleTB" 
+                                     HorizontalAlignment="Left" 
+                                     Text="0" 
+                                     VerticalAlignment="Top" 
+                                     Width="60" 
+                                     PreviewTextInput="NumberValidationTextBox"/>
+
+                        </StackPanel>
+
+                    </StackPanel>
+                    <StackPanel x:Name="TestParams2" Orientation="Vertical">
+
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel x:Name="StackPanel___Pneumatics" Orientation="Horizontal" Margin="10,0,0,0">
+                <StackPanel>
+                    <CheckBox x:Name="useDTIonAirCheck" 
+                              Content="Use DTI on AIR" 
+                              HorizontalAlignment="Left" 
+                              VerticalAlignment="Top" 
+                              Height="20"
+                              Margin="10,10,0,0"/>
+
+                    <Button Focusable="False" 
+                        x:Name="initPneumatic" 
+                        Content="Init. Air Axis" 
+                        Click="initPneumatic_Click"
+                            Margin="0,10,0,0"/>
+                    <Button x:Name="extendCylinder_button" 
+                        Focusable="False" 
+                        Content="Extend cylinder"
+                        Click="extendCylinder_button_Click"
+                            Margin="0,10,0,0"/>
+                    <Button x:Name="retractCylinder_button" 
+                            Focusable="False" 
+                            Content="Retract cylinder" 
+                            Click="retractCylinder_button_Click"
+                            Margin="0,10,0,0"/>
+                    <Button Focusable="False" 
+                            x:Name="shutterEnd2End_button" 
+                            Content="Shutter End 2 End" 
+                            Click="shutterEnd2End_button_Click" 
+                            Margin="0,10,0,0"
+                            Style="{StaticResource myBlueButton}"/>
+                    <Button Focusable="False" 
+                            x:Name="shutterTestFolderDir_button" 
+                            Content="Sel.Dir for shutter" 
+                            Click="shutterTestFolderDir_button_Click"
+                            Margin="0,10,0,0"
+                            Style="{StaticResource myBlueButton}"/>
+                </StackPanel>
+                <StackPanel>
+                    <CheckBox x:Name="CylinderAir" 
+                              Content="Cylinder AIR ON" 
+                              HorizontalAlignment="Left" 
+                              IsEnabled="False"
+                              Height="20"
+                              Margin="10,20,0,0"/>
+                    <CheckBox x:Name="pneumaticExtended" 
+                              Content="ExtendedLimit" 
+                              HorizontalAlignment="Left" 
+                              Height="20"
+                              Margin="10,20,0,0"
+                              IsEnabled="False"/>
+                    <CheckBox x:Name="pneumaticRetracted" 
+                              Content="RetractedLimit" 
+                              HorizontalAlignment="Left" 
+                              IsEnabled="False"
+                              Height="20"
+                              Margin="10,20,0,0"/>
+
+                </StackPanel>
+
+            </StackPanel>
+        </StackPanel>
     </Grid>
 </Window>
