@@ -2,8 +2,29 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:TwinCat_Motion_ADS"
+             xmlns:viewModel="clr-namespace:TwinCat_Motion_ADS.MVVM.ViewModel"
+             xmlns:view="clr-namespace:TwinCat_Motion_ADS.MVVM.View"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Theme/MenuButtonTheme.xaml"/>
+                <ResourceDictionary Source="Theme/pinkButtonTheme.xaml"/>
+                <ResourceDictionary Source="Theme/blueButtonTheme.xaml"/>
+                <ResourceDictionary Source="Theme/checkBoxTheme.xaml"/>
+                <ResourceDictionary Source="Theme/TextBlockTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate DataType="{x:Type viewModel:AirAxisViewModel}">
+                <view:AirAxisView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModel:NcAxisViewModel}">
+                <view:NcAxisView/>
+            </DataTemplate>
+            
+        </ResourceDictionary>
+        
+        
+        
     </Application.Resources>
 </Application>
