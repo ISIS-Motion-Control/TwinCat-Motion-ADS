@@ -17,7 +17,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TwinCAT.Ads;
 using Ookii.Dialogs.Wpf;
-
+using TwinCat_Motion_ADS.MVVM.ViewModel;
 
 namespace TwinCat_Motion_ADS
 {
@@ -29,14 +29,17 @@ namespace TwinCat_Motion_ADS
     {
         //TestClass testSystem = TestClass.Instance;
         String keyboardInput = string.Empty;
-        PLC Plc;
+        public PLC Plc;
         //PLC Plc = new PLC("5.65.74.200.1.1", 852);
-        Axis testAxis;
-        PneumaticAxis pneumaticAxis;
-        string selectedFolder = string.Empty;
+        public Axis testAxis;
+        public PneumaticAxis pneumaticAxis;
+        public string selectedFolder = string.Empty;
+        
+
 
         public MainWindow()
         {
+
             InitializeComponent();
             EventManager.RegisterClassHandler(typeof(Window),Keyboard.KeyUpEvent, new KeyEventHandler(keyUp), true);
             ConsoleAllocator.ShowConsoleWindow();
@@ -59,8 +62,8 @@ namespace TwinCat_Motion_ADS
                 elementsEnabled(true);
             }
             //testAxis = new Axis(1, Plc);  //Uncomment for no DTI
+            var vm = (MainViewModel)this.DataContext;
             
-
         }
 
         private async void keyUp(object sender, KeyEventArgs e)
@@ -152,7 +155,7 @@ namespace TwinCat_Motion_ADS
             BindingOperations.SetBinding(errorCheck, CheckBox.IsCheckedProperty, errorBind);
         }
 
-        private async void Button_Click(object sender, RoutedEventArgs e)
+        public async void moveAbsButton_Click(object sender, RoutedEventArgs e)
         {
             double posCommanded = Convert.ToDouble(positionText.Text);
             await testAxis.moveAbsoluteAndWait(posCommanded, Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
@@ -168,7 +171,8 @@ namespace TwinCat_Motion_ADS
             {
                 testAxis.updateInstance(Convert.ToUInt32(axisSelection.Text), dti1Checkbox.IsChecked.Value, dti2Checkbox.IsChecked.Value);
             }         
-            setupBinds();         
+            setupBinds();
+            
         }
 
         private async void moveRelButton_Click(object sender, RoutedEventArgs e)
@@ -331,7 +335,7 @@ namespace TwinCat_Motion_ADS
             elementsEnabled(true);
         }
 
-        private void folderDirSelect_Click(object sender, RoutedEventArgs e)
+        public void folderDirSelect_Click(object sender, RoutedEventArgs e)
         {
             var fbd = new VistaFolderBrowserDialog();
             selectedFolder = String.Empty;
@@ -359,7 +363,7 @@ namespace TwinCat_Motion_ADS
             await pneumaticAxis.TriggerDti1();
         }
 
-        private void initPneumatic_Click(object sender, RoutedEventArgs e)
+        public void initPneumatic_Click(object sender, RoutedEventArgs e)
         {
             if (pneumaticAxis == null)
             {

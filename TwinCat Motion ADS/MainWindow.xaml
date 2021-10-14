@@ -3,13 +3,22 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModel="clr-namespace:TwinCat_Motion_ADS.MVVM.ViewModel"
+        xmlns:view="clr-namespace:TwinCat_Motion_ADS.MVVM.View"
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
         Title="IBEX Lite" Height="600" Width="1000" Icon="/ibexHead.jpg" WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         ResizeMode="CanResize"
-        Background="#181735">
-
+        AllowsTransparency="True"
+        Background="Transparent"
+        >
+    <Window.DataContext>
+        <viewModel:MainViewModel/>
+    </Window.DataContext>
+    <Border CornerRadius="10" Background="#181735">
+        
+    
     <Grid x:Name="mainWindowGrid" Focusable="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="143*"/>
@@ -22,13 +31,21 @@
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
-            <Button x:Name="NcAxis"
-                    Content="NC Axis"
-                    Style="{StaticResource HeaderButton}"/>
-            <Button x:Name="AirAxis"
-                    Content="AirAxis"
-                    Style="{StaticResource HeaderButton}"/>
-        </StackPanel>
+                <RadioButton Content="NC Axis"
+                             Foreground="White"
+                             FontSize="24"
+                             Height="30"
+                             Style="{StaticResource MenuButtonTheme}"
+                             IsChecked="True"
+                             Command="{Binding NcAxisCommand}"/>
+                <RadioButton Content="Air Axis"
+                             Foreground="White"
+                             FontSize="24"
+                             Height="30"
+                             Style="{StaticResource MenuButtonTheme}"
+                             Command="{Binding AirAxisCommand}"/>
+
+            </StackPanel>
         
         <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
             <StackPanel Orientation="Horizontal">
@@ -43,29 +60,33 @@
                             Click="connect2PlcButton_Click" 
                             Height="20"
                             VerticalAlignment="Top"
-                            Margin="10,5,0,0"/>
+                            Margin="10,5,0,0"
+                        Style="{StaticResource myDefaultButton}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                 <CheckBox x:Name="dti1Checkbox" 
-                      Content="DTI 1 Connected?" 
-                      HorizontalAlignment="Left" 
-                      VerticalAlignment="Top"
-                      Margin="10,5,0,0"/>
+                          Content="DTI 1 Connected?" 
+                          HorizontalAlignment="Left" 
+                          VerticalAlignment="Top"
+                          Margin="10,5,0,0"
+                          Style="{StaticResource checkBoxTheme}"/>
                 <Button x:Name="dti1_button" 
                         Focusable="False" 
                         Content="Trigger DTI1" 
                         Width="100" 
                         Click="dti1_button_Click"
                         Margin="5,0,0,0"
-                        Height="20"/>
+                        Height="20"
+                        Style="{StaticResource myDefaultButton}"/>
 
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <CheckBox x:Name="dti2Checkbox" 
-                      Content="DTI 2 Connected?" 
-                      HorizontalAlignment="Left" 
-                      VerticalAlignment="Top"
-                      Margin="10,0,0,0"/>
+                          Content="DTI 2 Connected?" 
+                          HorizontalAlignment="Left" 
+                          VerticalAlignment="Top"
+                          Margin="10,0,0,0"
+                          Style="{StaticResource checkBoxTheme}"/>
 
             </StackPanel>
 
@@ -90,7 +111,8 @@
                             Click="initAxis_Click" 
                             Width="80"
                             Height="20"
-                            Margin="5,0,0,0"/>
+                            Margin="5,0,0,0"
+                            Style="{StaticResource myDefaultButton}"/>
                 </StackPanel>
 
                 <StackPanel x:Name="AxisStatus" Orientation="Vertical" Margin="5,0" >
@@ -135,40 +157,46 @@
                           Height="20" 
                           Width="100"
                           HorizontalAlignment="Left"
-                          Margin="0,5,0,0"/>
+                          Margin="0,5,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
                     <CheckBox x:Name="fwEnabledCheck" 
                           Content="FwEnabled" 
                           IsEnabled="False" 
                           Height="20" 
                           Width="100"
                           HorizontalAlignment="Left"
-                          Margin="0,5,0,0"/>
+                          Margin="0,5,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
                     <CheckBox x:Name="bwEnabledCheck" 
                           Content="BwEnabled" 
                           IsEnabled="False" 
                           Width="100" 
                           Height="20"
                           HorizontalAlignment="Left"
-                          Margin="0,5,0,0"/>
+                          Margin="0,5,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
                     <CheckBox x:Name="errorCheck" 
                           Content="Error"   
                           IsEnabled="False" 
                           Width="100" 
                           Height="20" 
                           HorizontalAlignment="Left"
-                          Margin="0,5,0,0"/>
+                          Margin="0,5,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
                     <Button x:Name="enableButton" 
                             Focusable="False" 
                             Content="Enable/Disable" 
                             Click="enableButton_Click"
                             Margin="0,5,0,0"
-                            Height="20"/>
+                            Height="20"
+                            Style="{StaticResource myDefaultButton}"/>
                     <Button x:Name="resetButton" 
                             Focusable="False" 
                             Content="Reset" 
                             Click="resetButton_Click"
                             Margin="0,5,0,0"
-                            Height="20"/>
+                            Height="20"
+                            Style="{StaticResource myDefaultButton}"/>
                     <Image HorizontalAlignment="Center" 
                            Height="216" 
                            VerticalAlignment="Center" 
@@ -178,7 +206,8 @@
                             Focusable="False"
                             Content="Select Directory" 
                             Click="folderDirSelect_Click"
-                            Height="20"/>
+                            Height="20"
+                            Style="{StaticResource myDefaultButton}"/>
 
                 </StackPanel>
             </StackPanel>
@@ -188,45 +217,53 @@
                         <Button x:Name="moveAbsButton" 
                             Focusable="False" 
                             Content="MoveAbs" 
-                            Click="Button_Click"
-                            Margin="0,10,0,0"/>
+                            Click="moveAbsButton_Click"
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
                         <Button x:Name="moveRelButton" 
                             Focusable="False"  
                             Content="MoveRel" 
                             Click="moveRelButton_Click"
-                            Margin="0,10,0,0"/>
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
                         <Button x:Name="moveVelButton"
                             Focusable="False"  
                             Content="MoveVel" 
                             Click="moveVelButton_Click"
-                            Margin="0,10,0,0"/>
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
                         <Button x:Name="move2High" 
                             Focusable="False"
                             Content="Move2HighLimit"  
                             Click="move2High_Click"
-                            Margin="0,10,0,0"/>
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
                         <Button x:Name="move2Low" 
                             Focusable="False"
                             Content="Move2LowLimit" 
                             Click="move2Low_Click"
-                            Margin="0,10,0,0"/>
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
                     </StackPanel>
                     <StackPanel x:Name="BasicCommands2" Orientation="Vertical" Margin="10,0,0,0">
                         <Button x:Name="stopMove"
                             Focusable="False"  
                             Content="Stop" 
                             Click="stopMove_Click"
-                            Margin="0,10,0,0"/>
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
                         <Button x:Name="highLimReversal" 
                             Focusable="False" 
                             Content="HighLimReversal" 
                             Click="highLimReversal_Click" 
-                            Margin="0,10,0,0"/>
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
                         <Button x:Name="lowLimReversal_Copy" 
                             Focusable="False" 
                             Content="LowLimReversal" 
                             Click="lowLimReversal_Click"
-                            Margin="0,10,0,0"/>
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
@@ -265,26 +302,30 @@
                                     Focusable="False" 
                                     Content="Cancel Test" 
                                     Click="cancelTest_Click"
-                                    Margin="0,10,0,0"/>
+                                    Margin="0,10,0,0"
+                                    Style="{StaticResource myDefaultButton}"/>
                             <CheckBox x:Name="testCancelledCheck" 
                                       Content="Cancelled" 
                                       HorizontalAlignment="Left" 
                                       VerticalAlignment="Center" 
                                       IsEnabled="False"
-                                      Margin="5,15,0,0"/>
+                                      Margin="5,15,0,0"
+                                      Style="{StaticResource checkBoxTheme}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <Button x:Name="pauseTest" 
                                     Focusable="False"
                                     Content="Pause Test" 
                                     Click="pauseTest_Click" 
-                                    Margin="0,10,0,0"/>
+                                    Margin="0,10,0,0"
+                                    Style="{StaticResource myDefaultButton}"/>
                             <CheckBox x:Name="testPausedCheck" 
                                       Content="Paused"
                                       HorizontalAlignment="Left"
                                       VerticalAlignment="Center" 
                                       IsEnabled="False"
-                                      Margin="5,15,0,0"/>
+                                      Margin="5,15,0,0"
+                                      Style="{StaticResource checkBoxTheme}"/>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -314,7 +355,6 @@
                                      VerticalAlignment="Top" 
                                      Width="60" 
                                      PreviewTextInput="NumberValidationTextBox"/>
-
                         </StackPanel>
 
                     </StackPanel>
@@ -330,23 +370,27 @@
                               HorizontalAlignment="Left" 
                               VerticalAlignment="Top" 
                               Height="20"
-                              Margin="10,10,0,0"/>
+                              Margin="10,10,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
 
                     <Button Focusable="False" 
                         x:Name="initPneumatic" 
                         Content="Init. Air Axis" 
                         Click="initPneumatic_Click"
-                            Margin="0,10,0,0"/>
+                            Margin="0,10,0,0"
+                            Style="{StaticResource myDefaultButton}"/>
                     <Button x:Name="extendCylinder_button" 
                         Focusable="False" 
                         Content="Extend cylinder"
                         Click="extendCylinder_button_Click"
-                            Margin="0,10,0,0"/>
+                            Margin="0,10,0,0"
+                            Style="{StaticResource myDefaultButton}"/>
                     <Button x:Name="retractCylinder_button" 
                             Focusable="False" 
                             Content="Retract cylinder" 
                             Click="retractCylinder_button_Click"
-                            Margin="0,10,0,0"/>
+                            Margin="0,10,0,0"
+                            Style="{StaticResource myDefaultButton}"/>
                     <Button Focusable="False" 
                             x:Name="shutterEnd2End_button" 
                             Content="Shutter End 2 End" 
@@ -366,23 +410,30 @@
                               HorizontalAlignment="Left" 
                               IsEnabled="False"
                               Height="20"
-                              Margin="10,20,0,0"/>
+                              Margin="10,20,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
                     <CheckBox x:Name="pneumaticExtended" 
                               Content="ExtendedLimit" 
                               HorizontalAlignment="Left" 
                               Height="20"
                               Margin="10,20,0,0"
-                              IsEnabled="False"/>
+                              IsEnabled="False"
+                              Style="{StaticResource checkBoxTheme}"/>
                     <CheckBox x:Name="pneumaticRetracted" 
                               Content="RetractedLimit" 
                               HorizontalAlignment="Left" 
                               IsEnabled="False"
                               Height="20"
-                              Margin="10,20,0,0"/>
+                              Margin="10,20,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
 
                 </StackPanel>
+                    <ContentControl Margin="10"
+                                    Content="{Binding CurrentView}" d:IsHidden="True"/>
 
-            </StackPanel>
+
+                </StackPanel>
         </StackPanel>
     </Grid>
+    </Border>
 </Window>

@@ -1,0 +1,51 @@
+﻿<UserControl x:Class="TwinCat_Motion_ADS.MVVM.View.NcAxisView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TwinCat_Motion_ADS.MVVM.View"
+             xmlns:main="clr-namespace:TwinCat_Motion_ADS"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             Background="#1B1B1B">
+    <Grid>
+        <StackPanel x:Name="BasicCommands1" Orientation="Vertical" >
+            <Button x:Name="moveAbsButton" 
+                            Focusable="False" 
+                            Content="MoveAbs" 
+                            Click="moveAbsButton_Click"
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
+            <Button x:Name="moveRelButton" 
+                            Focusable="False"  
+                            Content="MoveRel" 
+                            
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
+            <Button x:Name="moveVelButton"
+                            Focusable="False"  
+                            Content="MoveVel" 
+                            
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
+            <Button x:Name="move2High" 
+                            Focusable="False"
+                            Content="Move2HighLimit"  
+                            
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
+            <Button x:Name="move2Low" 
+                            Focusable="False"
+                            Content="Move2LowLimit" 
+                            
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
+            <TextBlock x:Name="axisPositionRB" 
+                                     Width="60" 
+                                    Text="0000"
+                                    Margin="15,5,0,0"
+                       HorizontalAlignment="Left"
+                                   Style="{StaticResource defaultTB}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

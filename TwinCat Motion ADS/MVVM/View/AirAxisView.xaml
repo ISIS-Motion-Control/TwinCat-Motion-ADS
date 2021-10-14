@@ -1,0 +1,46 @@
+﻿<UserControl x:Class="TwinCat_Motion_ADS.MVVM.View.AirAxisView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TwinCat_Motion_ADS.MVVM.View"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <StackPanel>
+            <CheckBox x:Name="useDTIonAirCheck" 
+                              Content="Use DTI on AIR" 
+                              HorizontalAlignment="Left" 
+                              VerticalAlignment="Top" 
+                              Height="20"
+                              Margin="10,10,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
+
+            <Button Focusable="False" 
+                        x:Name="initPneumatic" 
+                        Content="Init. Air Axis" 
+                            Margin="0,10,0,0"
+                            Style="{StaticResource myDefaultButton}" Click="initPneumatic_Click"/>
+            <Button x:Name="extendCylinder_button" 
+                        Focusable="False" 
+                        Content="Extend cylinder"
+                            Margin="0,10,0,0"
+                            Style="{StaticResource myDefaultButton}"/>
+            <Button x:Name="retractCylinder_button" 
+                            Focusable="False" 
+                            Content="Retract cylinder" 
+                            Margin="0,10,0,0"
+                            Style="{StaticResource myDefaultButton}"/>
+            <Button Focusable="False" 
+                            x:Name="shutterEnd2End_button" 
+                            Content="Shutter End 2 End" 
+                            Margin="0,10,0,0"
+                            Style="{StaticResource myBlueButton}"/>
+            <Button Focusable="False" 
+                            x:Name="shutterTestFolderDir_button" 
+                            Content="Sel.Dir for shutter" 
+                            Margin="0,10,0,0"
+                            Style="{StaticResource myBlueButton}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
