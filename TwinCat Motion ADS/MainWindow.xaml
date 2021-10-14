@@ -8,15 +8,15 @@
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
         Title="IBEX Lite" Height="600" Width="1000" Icon="/ibexHead.jpg" WindowStartupLocation="CenterScreen"
-        WindowStyle="None"
+        
         ResizeMode="CanResize"
-        AllowsTransparency="True"
+        
         Background="Transparent"
         >
     <Window.DataContext>
         <viewModel:MainViewModel/>
     </Window.DataContext>
-    <Border CornerRadius="10" Background="#181735">
+    <Border CornerRadius="10" Background="#3a7685">
         
     
     <Grid x:Name="mainWindowGrid" Focusable="True">
@@ -50,7 +50,7 @@
         <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
             <StackPanel Orientation="Horizontal">
                 <TextBox x:Name="amsNetIdTb" 
-                             Text="5.79.68.132.1.1" 
+                             Text="5.65.74.200.1.1" 
                              Height="20"
                              VerticalAlignment="Top"
                              Margin="10,5,0,0"/>
@@ -63,36 +63,12 @@
                             Margin="10,5,0,0"
                         Style="{StaticResource myDefaultButton}"/>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                <CheckBox x:Name="dti1Checkbox" 
-                          Content="DTI 1 Connected?" 
-                          HorizontalAlignment="Left" 
-                          VerticalAlignment="Top"
-                          Margin="10,5,0,0"
-                          Style="{StaticResource checkBoxTheme}"/>
-                <Button x:Name="dti1_button" 
-                        Focusable="False" 
-                        Content="Trigger DTI1" 
-                        Width="100" 
-                        Click="dti1_button_Click"
-                        Margin="5,0,0,0"
-                        Height="20"
-                        Style="{StaticResource myDefaultButton}"/>
+            <StackPanel Orientation="Horizontal" Margin="0,5,0,0"/>
+                <StackPanel Orientation="Horizontal"/>
+
+
 
             </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <CheckBox x:Name="dti2Checkbox" 
-                          Content="DTI 2 Connected?" 
-                          HorizontalAlignment="Left" 
-                          VerticalAlignment="Top"
-                          Margin="10,0,0,0"
-                          Style="{StaticResource checkBoxTheme}"/>
-
-            </StackPanel>
-
-
-
-        </StackPanel>
 
 
 

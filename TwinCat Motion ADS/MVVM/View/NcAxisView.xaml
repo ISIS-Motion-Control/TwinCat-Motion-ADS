@@ -9,43 +9,318 @@
              d:DesignHeight="450" d:DesignWidth="800"
              Background="#1B1B1B">
     <Grid>
-        <StackPanel x:Name="BasicCommands1" Orientation="Vertical" >
-            <Button x:Name="moveAbsButton" 
+        <StackPanel Orientation="Horizontal">
+            
+        
+        <StackPanel x:Name="MAIN" Orientation="Vertical">
+            <StackPanel x:Name="initAxisPanel" Orientation="Horizontal">
+                <TextBox x:Name="axisSelection" 
+                        Text="1" 
+                        Width="50"
+                        Height="25"
+                        TextAlignment="Center"
+                        HorizontalAlignment="Left"/>
+                <Button x:Name="initAxis" 
+                        Focusable="False" 
+                        Content="initAxis" 
+                        Click="initAxis_Click" 
+                        Width="80"
+                        Height="20"
+                        Style="{StaticResource myDefaultButton}" 
+                        Margin="20,0,0,0" 
+                        VerticalAlignment="Center"/>
+                
+            </StackPanel>
+            <Button x:Name="enableButton" 
+                            Focusable="False" 
+                            Content="Enable/Disable" 
+                            Click="enableButton_Click"
+                            Margin="0,5,0,0"
+                            Height="20"
+                            Style="{StaticResource myDefaultButton}"/>
+            <Button x:Name="resetButton" 
+                            Focusable="False" 
+                            Content="Reset" 
+                            Click="resetButton_Click"
+                            Margin="0,5,0,0"
+                            Height="20"
+                            Style="{StaticResource myDefaultButton}"/>
+            <Button x:Name="folderDirSelect" 
+                            Focusable="False"
+                            Content="Select Directory" 
+                            Click="folderDirSelect_Click"
+                            Margin="0,5,0,0"
+                            Height="20"
+                            Style="{StaticResource myDefaultButton}"/>
+            <StackPanel Orientation="Horizontal">
+                <StackPanel x:Name="statusAndSettings" Orientation="Vertical">
+
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock  Text="PosRB"
+                                    Margin="0,5,0,0"
+                                    Style="{StaticResource defaultTB}"/>
+                        <TextBlock x:Name="axisPositionRB" 
+                                Width="60" 
+                                Text="0000"
+                                Margin="20,5,0,0"
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource defaultTB}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock  Text="SetPos"
+                                    Margin="0,5,0,0"
+                                    Style="{StaticResource defaultTB}"/>
+                        <TextBox x:Name="positionText" 
+                             Text="0" 
+                             Width="60" 
+                             Height="20"
+                             VerticalAlignment="Center"
+                             Margin="15,5,0,0"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock  HorizontalAlignment="Left" 
+                                    VerticalAlignment="Top"  
+                                    Text="Velo."
+                                    Style="{StaticResource defaultTB}"/>
+                        <TextBox x:Name="velocityTB" 
+                                 HorizontalAlignment="Left" 
+                                 Text="0" 
+                                 VerticalAlignment="Top" 
+                                 Width="60"
+                                 Height="20"
+                                 Margin="28,0,0,0"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Vertical">
+                        <CheckBox x:Name="enabledCheck" 
+                          Content="Enabled" 
+                          IsEnabled="False" 
+                          Height="20" 
+                          Width="100"
+                          HorizontalAlignment="Left"
+                          Margin="0,5,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
+                        <CheckBox x:Name="fwEnabledCheck" 
+                          Content="FwEnabled" 
+                          IsEnabled="False" 
+                          Height="20" 
+                          Width="100"
+                          HorizontalAlignment="Left"
+                          Margin="0,5,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
+                        <CheckBox x:Name="bwEnabledCheck" 
+                          Content="BwEnabled" 
+                          IsEnabled="False" 
+                          Width="100" 
+                          Height="20"
+                          HorizontalAlignment="Left"
+                          Margin="0,5,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
+                        <CheckBox x:Name="errorCheck" 
+                          Content="Error"   
+                          IsEnabled="False" 
+                          Width="100" 
+                          Height="20" 
+                          HorizontalAlignment="Left"
+                          Margin="0,5,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
+                    </StackPanel>
+                    
+                </StackPanel>
+
+                <StackPanel x:Name="BasicCommands1" Orientation="Vertical" Margin="15,0,0,0">
+                    <Button x:Name="moveAbsButton" 
                             Focusable="False" 
                             Content="MoveAbs" 
                             Click="moveAbsButton_Click"
                             Margin="0,10,0,0"
                                 Style="{StaticResource myDefaultButton}"/>
-            <Button x:Name="moveRelButton" 
+                    <Button x:Name="moveRelButton" 
                             Focusable="False"  
                             Content="MoveRel" 
                             
                             Margin="0,10,0,0"
-                                Style="{StaticResource myDefaultButton}"/>
-            <Button x:Name="moveVelButton"
+                                Style="{StaticResource myDefaultButton}" Click="moveRelButton_Click"/>
+                    <Button x:Name="moveVelButton"
                             Focusable="False"  
                             Content="MoveVel" 
                             
                             Margin="0,10,0,0"
-                                Style="{StaticResource myDefaultButton}"/>
-            <Button x:Name="move2High" 
+                                Style="{StaticResource myDefaultButton}" Click="moveVelButton_Click"/>
+                    <Button x:Name="move2High" 
                             Focusable="False"
                             Content="Move2HighLimit"  
                             
                             Margin="0,10,0,0"
-                                Style="{StaticResource myDefaultButton}"/>
-            <Button x:Name="move2Low" 
+                                Style="{StaticResource myDefaultButton}" Click="move2High_Click"/>
+                    <Button x:Name="move2Low" 
                             Focusable="False"
                             Content="Move2LowLimit" 
                             
                             Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}" Click="move2Low_Click"/>
+                    <Button x:Name="stopMove"
+                            Focusable="False"  
+                            Content="Stop" 
+                            Click="stopMove_Click"
+                            Margin="0,10,0,0"
                                 Style="{StaticResource myDefaultButton}"/>
-            <TextBlock x:Name="axisPositionRB" 
-                                     Width="60" 
-                                    Text="0000"
-                                    Margin="15,5,0,0"
-                       HorizontalAlignment="Left"
-                                   Style="{StaticResource defaultTB}"/>
+                    <Button x:Name="highLimReversal" 
+                            Focusable="False" 
+                            Content="HighLimReversal" 
+                            Click="highLimReversal_Click" 
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
+                    <Button x:Name="lowLimReversal_Copy" 
+                            Focusable="False" 
+                            Content="LowLimReversal" 
+                            Click="lowLimReversal_Click"
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}"/>
+                </StackPanel>
+            </StackPanel>
+
+
         </StackPanel>
+
+            <StackPanel x:Name="testSettings" Margin="15,0,0,0">
+                <StackPanel Orientation="Horizontal" >
+                    <TextBlock HorizontalAlignment="Left" 
+                                       VerticalAlignment="Top" 
+                                       Width="110"
+                                       Text="Timeout (s):"
+                                       Style="{StaticResource defaultTB}"/>
+                    <TextBox x:Name="timeoutTB" 
+                                     HorizontalAlignment="Left" 
+                                     Text="0"  
+                                     VerticalAlignment="Top" 
+                                     Width="60"
+                             Margin="5,0,0,0"
+                                     />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Width="110" 
+                                       HorizontalAlignment="Left"
+                                       Text="Cycles:"
+                                       Style="{StaticResource defaultTB}"/>
+                    <TextBox x:Name="cycleTB" 
+                                     HorizontalAlignment="Left" 
+                                     Text="0" 
+                                     VerticalAlignment="Top" 
+                                     Width="60"
+                                    Margin="5,0,0,0"
+                                     />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Width="110"
+                               HorizontalAlignment="Left"
+                               Text="Cycle Delay (s):"
+                               Style="{StaticResource defaultTB}"/>
+                    <TextBox x:Name="cycleDelay"
+                             HorizontalAlignment="Left"
+                             Text="0"
+                             VerticalAlignment="Top"
+                             Width="60"
+                             Margin="5,0,0,0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Width="110"
+                               HorizontalAlignment="Left"
+                               Text="Rev. Velocity:"
+                               Style="{StaticResource defaultTB}"/>
+                    <TextBox x:Name="revVel"
+                             HorizontalAlignment="Left"
+                             Text="0"
+                             VerticalAlignment="Top"
+                             Width="60"
+                             Margin="5,0,0,0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Width="110"
+                               HorizontalAlignment="Left"
+                               Text="Rev. Extra (s)"
+                               Style="{StaticResource defaultTB}"/>
+                    <TextBox x:Name="revExtra"
+                             HorizontalAlignment="Left"
+                             Text="0"
+                             VerticalAlignment="Top"
+                             Width="60"
+                             Margin="5,0,0,0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Width="110"
+                               HorizontalAlignment="Left"
+                               Text="Rev. Settle (s):"
+                               Style="{StaticResource defaultTB}"/>
+                    <TextBox x:Name="revSettle"
+                             HorizontalAlignment="Left"
+                             Text="0"
+                             VerticalAlignment="Top"
+                             Width="60"
+                             Margin="5,0,0,0"/>
+                </StackPanel>
+                <Button x:Name="end2endTest"
+                                Focusable="False"  
+                                Content="End2End Test" 
+                                Click="end2endTest_Click"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource myBlueButton}"/>
+                <Button x:Name="end2endTestWithReversal" 
+                                Focusable="False" 
+                                Content="End2EndwRev Test"                            
+                                Click="end2endReversal_Click"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource myBlueButton}"/>
+                <Button x:Name="uniDirecitonalTest" 
+                                Focusable="False" 
+                                Content="uniDirectional" 
+                                Click="uniDirecitonalTest_Click"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource myBlueButton}"/>
+                <Button x:Name="biDirecitonalTest" 
+                                Focusable="False" 
+                                Content="biDirectional" 
+                                Click="biDirecitonalTest_Click"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource myBlueButton}"/>
+                <Button x:Name="cancelTest" 
+                                    Focusable="False" 
+                                    Content="Cancel Test" 
+                                    Click="cancelTest_Click"
+                                    Margin="0,10,0,0"
+                                    Style="{StaticResource myDefaultButton}"/>
+                <CheckBox x:Name="testCancelledCheck" 
+                                      Content="Cancelled" 
+                                      HorizontalAlignment="Left" 
+                                      VerticalAlignment="Center" 
+                                      IsEnabled="False"
+                                      Margin="5,15,0,0"
+                                      Style="{StaticResource checkBoxTheme}"/>
+                <Button x:Name="pauseTest" 
+                                    Focusable="False"
+                                    Content="Pause Test" 
+                                    Click="pauseTest_Click" 
+                                    Margin="0,10,0,0"
+                                    Style="{StaticResource myDefaultButton}"/>
+                <CheckBox x:Name="testPausedCheck" 
+                                      Content="Paused"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center" 
+                                      IsEnabled="False"
+                                      Margin="5,15,0,0"
+                                      Style="{StaticResource checkBoxTheme}"/>
+
+            </StackPanel>
+
+
+        </StackPanel>
+
+
+
+
+
+
+
+
+
     </Grid>
 </UserControl>

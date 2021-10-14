@@ -41,7 +41,6 @@ namespace TwinCat_Motion_ADS
         {
 
             InitializeComponent();
-            EventManager.RegisterClassHandler(typeof(Window),Keyboard.KeyUpEvent, new KeyEventHandler(keyUp), true);
             ConsoleAllocator.ShowConsoleWindow();
             Plc = new PLC(amsNetIdTb.Text, 852); //5.65.74.200.1.1
             //Plc = new PLC("5.65.74.200.1.1", 852);
@@ -66,42 +65,7 @@ namespace TwinCat_Motion_ADS
             
         }
 
-        private async void keyUp(object sender, KeyEventArgs e)
-        {
-            if (testAxis == null)
-            { return; }
-            if(e.Key == Key.Enter)
-            {
-                if(useDTIonAirCheck.IsChecked.Value && pneumaticAxis!=null)
-                {
-                    await pneumaticAxis.setDtiPosition(keyboardInput);
-                }
-                else
-                {
-                    await testAxis.setDtiPosition(keyboardInput);
-                }
-                
-                //Console.WriteLine("The input was " + keyboardInput);
-                keyboardInput = string.Empty;                
-            }
-            else
-            {
-                if(e.Key== Key.D0 || e.Key == Key.D1 || e.Key == Key.D2 || e.Key == Key.D3 || e.Key == Key.D4 || e.Key == Key.D5 || e.Key == Key.D6 || e.Key == Key.D7 || e.Key == Key.D8 || e.Key == Key.D9)
-                {
-                    keyboardInput = keyboardInput + (e.Key.ToString())[1];
-                }
-                else if (e.Key ==Key.OemPeriod)
-                {
-                    keyboardInput = keyboardInput + ".";
-                }
-                else
-                {
-                    keyboardInput = keyboardInput + e.Key.ToString();
-                }
-            }
-        }
-
-
+        
         public void setupBinds()
         {
             Binding axisPositionBind = new Binding();
@@ -165,11 +129,11 @@ namespace TwinCat_Motion_ADS
         {
             if(testAxis ==null)
             {
-                testAxis = new Axis(Convert.ToUInt32(axisSelection.Text), Plc, dti1Checkbox.IsChecked.Value);
+                testAxis = new Axis(Convert.ToUInt32(axisSelection.Text), Plc);
             }
             else
             {
-                testAxis.updateInstance(Convert.ToUInt32(axisSelection.Text), dti1Checkbox.IsChecked.Value, dti2Checkbox.IsChecked.Value);
+                testAxis.updateInstance(Convert.ToUInt32(axisSelection.Text));
             }         
             setupBinds();
             
@@ -266,7 +230,7 @@ namespace TwinCat_Motion_ADS
             cycleTB.IsEnabled = enable;
             highLimReversal.IsEnabled = enable;
             lowLimReversal_Copy.IsEnabled = enable;
-            dti1_button.IsEnabled = enable;
+            //dti1_button.IsEnabled = enable;
             end2endTestWithReversal.IsEnabled = enable;
             uniDirecitonalTest.IsEnabled = enable;
             biDirecitonalTest.IsEnabled = enable;
@@ -324,7 +288,7 @@ namespace TwinCat_Motion_ADS
             elementsEnabled(false);
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
-           if(await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text),1, Convert.ToInt32(timeoutTB.Text), 1,Convert.ToInt32(cycleTB.Text),1,1, dti1Checkbox.IsChecked.Value, dti2Checkbox.IsChecked.Value))
+           if(await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text),1, Convert.ToInt32(timeoutTB.Text), 1,Convert.ToInt32(cycleTB.Text),1,1))
             {
                 Console.WriteLine("Test Complete");
             }
@@ -349,13 +313,13 @@ namespace TwinCat_Motion_ADS
 
         private async void uniDirecitonalTest_Click(object sender, RoutedEventArgs e)
         {
-            await testAxis.uniDirectionalAccuracyTest(6, 2, 2, 10, 1.5, 1, 5, 0, 1, dti1Checkbox.IsChecked.Value, dti2Checkbox.IsChecked.Value); //DTI 1 is present
+            await testAxis.uniDirectionalAccuracyTest(6, 2, 2, 10, 1.5, 1, 5, 0, 1); //DTI 1 is present
             //await testAxis.uniDirectionalAccuracyTest(6, 2, 2, 10, 1.5, 1, 5, 0, 1);
         }
 
         private async void uniDirecitonalTest_Copy_Click(object sender, RoutedEventArgs e)
         {
-            await testAxis.biDirectionalAccuracyTest(6, 2, 4, 10, 1.5, 1, 5,2, 0, 1, dti1Checkbox.IsChecked.Value, dti2Checkbox.IsChecked.Value);
+            await testAxis.biDirectionalAccuracyTest(6, 2, 4, 10, 1.5, 1, 5,2, 0, 1);
         }
 
         private async void dti1_button_Click(object sender, RoutedEventArgs e)
@@ -367,12 +331,12 @@ namespace TwinCat_Motion_ADS
         {
             if (pneumaticAxis == null)
             {
-                pneumaticAxis = new PneumaticAxis(Plc, dti1Checkbox.IsChecked.Value, dti2Checkbox.IsChecked.Value);
+                pneumaticAxis = new PneumaticAxis(Plc);
             }
             else
             {
                 pneumaticAxis = null;
-                pneumaticAxis = new PneumaticAxis(Plc, dti1Checkbox.IsChecked.Value, dti2Checkbox.IsChecked.Value);
+                pneumaticAxis = new PneumaticAxis(Plc);
             }
             pneumaticAxis.startLimitRead();
             Binding pneumaticExtendedBinding = new Binding
