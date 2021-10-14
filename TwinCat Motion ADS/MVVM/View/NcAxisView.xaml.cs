@@ -87,6 +87,20 @@ namespace TwinCat_Motion_ADS.MVVM.View
             errorBind.Path = new PropertyPath("Error");
             errorBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             BindingOperations.SetBinding(errorCheck, CheckBox.IsCheckedProperty, errorBind);
+
+            Binding testCancelledBind = new Binding();
+            testCancelledBind.Mode = BindingMode.OneWay;
+            testCancelledBind.Source = testAxis;
+            testCancelledBind.Path = new PropertyPath("CancelTest");
+            testCancelledBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(testCancelledCheck, CheckBox.IsCheckedProperty, testCancelledBind);
+
+            Binding testPausedBind = new Binding();
+            testPausedBind.Mode = BindingMode.OneWay;
+            testPausedBind.Source = testAxis;
+            testPausedBind.Path = new PropertyPath("PauseTest");
+            testPausedBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(testPausedCheck, CheckBox.IsCheckedProperty, testPausedBind);
         }
 
         private async void moveAbsButton_Click(object sender, RoutedEventArgs e)
@@ -165,14 +179,44 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         }
 
-        private void uniDirecitonalTest_Click(object sender, RoutedEventArgs e)
+        private async void uniDirecitonalTest_Click(object sender, RoutedEventArgs e)
         {
+            if (selectedFolder == string.Empty)
+            {
+                Console.WriteLine("No save directory selected");
+                return;
+            }
+            cancelTest.IsEnabled = true;
+            pauseTest.IsEnabled = true;
 
+            if (await testAxis.uniDirectionalAccuracyTest(Convert.ToDouble(initSP.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(accSteps.Text), Convert.ToDouble(stepSize.Text), Convert.ToInt32(settleTime.Text), Convert.ToDouble(revDistance.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text)))
+            {
+                Console.WriteLine("Test Complete");
+            }
+            else
+            {
+                Console.WriteLine("Test did not complete");
+            }
         }
 
-        private void biDirecitonalTest_Click(object sender, RoutedEventArgs e)
+        private async void biDirecitonalTest_Click(object sender, RoutedEventArgs e)
         {
+            if (selectedFolder == string.Empty)
+            {
+                Console.WriteLine("No save directory selected");
+                return;
+            }
+            cancelTest.IsEnabled = true;
+            pauseTest.IsEnabled = true;
 
+            if (await testAxis.biDirectionalAccuracyTest(Convert.ToDouble(initSP.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(accSteps.Text), Convert.ToDouble(stepSize.Text), Convert.ToInt32(settleTime.Text), Convert.ToDouble(revDistance.Text),Convert.ToDouble(overshootDistance.Text),Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text)))
+            {
+                Console.WriteLine("Test Complete");
+            }
+            else
+            {
+                Console.WriteLine("Test did not complete");
+            }
         }
 
         private void cancelTest_Click(object sender, RoutedEventArgs e)

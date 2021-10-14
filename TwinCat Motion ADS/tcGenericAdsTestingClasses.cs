@@ -1184,7 +1184,7 @@ namespace TwinCat_Motion_ADS
         }
 
         //no timeout implemented
-        public async Task<bool> uniDirectionalAccuracyTest(double initialSetpoint, double velocity, uint cycles, uint steps, double stepSize, int settleTime, double reversalDistance, int timeout, int cycleDelay, bool dti1present = false, bool dti2present = false)
+        public async Task<bool> uniDirectionalAccuracyTest(double initialSetpoint, double velocity, int cycles, int steps, double stepSize, int settleTime, double reversalDistance, int timeout, int cycleDelay, bool dti1present = false, bool dti2present = false)
         {
             if (cycles == 0)
             {
@@ -1330,7 +1330,7 @@ namespace TwinCat_Motion_ADS
         }
 
         //no timeout implemented
-        public async Task<bool> biDirectionalAccuracyTest(double initialSetpoint, double velocity, uint cycles, uint steps, double stepSize, int settleTime, double reversalDistance,double overshoot, int timeout, int cycleDelay, bool dti1present = false, bool dti2present = false)
+        public async Task<bool> biDirectionalAccuracyTest(double initialSetpoint, double velocity, int cycles, int steps, double stepSize, int settleTime, double reversalDistance,double overshoot, int timeout, int cycleDelay, bool dti1present = false, bool dti2present = false)
         {
             List<uniDirectionalAccuracyCSV> recordList = new List<uniDirectionalAccuracyCSV>();
             var currentTime = DateTime.Now;
@@ -1766,27 +1766,35 @@ namespace TwinCat_Motion_ADS
 
         public PneumaticAxis(PLC plc, bool dti1Present = false, bool dti2Present = false)
         {
-            Plc = plc;
-            bCylinder_Handle = Plc.TcAds.CreateVariableHandle("MAIN.bCylinder");
-            bExtendedLimit_Handle = Plc.TcAds.CreateVariableHandle("MAIN.bExtendedLimit");
-            bRetractedLimit_Handle = Plc.TcAds.CreateVariableHandle("MAIN.bRetractedLimit");
-            //Create variable handles for DTIs if user requested
-            if (dti1Present)
+            try
             {
-                dti1_Handle = Plc.TcAds.CreateVariableHandle("DTI.ch1");
+                Plc = plc;
+                bCylinder_Handle = Plc.TcAds.CreateVariableHandle("MAIN.bCylinder");
+                bExtendedLimit_Handle = Plc.TcAds.CreateVariableHandle("MAIN.bExtendedLimit");
+                bRetractedLimit_Handle = Plc.TcAds.CreateVariableHandle("MAIN.bRetractedLimit");
+                //Create variable handles for DTIs if user requested
+                if (dti1Present)
+                {
+                    dti1_Handle = Plc.TcAds.CreateVariableHandle("DTI.ch1");
+                }
+                else
+                {
+                    dti1_Handle = 0;
+                }
+                if (dti2Present)
+                {
+                    dti2_Handle = Plc.TcAds.CreateVariableHandle("MAIN.bDti2");
+                }
+                else
+                {
+                    dti2_Handle = 0;
+                }
             }
-            else
+            catch
             {
-                dti1_Handle = 0;
+                Console.WriteLine("Could not find variables required");
             }
-            if (dti2Present)
-            {
-                dti2_Handle = Plc.TcAds.CreateVariableHandle("MAIN.bDti2");
-            }
-            else
-            {
-                dti2_Handle = 0;
-            }
+            
         }
 
         private async Task cylinderActuation(bool extend)
@@ -1963,7 +1971,7 @@ namespace TwinCat_Motion_ADS
          * 
          */
 
-        public async Task<bool> End2EndTest(uint cycles, uint settlingReads, int settlingReadDelayMilliSeconds,uint extend2RetractDelaySeconds,uint retract2ExtendDelaySeconds, int extendTimeoutSeconds = 0, int retractTimeoutSeconds = 0, bool dti1Present = false, bool dti2Present =false)
+        public async Task<bool> End2EndTest(int cycles, int settlingReads, int settlingReadDelayMilliSeconds,int extend2RetractDelaySeconds,int retract2ExtendDelaySeconds, int extendTimeoutSeconds = 0, int retractTimeoutSeconds = 0, bool dti1Present = false, bool dti2Present =false)
         {
             Stopwatch testStopwatch = new Stopwatch();
             testStopwatch.Start();
