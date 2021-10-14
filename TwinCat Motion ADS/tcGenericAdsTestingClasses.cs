@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
-using TwinCAT.Ads;
 using System.Threading.Tasks.Dataflow;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -12,7 +9,7 @@ using System.Diagnostics;
 using CsvHelper;
 using System.IO;
 using System.Globalization;
-using CsvHelper.Configuration.Attributes;
+
 
 namespace TwinCat_Motion_ADS
 {
@@ -22,50 +19,6 @@ namespace TwinCat_Motion_ADS
      * Add a repeatability test
      * Anymore cleanup I can do? Some of these tests are very repeat heavy
      */
-
-    public class PLC
-    {
-        private AdsClient _tcAds = new AdsClient();
-        public AdsClient TcAds
-        {
-            get { return _tcAds; }
-            set { _tcAds = value; }
-        }
-        private AdsState _adsState;
-        public AdsState AdsState
-        {
-            get { return _adsState; }
-            set { _adsState = value; }
-        }
-        public PLC(string ID, int PORT)
-        {
-            TcAds.Connect(ID, PORT);
-        }
-        public bool checkConnection()
-        {
-            return TcAds.IsConnected;
-        }
-        public AdsState checkAdsState()
-        {
-            try
-            {
-                //Could check Run/Stop/Invalid status of this
-                AdsState = TcAds.ReadState().AdsState;
-                return AdsState;
-            }
-            catch
-            {
-                return AdsState.Invalid;
-            }
-        }
-        public AdsState setupPLC()
-        {
-            if (checkConnection())
-            { Console.WriteLine("Port open"); };
-
-            return checkAdsState();
-        }
-    }
 
     public class Axis : TestAdmin
     {    
@@ -1638,103 +1591,8 @@ namespace TwinCat_Motion_ADS
             taskBwEnabled = null;
         }
 
-        
 
         
-        
-    }
-
-    public class end2endReversalCSV
-    {
-        [Name("Cycle")]
-        public int Cycle { get; set; }
-        [Name("Status")]
-        public string Status { get; set; }
-        [Name("ElapsedTime")]
-        public long ElapsedTime { get; set; }
-        [Name("LimitPosition")]
-        public double LimitPosition { get; set; }
-        [Name("Dti1Position")]
-        public string Dti1Position { get; set; }
-        [Name("Dti2Position")]
-        public string Dti2Position { get; set; }
-
-        public end2endReversalCSV(int cycle, string status, long elapsedTime, double limitPosition, string dti1Position = "",string dti2Position = "")
-        {
-            Cycle = cycle;
-            Status = status;
-            ElapsedTime = elapsedTime;
-            LimitPosition = limitPosition;
-            Dti1Position = dti1Position;
-            Dti2Position = dti2Position;
-        }    
-    }
-    public class uniDirectionalAccuracyCSV
-    {
-        [Name("Cycle")]
-        public uint Cycle { get; set; }
-        [Name("Step")]
-        public uint Step { get; set; }
-        [Name("Status")]
-        public string Status { get; set; }
-        [Name("TargetPosition")]
-        public double TargetPosition { get; set; }
-        [Name("EncoderPosition")]
-        public double EncoderPosition { get; set; }
-        [Name("Dti1Position")]
-        public string Dti1Position { get; set; }
-        [Name("Dti2Position")]
-        public string Dti2Position { get; set; }
-
-        public uniDirectionalAccuracyCSV(uint cycle, uint step, string status, double targetPosition, double encoderPosition, string dti1Position = "", string dti2Position = "")
-        {
-            Cycle = cycle;
-            Step = step;
-            Status = status;
-            TargetPosition = targetPosition;
-            EncoderPosition = encoderPosition;
-            Dti1Position = dti1Position;
-            Dti2Position = dti2Position;
-        }
-    }
-
-    public class PneumaticEnd2EndCSV
-    {
-        [Name("Cycle")]
-        public uint Cycle { get; set; }
-        [Name("SettlingRead")]
-        public uint SettlingRead { get; set; }
-        [Name("Status")]
-        public string Status { get; set; }
-        [Name("ExtendLimit")]
-        public bool ExtendLimit { get; set; }
-        [Name("RetractLimit")]
-        public bool RetractLimit { get; set; }
-        [Name("ElapsedTime")]
-        public TimeSpan ElapsedTime { get; set; }  
-        [Name("Dti1Position")]
-        public string Dti1Position { get; set; }
-        [Name("Dti1Timestamp")]
-        public long Dti1Timestamp { get; set; }
-        [Name("Dti2Position")]
-        public string Dti2Position { get; set; }
-        [Name("Dti2Timestamp")]
-        public long Dti2Timestamp { get; set; }
-
-
-        public PneumaticEnd2EndCSV(uint cycle, uint settlingRead, string status, bool extendLimit, bool retractLimit, TimeSpan elapsedTime, long dti1Timestamp, long dti2Timestamp, string dti1Position = "", string dti2Position = "")
-        {
-            Cycle = cycle;
-            SettlingRead = settlingRead;
-            Status = status;
-            ExtendLimit = extendLimit;
-            RetractLimit = retractLimit;
-            ElapsedTime = elapsedTime;
-            Dti1Timestamp = dti1Timestamp;
-            Dti2Timestamp = dti2Timestamp;
-            Dti1Position = dti1Position;
-            Dti2Position = dti2Position;
-        }
     }
 
     public class PneumaticAxis : TestAdmin
@@ -2158,183 +2016,5 @@ namespace TwinCat_Motion_ADS
 
 
 
-    //abstract defines this as an inheritance only class
-    public abstract class TestAdmin : INotifyPropertyChanged
-    {
-        //PLC object to which the test axis belongs
-        public PLC Plc { get; set; }
-        //Directory for saving test csv
-        public string TestDirectory { get; set; } = string.Empty;
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
-        //Request test pause
-        private bool _pauseTest = false;
-        public bool PauseTest
-        {
-            get { return _pauseTest; }
-            set { _pauseTest = value; OnPropertyChanged(); }
-        }
-        //Request test cancellation
-        private bool _cancelTest = false;
-        public bool CancelTest
-        {
-            get { return _cancelTest; }
-            set { _cancelTest = value; OnPropertyChanged(); }
-        }
-        public async Task<bool> checkCancellationRequestTask(CancellationToken wToken)
-        {
-            while (CancelTest == false)
-            {
-                await Task.Delay(10);
-                if (wToken.IsCancellationRequested)
-                {
-                    throw new TaskCanceledException();
-                }
-            }
-            return true;
-        }
-        public async Task<bool> checkPauseRequestTask(CancellationToken wToken)
-        {
-            if (PauseTest)
-            {
-                Console.WriteLine("Test Paused");
-            }
-            while (PauseTest)
-            {
-                await Task.Delay(10);
-                if (CancelTest)
-                {
-                    return true;
-                }
-                if (wToken.IsCancellationRequested)
-                {
-                    throw new TaskCanceledException();
-                }
-            }
-            return true;
-        }
-
-        public uint dti1_Handle;
-        public uint dti2_Handle;
-
-        public ITargetBlock<DateTimeOffset> CreateNeverEndingTask(
-        Action<DateTimeOffset> action, CancellationToken cancellationToken, TimeSpan timeSpan)
-        {
-            // Validate parameters.
-            if (action == null) throw new ArgumentNullException("action");
-
-            // Declare the block variable, it needs to be captured.
-            ActionBlock<DateTimeOffset> block = null;
-
-            // Create the block, it will call itself, so
-            // you need to separate the declaration and
-            // the assignment.
-            // Async so you can wait easily when the
-            // delay comes.
-            block = new ActionBlock<DateTimeOffset>(async now => {
-                // Perform the action.
-                action(now);
-
-                // Wait.
-                await Task.Delay(timeSpan, cancellationToken).
-                    // Doing this here because synchronization context more than
-                    // likely *doesn't* need to be captured for the continuation
-                    // here.  As a matter of fact, that would be downright
-                    // dangerous.
-                    ConfigureAwait(false);
-
-                // Post the action back to the block.
-                block.Post(DateTimeOffset.Now);
-            }, new ExecutionDataflowBlockOptions
-            {
-                CancellationToken = cancellationToken
-            });
-
-            // Return the block.
-            return block;
-        }
-        /// <summary>
-        /// Trigger a data read of DTI 1
-        /// </summary>
-        /// <returns></returns>
-        public async Task TriggerDti1()
-        {
-            if (dti1_Handle == 0)
-            {
-                return;
-            }
-            await Plc.TcAds.WriteAnyAsync(dti1_Handle, true, CancellationToken.None);
-        }
-
-        /// <summary>
-        /// Trigger a data read of DTI 2
-        /// </summary>
-        /// <returns></returns>
-        public async Task TriggerDti2()
-        {
-            if (dti2_Handle == 0)
-            {
-                return;
-            }
-            await Plc.TcAds.WriteAnyAsync(dti2_Handle, true, CancellationToken.None);
-        }
-
-        private string _dtiPosition = string.Empty;
-        public string DtiPosition
-        {
-            get
-            {
-
-                return _dtiPosition;
-            }
-            set { _dtiPosition = value; }
-        }
-        public string readAndClearDtiPosition()
-        {
-            string tempPosition = DtiPosition;
-            DtiPosition = string.Empty;
-            return tempPosition;
-        }
-
-        //Asynchronous task for setting the DtiPosition field
-        public async Task setDtiPosition(string dtiPos)
-        {
-            await Task.Run(() => DtiPosition = dtiPos);
-        }
-        public async Task<string> getDtiPositionValue(CancellationTokenSource ct, int timeout = 2000, int delay = 50)
-        {
-            string dtiRB = string.Empty;
-            var getDtiTask = Task<string>.Run(async () =>
-            {
-                while (true)
-                {
-                    //dtiRB = DtiPosition;
-                    dtiRB = readAndClearDtiPosition();
-                    await Task.Delay(delay);
-                    if (dtiRB != string.Empty)
-                    {
-                        return dtiRB;
-                    }
-                    if (ct.Token.IsCancellationRequested)
-                    {
-                        throw new TaskCanceledException();
-                    }
-                }
-            });
-
-            if (await Task.WhenAny(getDtiTask, Task.Delay(timeout, ct.Token)) == getDtiTask)
-            {
-                ct.Cancel();
-                return getDtiTask.Result;
-            }
-            else
-            {
-                ct.Cancel();
-                return "*No DTI data*";
-            }
-        }
-    }
+    
 }
