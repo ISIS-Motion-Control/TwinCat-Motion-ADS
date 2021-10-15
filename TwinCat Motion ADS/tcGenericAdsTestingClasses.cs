@@ -98,7 +98,7 @@ namespace TwinCat_Motion_ADS
         {
             Plc = plc;
             AxisID = axisID;
-            updateInstance(axisID,dti1Present,dti2Present);
+            updateInstance(axisID);
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace TwinCat_Motion_ADS
         /// <param name="axisID"></param>
         /// <param name="dti1Present"></param>
         /// <param name="dti2Present"></param>
-        public void updateInstance(uint axisID, bool dti1Present = false, bool dti2Present = false)
+        public void updateInstance(uint axisID)
         {
             StopPositionRead();
             //These variable handles rely on the twinCAT standard solution naming.
@@ -126,23 +126,7 @@ namespace TwinCat_Motion_ADS
             bEnableHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.bEnable");
             bResetHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.bReset");
             StartPositionRead();            
-            //Create variable handles for DTIs if user requested
-            if (dti1Present)
-            {
-                dti1_Handle = Plc.TcAds.CreateVariableHandle("DTI.ch1");
-            }
-            else
-            {
-                dti1_Handle = 0;
-            }
-            if (dti2Present)
-            {
-                dti2_Handle = Plc.TcAds.CreateVariableHandle("MAIN.bDti2");
-            }
-            else
-            {
-                dti2_Handle = 0;
-            }
+
         }
 
         /// <summary>
@@ -855,7 +839,7 @@ namespace TwinCat_Motion_ADS
         }
 
         //No longer in use. Measuring position after stopping not useful if at high velocity
-        public async Task<bool> end2endCycleTesting(double velocity, int timeout, int cycleDelay, int cycles, bool readDTI=false)
+        public async Task<bool> end2endCycleTesting(double velocity, int timeout, int cycleDelay, int cycles)
         {
             if (timeout <= 0)
             {
@@ -915,18 +899,9 @@ namespace TwinCat_Motion_ADS
                 if (await moveToHighLimit(velocity, timeout))
                 {
                     stopWatch.Stop();
-                    if (readDTI)
-                    {
+
                         double tmpAxisPosition = await read_AxisPosition();
-                        CancellationTokenSource ct = new CancellationTokenSource();
-                        string tmpDtiPosition = await getDtiPositionValue(ct);
-                        Console.WriteLine("Cycle " + i + ": Low limit to high limit:-  " + stopWatch.ElapsedMilliseconds + "ms. High limit at " + tmpAxisPosition + " DTI Read: " + tmpDtiPosition);
-                    }
-                    else
-                    {
-                        double tmpAxisPosition = await read_AxisPosition();
-                        Console.WriteLine("Cycle " + i + ": Low limit to high limit:-  " + stopWatch.ElapsedMilliseconds + "ms. High limit at " + tmpAxisPosition);
-                    }
+                    Console.WriteLine("Cycle " + i + ": Low limit to high limit:-  " + stopWatch.ElapsedMilliseconds + "ms. High limit at " + tmpAxisPosition);
                     
                 }
                 else
@@ -941,18 +916,10 @@ namespace TwinCat_Motion_ADS
                 if (await moveToLowLimit(-velocity, timeout))
                 {
                     stopWatch.Stop();
-                    if (readDTI)
-                    {
-                        double tmpAxisPosition = await read_AxisPosition();
-                        CancellationTokenSource ct = new CancellationTokenSource();
-                        string tmpDtiPosition = await getDtiPositionValue(ct);
-                        Console.WriteLine("Cycle " + i + ": High limit to low limit:-  " + stopWatch.ElapsedMilliseconds + "ms. Low limit at " + tmpAxisPosition + " DTI Read: " + tmpDtiPosition);
-                    }
-                    else
-                    {
+
                         double tmpAxisPosition = await read_AxisPosition();
                         Console.WriteLine("Cycle " + i + ": High limit to low limit:-  " + stopWatch.ElapsedMilliseconds + "ms. Low limit at " + tmpAxisPosition);
-                    }
+                    
                 }
                 else
                 {
@@ -1041,19 +1008,15 @@ namespace TwinCat_Motion_ADS
                         //Do we need to check the DTIs?
                         string dti1Data = string.Empty;
                         string dti2Data = string.Empty;
-                        if (dti1present)
-                        {
-                            await TriggerDti1();
-                            await Task.Delay(500);
-                            dti1Data = readAndClearDtiPosition();
-                            Console.WriteLine(dti1Data);
-                        }
-                        if (dti2present)
-                        {
-                            await TriggerDti2();
-                            await Task.Delay(500);
-                            dti2Data = readAndClearDtiPosition();
-                        }
+                        
+                        /*
+                         * 
+                         *  //CHECK MEASUREMENT DEVICES HERE
+                         * 
+                         */
+
+
+
                         double tmpAxisPosition = await read_AxisPosition();                       
                         record1 = new end2endReversalCSV(i, "Low limit to high limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition,dti1Data,dti2Data);
                         Console.WriteLine("Cycle " + i + "- Low limit to high limit: " + stopWatch.ElapsedMilliseconds + "ms. High limit triggered at "+tmpAxisPosition);
@@ -1087,19 +1050,11 @@ namespace TwinCat_Motion_ADS
                         //Do we need to check the DTIs?
                         string dti1Data = string.Empty;
                         string dti2Data = string.Empty;
-                        if (dti1present)
-                        {
-                            await TriggerDti1();
-                            await Task.Delay(500);
-                            dti1Data = readAndClearDtiPosition();
-                            Console.WriteLine(dti1Data);
-                        }
-                        if (dti2present)
-                        {
-                            await TriggerDti2();
-                            await Task.Delay(500);
-                            dti2Data = readAndClearDtiPosition();
-                        }
+                        /*
+                         * 
+                         *  //CHECK MEASUREMENT DEVICES HERE
+                         * 
+                         */
                         double tmpAxisPosition = await read_AxisPosition();
                         record2 = new end2endReversalCSV(i, "High limit to low limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition,dti1Data,dti2Data);
                         Console.WriteLine("Cycle " + i + "- High limit to low limit: " + stopWatch.ElapsedMilliseconds + "ms. Low limit triggered at " + tmpAxisPosition);
@@ -1137,7 +1092,7 @@ namespace TwinCat_Motion_ADS
         }
 
         //no timeout implemented
-        public async Task<bool> uniDirectionalAccuracyTest(double initialSetpoint, double velocity, int cycles, int steps, double stepSize, int settleTime, double reversalDistance, int timeout, int cycleDelay, bool dti1present = false, bool dti2present = false)
+        public async Task<bool> uniDirectionalAccuracyTest(double initialSetpoint, double velocity, int cycles, int steps, double stepSize, int settleTime, double reversalDistance, int timeout, int cycleDelay, MeasurementDevice device1 = null, MeasurementDevice device2 = null, MeasurementDevice device3 = null, MeasurementDevice device4 = null)
         {
             if (cycles == 0)
             {
@@ -1240,27 +1195,40 @@ namespace TwinCat_Motion_ADS
                     }
                     //Wait for a settle time
                     await Task.Delay(TimeSpan.FromSeconds(settleTime));
-                    
+
                     //Do we need to check the DTIs?
-                    string dti1Data = string.Empty;
-                    string dti2Data = string.Empty;
-                    if(dti1present)
+                    string measurement1 = string.Empty;
+                    string measurement2 = string.Empty;
+                    string measurement3 = string.Empty;
+                    string measurement4 = string.Empty;
+
+                    ///READ MEASUREMENT DEVICES///
+                    ///
+                    if (device1 != null)
                     {
-                        await TriggerDti1();
-                        await Task.Delay(500);
-                        dti1Data = readAndClearDtiPosition();
-                        Console.WriteLine(dti1Data);
+                        measurement1 = await device1.GetMeasurement();
+                        Console.WriteLine("Device 1: " + measurement1);
                     }
-                    if (dti2present)
+                    if (device2 != null)
                     {
-                        await TriggerDti2();
-                        await Task.Delay(500);
-                        dti2Data = readAndClearDtiPosition();
+                        measurement2 = await device2.GetMeasurement();
+                        Console.WriteLine("Device 2: " + measurement2);
                     }
+                    if (device3 != null)
+                    {
+                        measurement3 = await device3.GetMeasurement();
+                        Console.WriteLine("Device 3: " + measurement3);
+                    }
+                    if (device4 != null)
+                    {
+                        measurement4 = await device4.GetMeasurement();
+                        Console.WriteLine("Device 4: " + measurement4);
+                    }
+
 
                     //Log the data
                     double tmpAxisPosition = await read_AxisPosition();
-                    recordList.Add(new uniDirectionalAccuracyCSV(i, j, "Testing", TargetPosition, tmpAxisPosition,dti1Data,dti2Data));
+                    recordList.Add(new uniDirectionalAccuracyCSV(i, j, "Testing", TargetPosition, tmpAxisPosition,measurement1,measurement2,measurement3,measurement4));
                     //Update target position
 
                     TargetPosition = TargetPosition + stepSize;
@@ -1283,7 +1251,7 @@ namespace TwinCat_Motion_ADS
         }
 
         //no timeout implemented
-        public async Task<bool> biDirectionalAccuracyTest(double initialSetpoint, double velocity, int cycles, int steps, double stepSize, int settleTime, double reversalDistance,double overshoot, int timeout, int cycleDelay, bool dti1present = false, bool dti2present = false)
+        public async Task<bool> biDirectionalAccuracyTest(double initialSetpoint, double velocity, int cycles, int steps, double stepSize, int settleTime, double reversalDistance,double overshoot, int timeout, int cycleDelay, MeasurementDevice device1 = null, MeasurementDevice device2 = null, MeasurementDevice device3 = null, MeasurementDevice device4 = null)
         {
             List<uniDirectionalAccuracyCSV> recordList = new List<uniDirectionalAccuracyCSV>();
             var currentTime = DateTime.Now;
@@ -1394,24 +1362,37 @@ namespace TwinCat_Motion_ADS
                     //Wait for a settle time
                     await Task.Delay(TimeSpan.FromSeconds(settleTime));
                     //Do we need to check the DTIs?
-                    string dti1Data = string.Empty;
-                    string dti2Data = string.Empty;
-                    if (dti1present)
+                    string measurement1 = string.Empty;
+                    string measurement2 = string.Empty;
+                    string measurement3 = string.Empty;
+                    string measurement4 = string.Empty;
+
+                    ///READ MEASUREMENT DEVICES///
+                    ///
+                    if (device1 != null)
                     {
-                        await TriggerDti1();
-                        await Task.Delay(500);
-                        dti1Data = readAndClearDtiPosition();
-                        Console.WriteLine(dti1Data);
+                        measurement1 = await device1.GetMeasurement();
+                        Console.WriteLine("Device 1: " + measurement1);
                     }
-                    if (dti2present)
+                    if (device2 != null)
                     {
-                        await TriggerDti2();
-                        await Task.Delay(500);
-                        dti2Data = readAndClearDtiPosition();
+                        measurement2 = await device2.GetMeasurement();
+                        Console.WriteLine("Device 2: " + measurement2);
                     }
+                    if (device3 != null)
+                    {
+                        measurement3 = await device3.GetMeasurement();
+                        Console.WriteLine("Device 3: " + measurement3);
+                    }
+                    if (device4 != null)
+                    {
+                        measurement4 = await device4.GetMeasurement();
+                        Console.WriteLine("Device 4: " + measurement4);
+                    }
+
                     //Log the data
                     double tmpAxisPosition = await read_AxisPosition();
-                    recordList.Add(new uniDirectionalAccuracyCSV(i, j, "Forward approach", TargetPosition, tmpAxisPosition,dti1Data,dti2Data));
+                    recordList.Add(new uniDirectionalAccuracyCSV(i, j, "Forward approach", TargetPosition, tmpAxisPosition, measurement1, measurement2, measurement3, measurement4));
                     //Update target position
 
                     TargetPosition = TargetPosition + stepSize;
@@ -1439,24 +1420,36 @@ namespace TwinCat_Motion_ADS
                     //Wait for a settle time
                     await Task.Delay(TimeSpan.FromSeconds(settleTime));
                     //Do we need to check the DTIs?
-                    string dti1Data = string.Empty;
-                    string dti2Data = string.Empty;
-                    if (dti1present)
+                    string measurement1 = string.Empty;
+                    string measurement2 = string.Empty;
+                    string measurement3 = string.Empty;
+                    string measurement4 = string.Empty;
+
+                    ///READ MEASUREMENT DEVICES///
+                    ///
+                    if (device1 != null)
                     {
-                        await TriggerDti1();
-                        await Task.Delay(500);
-                        dti1Data = readAndClearDtiPosition();
-                        Console.WriteLine(dti1Data);
+                        measurement1 = await device1.GetMeasurement();
+                        Console.WriteLine("Device 1: " + measurement1);
                     }
-                    if (dti2present)
+                    if (device2 != null)
                     {
-                        await TriggerDti2();
-                        await Task.Delay(500);
-                        dti2Data = readAndClearDtiPosition();
+                        measurement2 = await device2.GetMeasurement();
+                        Console.WriteLine("Device 2: " + measurement2);
+                    }
+                    if (device3 != null)
+                    {
+                        measurement3 = await device3.GetMeasurement();
+                        Console.WriteLine("Device 3: " + measurement3);
+                    }
+                    if (device4 != null)
+                    {
+                        measurement4 = await device4.GetMeasurement();
+                        Console.WriteLine("Device 4: " + measurement4);
                     }
                     //Log the data
                     double tmpAxisPosition = await read_AxisPosition();
-                    recordList.Add(new uniDirectionalAccuracyCSV(i, (uint)j, "Backward approach", TargetPosition, tmpAxisPosition,dti1Data,dti2Data));
+                    recordList.Add(new uniDirectionalAccuracyCSV(i, (uint)j, "Backward approach", TargetPosition, tmpAxisPosition, measurement1, measurement2, measurement3, measurement4));
                     //Update target position
 
                     TargetPosition = TargetPosition - stepSize;
@@ -1622,7 +1615,7 @@ namespace TwinCat_Motion_ADS
             set { _cylinder = value; OnPropertyChanged(); }
         }
 
-        public PneumaticAxis(PLC plc, bool dti1Present = false, bool dti2Present = false)
+        public PneumaticAxis(PLC plc)
         {
             try
             {
@@ -1630,23 +1623,6 @@ namespace TwinCat_Motion_ADS
                 bCylinder_Handle = Plc.TcAds.CreateVariableHandle("MAIN.bCylinder");
                 bExtendedLimit_Handle = Plc.TcAds.CreateVariableHandle("MAIN.bExtendedLimit");
                 bRetractedLimit_Handle = Plc.TcAds.CreateVariableHandle("MAIN.bRetractedLimit");
-                //Create variable handles for DTIs if user requested
-                if (dti1Present)
-                {
-                    dti1_Handle = Plc.TcAds.CreateVariableHandle("DTI.ch1");
-                }
-                else
-                {
-                    dti1_Handle = 0;
-                }
-                if (dti2Present)
-                {
-                    dti2_Handle = Plc.TcAds.CreateVariableHandle("MAIN.bDti2");
-                }
-                else
-                {
-                    dti2_Handle = 0;
-                }
             }
             catch
             {
@@ -1829,7 +1805,7 @@ namespace TwinCat_Motion_ADS
          * 
          */
 
-        public async Task<bool> End2EndTest(int cycles, int settlingReads, int settlingReadDelayMilliSeconds,int extend2RetractDelaySeconds,int retract2ExtendDelaySeconds, int extendTimeoutSeconds = 0, int retractTimeoutSeconds = 0, bool dti1Present = false, bool dti2Present =false)
+        public async Task<bool> End2EndTest(int cycles, int settlingReads, int settlingReadDelayMilliSeconds,int extend2RetractDelaySeconds,int retract2ExtendDelaySeconds, int extendTimeoutSeconds = 0, int retractTimeoutSeconds = 0, MeasurementDevice device1 = null, MeasurementDevice device2 = null, MeasurementDevice device3 = null, MeasurementDevice device4 = null)
         {
             Stopwatch testStopwatch = new Stopwatch();
             testStopwatch.Start();
@@ -1898,55 +1874,40 @@ namespace TwinCat_Motion_ADS
                 {
                     //do a read of DTIs (both should be in extend position)
                     //These will not be highly synchronised reads, very low "read rate".
-                    string dti1Data = string.Empty;
-                    string dti2Data = string.Empty;
-                    long dti1ReadTime = testStopwatch.ElapsedMilliseconds;  //Fill it with something for no DTI tests
-                    long dti2ReadTime = 0;
+                    string measurement1 = string.Empty;
+                    string measurement2 = string.Empty;
+                    string measurement3 = string.Empty;
+                    string measurement4 = string.Empty;
+                    long measurement1Timestamp = 0;
+                    long measurement2Timestamp = 0;
+                    long measurement3Timestamp = 0;
+                    long measurement4Timestamp = 0;
+
                     CancellationTokenSource testToken = new CancellationTokenSource();
-
-                    Task<string> dtiTask;
-                    if (dti1Present)
+                    if (device1!=null)
                     {
-                        /*readAndClearDtiPosition();
-                        await TriggerDti1();
-                        await Task.Delay(60);
-                        //dti1Data = await getDtiPositionValue(testToken,500,0);
-                        dti1Data = readAndClearDtiPosition();
-                        dti1ReadTime = testStopwatch.ElapsedMilliseconds;*/
-                        readAndClearDtiPosition();
-                        await TriggerDti1();
-                        dtiTask = getDtiPositionValue(testToken, 1000, 0);
-                        Task minTimeTask = Task.Delay(TimeSpan.FromSeconds(250), testToken.Token);
-                        var waitingTask = new List<Task> { dtiTask,minTimeTask};
-
-                        while (waitingTask.Count > 0)
-                        {
-                            Task finishedTask = await Task.WhenAny(waitingTask);
-                            if (finishedTask == minTimeTask)
-                            {
-                                
-                            }
-                            if (finishedTask == dtiTask)
-                            {
-                                dti1Data = dtiTask.Result;
-                                dti1ReadTime = testStopwatch.ElapsedMilliseconds;
-                            }
-                            waitingTask.Remove(finishedTask);
-                        }
-                        //What I'm trying to do : add a minimum time before we attempt to read again. As the trigger only resets after 40ms but we want data timestamped correctly
-
+                        measurement1 = await device1.GetMeasurement();
+                        measurement1Timestamp = testStopwatch.ElapsedMilliseconds;
                     }
-                    if (dti2Present)
+                    if (device2 != null)
                     {
-                        readAndClearDtiPosition();
-                        await TriggerDti2();
-                        CancellationTokenSource ct = new CancellationTokenSource();
-                        dti2Data = await getDtiPositionValue(ct, 500,0);
-                        dti2ReadTime = testStopwatch.ElapsedMilliseconds;
+                        measurement2 = await device2.GetMeasurement();
+                        measurement2Timestamp = testStopwatch.ElapsedMilliseconds;
                     }
+                    if (device3 != null)
+                    {
+                        measurement3 = await device3.GetMeasurement();
+                        measurement3Timestamp = testStopwatch.ElapsedMilliseconds;
+                    }
+                    if (device4 != null)
+                    {
+                        measurement4 = await device4.GetMeasurement();
+                        measurement4Timestamp = testStopwatch.ElapsedMilliseconds;
+                    }
+
                     await Task.Delay(settlingReadDelayMilliSeconds);
                     //log a record
-                    recordList.Add(new PneumaticEnd2EndCSV((uint)i, (uint)j, "Extending", ExtendedLimit, RetractedLimit, stopwatch.Elapsed,dti1ReadTime,dti2ReadTime,dti1Data,dti2Data));
+                    recordList.Add(new PneumaticEnd2EndCSV((uint)i, (uint)j, "Extending", ExtendedLimit, RetractedLimit, stopwatch.Elapsed,measurement1,measurement1Timestamp,measurement2,measurement2Timestamp,measurement3,measurement3Timestamp,measurement4,measurement4Timestamp));
                     
                 }
                 //Settling reads finished
@@ -1962,7 +1923,7 @@ namespace TwinCat_Motion_ADS
                     return false;
                 }
                 stopwatch.Stop();
-                recordList.Add(new PneumaticEnd2EndCSV((uint)i, 0, "Retracting", ExtendedLimit, RetractedLimit, stopwatch.Elapsed,testStopwatch.ElapsedMilliseconds,0, string.Empty, string.Empty));
+                recordList.Add(new PneumaticEnd2EndCSV((uint)i, 0, "Retracting", ExtendedLimit, RetractedLimit, stopwatch.Elapsed,"",0,"",0,"",0,"",0));
                 //Retract finished and logged. Write to csv
                 //Write the cycle data
                 using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
