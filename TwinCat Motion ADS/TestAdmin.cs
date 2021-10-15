@@ -20,6 +20,7 @@ namespace TwinCat_Motion_ADS
     {
         //PLC object to which the test axis belongs
         public PLC Plc { get; set; }
+
         //Directory for saving test csv
         public string TestDirectory { get; set; } = string.Empty;
         public event PropertyChangedEventHandler PropertyChanged;
@@ -74,9 +75,6 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public uint dti1_Handle;
-        public uint dti2_Handle;
-
         public ITargetBlock<DateTimeOffset> CreateNeverEndingTask(
         Action<DateTimeOffset> action, CancellationToken cancellationToken, TimeSpan timeSpan)
         {
@@ -112,87 +110,6 @@ namespace TwinCat_Motion_ADS
 
             // Return the block.
             return block;
-        }
-        /// <summary>
-        /// Trigger a data read of DTI 1
-        /// </summary>
-        /// <returns></returns>
-        public async Task TriggerDti1()
-        {
-            if (dti1_Handle == 0)
-            {
-                return;
-            }
-            await Plc.TcAds.WriteAnyAsync(dti1_Handle, true, CancellationToken.None);
-        }
-
-        /// <summary>
-        /// Trigger a data read of DTI 2
-        /// </summary>
-        /// <returns></returns>
-        public async Task TriggerDti2()
-        {
-            if (dti2_Handle == 0)
-            {
-                return;
-            }
-            await Plc.TcAds.WriteAnyAsync(dti2_Handle, true, CancellationToken.None);
-        }
-
-        private string _dtiPosition = string.Empty;
-        public string DtiPosition
-        {
-            get
-            {
-
-                return _dtiPosition;
-            }
-            set { _dtiPosition = value; }
-        }
-        public string readAndClearDtiPosition()
-        {
-            string tempPosition = DtiPosition;
-            DtiPosition = string.Empty;
-            return tempPosition;
-        }
-
-        //Asynchronous task for setting the DtiPosition field
-        public async Task setDtiPosition(string dtiPos)
-        {
-            await Task.Run(() => DtiPosition = dtiPos);
-        }
-        
-        public async Task<string> getDtiPositionValue(CancellationTokenSource ct, int timeout = 2000, int delay = 50)
-        {
-            string dtiRB = string.Empty;
-            var getDtiTask = Task<string>.Run(async () =>
-            {
-                while (true)
-                {
-                    //dtiRB = DtiPosition;
-                    dtiRB = readAndClearDtiPosition();
-                    await Task.Delay(delay);
-                    if (dtiRB != string.Empty)
-                    {
-                        return dtiRB;
-                    }
-                    if (ct.Token.IsCancellationRequested)
-                    {
-                        throw new TaskCanceledException();
-                    }
-                }
-            });
-
-            if (await Task.WhenAny(getDtiTask, Task.Delay(timeout, ct.Token)) == getDtiTask)
-            {
-                ct.Cancel();
-                return getDtiTask.Result;
-            }
-            else
-            {
-                ct.Cancel();
-                return "*No DTI data*";
-            }
         }
     }
 }

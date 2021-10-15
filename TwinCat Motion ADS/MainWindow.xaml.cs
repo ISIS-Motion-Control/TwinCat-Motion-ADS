@@ -30,6 +30,7 @@ namespace TwinCat_Motion_ADS
         public MeasurementDevice MeasurementDevice4;
         public ObservableCollection<string> DeviceTypeList = new ObservableCollection<string>()
         {
+            "",
         "DigimaticIndicator"
         };
 
@@ -94,7 +95,10 @@ namespace TwinCat_Motion_ADS
         {
             if(MeasurementDevice1 == null)
             {
-                MeasurementDevice1 = new MeasurementDevice((string)Measurement1Combo.SelectedItem);
+                if ((string)Measurement1Combo.SelectedItem != "")
+                {
+                    MeasurementDevice1 = new MeasurementDevice((string)Measurement1Combo.SelectedItem);
+                }
             }
             else
             {
@@ -132,6 +136,8 @@ namespace TwinCat_Motion_ADS
                     if (MeasurementDevice1.DisconnectFromDevice())
                     {
                         Console.WriteLine("Disconnected from device 1");
+                        MeasurementDevice1 = null;
+                        Measurement1Combo.SelectedItem = "";
                     }
                     else
                     {
@@ -154,7 +160,11 @@ namespace TwinCat_Motion_ADS
         {
             if (MeasurementDevice2 == null)
             {
-                MeasurementDevice2 = new MeasurementDevice((string)Measurement2Combo.SelectedItem);
+                if ((string)Measurement2Combo.SelectedItem!="")
+                {
+                    MeasurementDevice2 = new MeasurementDevice((string)Measurement2Combo.SelectedItem);
+                }
+                
             }
             else
             {
@@ -192,6 +202,8 @@ namespace TwinCat_Motion_ADS
                     if (MeasurementDevice2.DisconnectFromDevice())
                     {
                         Console.WriteLine("Disconnected from device 2");
+                        MeasurementDevice2 = null;
+                        Measurement2Combo.SelectedItem = "";
                     }
                     else
                     {
@@ -214,7 +226,10 @@ namespace TwinCat_Motion_ADS
         {
             if (MeasurementDevice3 == null)
             {
-                MeasurementDevice3 = new MeasurementDevice((string)Measurement3Combo.SelectedItem);
+                if ((string)Measurement3Combo.SelectedItem != "")
+                {
+                    MeasurementDevice3 = new MeasurementDevice((string)Measurement3Combo.SelectedItem);
+                }
             }
             else
             {
@@ -252,6 +267,8 @@ namespace TwinCat_Motion_ADS
                     if (MeasurementDevice3.DisconnectFromDevice())
                     {
                         Console.WriteLine("Disconnected from device 3");
+                        MeasurementDevice3 = null;
+                        Measurement3Combo.SelectedItem = "";
                     }
                     else
                     {
@@ -274,7 +291,10 @@ namespace TwinCat_Motion_ADS
         {
             if (MeasurementDevice4 == null)
             {
-                MeasurementDevice4 = new MeasurementDevice((string)Measurement4Combo.SelectedItem);
+                if ((string)Measurement4Combo.SelectedItem != "")
+                {
+                    MeasurementDevice4 = new MeasurementDevice((string)Measurement4Combo.SelectedItem);
+                }
             }
             else
             {
@@ -312,6 +332,8 @@ namespace TwinCat_Motion_ADS
                     if (MeasurementDevice4.DisconnectFromDevice())
                     {
                         Console.WriteLine("Disconnected from device 4");
+                        MeasurementDevice4 = null;
+                        Measurement4Combo.SelectedItem = "";
                     }
                     else
                     {
