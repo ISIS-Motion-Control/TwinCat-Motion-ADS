@@ -221,7 +221,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
-            if (await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text), Convert.ToDouble(revVel.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleDelay.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(revExtra.Text), Convert.ToInt32(revSettle.Text)))
+            if (await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text), Convert.ToDouble(revVel.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleDelay.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(revExtra.Text), Convert.ToInt32(revSettle.Text), windowData.MeasurementDevice1,windowData.MeasurementDevice2,windowData.MeasurementDevice3,windowData.MeasurementDevice4))
             {
                 Console.WriteLine("Test Complete");
             }
