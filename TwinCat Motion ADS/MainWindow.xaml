@@ -7,7 +7,7 @@
         xmlns:view="clr-namespace:TwinCat_Motion_ADS.MVVM.View"
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
-        Title="IBEX Lite" Height="600" Width="1000" Icon="/ibexHead.jpg" WindowStartupLocation="CenterScreen"
+        Title="IBEX Lite" Height="800" Width="1000" Icon="/ibexHead.jpg" WindowStartupLocation="CenterScreen"
         
         ResizeMode="CanResize"
         
@@ -26,7 +26,7 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
-            <RowDefinition Height="0.06*"/>
+            <RowDefinition Height="150"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -63,7 +63,189 @@
                             Margin="10,5,0,0"
                         Style="{StaticResource myDefaultButton}"/>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="0,5,0,0"/>
+                
+            <StackPanel x:Name="device1" Margin="10,5,0,0" Orientation="Horizontal">
+                    <ComboBox Name="Measurement1Combo" Width="150" Height="20" DropDownClosed="Measurement1Combo_DropDownClosed">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <CheckBox x:Name="useMeasurement1" 
+                              Content="Use device 1" 
+                              HorizontalAlignment="Left"
+                              Height="20"
+                              Margin="10,5,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
+                    <ComboBox Name="Measurement1Serial" Width="60" Height="20" Margin="10,0,0,0">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button x:Name="updatePorts1" 
+                            Content="Update Ports" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,2.5,0,0"
+                        Style="{StaticResource myDefaultButton}" Click="updatePorts1_Click"/>
+                    <Button x:Name="initDevice1" 
+                            Content="(De)init Device 1" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,2.5,0,0"
+                        Style="{StaticResource myDefaultButton}" Click="initDevice1_Click"/>
+                    <Button x:Name="testDevice1" 
+                            Content="Test Read" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,2.5,0,0"
+                        Style="{StaticResource myDefaultButton}" Click="testDevice1_Click"/>
+                </StackPanel>    
+            
+            <StackPanel x:Name="device2" Margin="10,5,0,0" Orientation="Horizontal">
+                    <ComboBox Name="Measurement2Combo" Width="150" Height="20" DropDownClosed="Measurement2Combo_DropDownClosed">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <CheckBox x:Name="useMeasurement2" 
+                              Content="Use device 2" 
+                              HorizontalAlignment="Left"
+                              Height="20"
+                              Margin="10,5,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
+                    <ComboBox Name="Measurement2Serial" Width="60" Height="20" Margin="10,0,0,0">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button x:Name="updatePorts2" 
+                            Content="Update Ports" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,2.5,0,0"
+                        Style="{StaticResource myDefaultButton}" Click="updatePorts2_Click"/>
+                    <Button x:Name="initDevice2" 
+                            Content="(De)init Device 2" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,2.5,0,0"
+                        Style="{StaticResource myDefaultButton}" Click="initDevice2_Click"/>
+                    <Button x:Name="testDevice2" 
+                            Content="Test Read" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,2.5,0,0"
+                        Style="{StaticResource myDefaultButton}" Click="testDevice2_Click"/>
+                </StackPanel>
+                <StackPanel x:Name="device3" Margin="10,5,0,0" Orientation="Horizontal">
+                    <ComboBox Name="Measurement3Combo" Width="150" Height="20" DropDownClosed="Measurement3Combo_DropDownClosed">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <CheckBox x:Name="useMeasurement3" 
+                              Content="Use device 3" 
+                              HorizontalAlignment="Left"
+                              Height="20"
+                              Margin="10,5,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
+                    <ComboBox Name="Measurement3Serial" Width="60" Height="20" Margin="10,0,0,0">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button x:Name="updatePorts3" 
+                            Content="Update Ports" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,2.5,0,0"
+                        Style="{StaticResource myDefaultButton}" Click="updatePorts3_Click"/>
+                    <Button x:Name="initDevice3" 
+                            Content="(De)init Device 3" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,2.5,0,0"
+                        Style="{StaticResource myDefaultButton}" Click="initDevice3_Click"/>
+                    <Button x:Name="testDevice3" 
+                            Content="Test Read" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,2.5,0,0"
+                        Style="{StaticResource myDefaultButton}" Click="testDevice3_Click"/>
+                </StackPanel>
+                <StackPanel x:Name="device4" Margin="10,5,0,0" Orientation="Horizontal">
+                    <ComboBox Name="Measurement4Combo" Width="150" Height="20" DropDownClosed="Measurement4Combo_DropDownClosed">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <CheckBox x:Name="useMeasurement4" 
+                              Content="Use device 4" 
+                              HorizontalAlignment="Left"
+                              Height="20"
+                              Margin="10,5,0,0"
+                              Style="{StaticResource checkBoxTheme}"/>
+                    <ComboBox Name="Measurement4Serial" Width="60" Height="20" Margin="10,0,0,0">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button x:Name="updatePorts4" 
+                            Content="Update Ports" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,2.5,0,0"
+                        Style="{StaticResource myDefaultButton}" Click="updatePorts4_Click"/>
+                    <Button x:Name="initDevice4" 
+                            Content="(De)init Device 4" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,2.5,0,0"
+                        Style="{StaticResource myDefaultButton}" Click="initDevice4_Click"/>
+                    <Button x:Name="testDevice4" 
+                            Content="Test Read" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,2.5,0,0"
+                        Style="{StaticResource myDefaultButton}" Click="testDevice4_Click"/>
+                </StackPanel>
+
+
+
+
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0"/>
 
 
 
