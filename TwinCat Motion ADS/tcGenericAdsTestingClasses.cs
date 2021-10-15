@@ -931,7 +931,7 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> end2endCycleTestingWithReversal(double setVelocity, double reversalVelocity, int timeout, int cycleDelay, int cycles, int resersalExtraTime, int reversalSettleTime, bool dti1present = false, bool dti2present=false)
+        public async Task<bool> end2endCycleTestingWithReversal(double setVelocity, double reversalVelocity, int timeout, int cycleDelay, int cycles, int resersalExtraTime, int reversalSettleTime, MeasurementDevice device1 = null, MeasurementDevice device2 = null, MeasurementDevice device3 = null, MeasurementDevice device4 = null)
         {
             if (cycles == 0)
             {
@@ -1006,19 +1006,38 @@ namespace TwinCat_Motion_ADS
                     if(await HighLimitReversal(reversalVelocity, timeout, resersalExtraTime, reversalSettleTime))
                     {
                         //Do we need to check the DTIs?
-                        string dti1Data = string.Empty;
-                        string dti2Data = string.Empty;
-                        
-                        /*
-                         * 
-                         *  //CHECK MEASUREMENT DEVICES HERE
-                         * 
-                         */
+                        string measurement1 = string.Empty;
+                        string measurement2 = string.Empty;
+                        string measurement3 = string.Empty;
+                        string measurement4 = string.Empty;
+
+                        ///READ MEASUREMENT DEVICES///
+                        ///
+                        if (device1 != null)
+                        {
+                            measurement1 = await device1.GetMeasurement();
+                            Console.WriteLine("Device 1: " + measurement1);
+                        }
+                        if (device2 != null)
+                        {
+                            measurement2 = await device2.GetMeasurement();
+                            Console.WriteLine("Device 2: " + measurement2);
+                        }
+                        if (device3 != null)
+                        {
+                            measurement3 = await device3.GetMeasurement();
+                            Console.WriteLine("Device 3: " + measurement3);
+                        }
+                        if (device4 != null)
+                        {
+                            measurement4 = await device4.GetMeasurement();
+                            Console.WriteLine("Device 4: " + measurement4);
+                        }
 
 
 
                         double tmpAxisPosition = await read_AxisPosition();                       
-                        record1 = new end2endReversalCSV(i, "Low limit to high limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition,dti1Data,dti2Data);
+                        record1 = new end2endReversalCSV(i, "Low limit to high limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition, measurement1, measurement2, measurement3, measurement4);
                         Console.WriteLine("Cycle " + i + "- Low limit to high limit: " + stopWatch.ElapsedMilliseconds + "ms. High limit triggered at "+tmpAxisPosition);
                     }
                     else
@@ -1048,15 +1067,36 @@ namespace TwinCat_Motion_ADS
                     if (await LowLimitReversal(reversalVelocity, timeout, resersalExtraTime, reversalSettleTime))
                     {
                         //Do we need to check the DTIs?
-                        string dti1Data = string.Empty;
-                        string dti2Data = string.Empty;
-                        /*
-                         * 
-                         *  //CHECK MEASUREMENT DEVICES HERE
-                         * 
-                         */
+                        string measurement1 = string.Empty;
+                        string measurement2 = string.Empty;
+                        string measurement3 = string.Empty;
+                        string measurement4 = string.Empty;
+
+                        ///READ MEASUREMENT DEVICES///
+                        ///
+                        if (device1 != null)
+                        {
+                            measurement1 = await device1.GetMeasurement();
+                            Console.WriteLine("Device 1: " + measurement1);
+                        }
+                        if (device2 != null)
+                        {
+                            measurement2 = await device2.GetMeasurement();
+                            Console.WriteLine("Device 2: " + measurement2);
+                        }
+                        if (device3 != null)
+                        {
+                            measurement3 = await device3.GetMeasurement();
+                            Console.WriteLine("Device 3: " + measurement3);
+                        }
+                        if (device4 != null)
+                        {
+                            measurement4 = await device4.GetMeasurement();
+                            Console.WriteLine("Device 4: " + measurement4);
+                        }
+
                         double tmpAxisPosition = await read_AxisPosition();
-                        record2 = new end2endReversalCSV(i, "High limit to low limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition,dti1Data,dti2Data);
+                        record2 = new end2endReversalCSV(i, "High limit to low limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition,measurement1,measurement2,measurement3,measurement4);
                         Console.WriteLine("Cycle " + i + "- High limit to low limit: " + stopWatch.ElapsedMilliseconds + "ms. Low limit triggered at " + tmpAxisPosition);
                     }
                     else
