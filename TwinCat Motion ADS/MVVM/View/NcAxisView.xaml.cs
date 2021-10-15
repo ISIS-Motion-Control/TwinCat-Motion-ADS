@@ -24,7 +24,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
     public partial class NcAxisView : UserControl
     {
         MainWindow windowData;
-        public Axis testAxis;
+        public NcAxis testAxis;
         public string selectedFolder = string.Empty;
 
         public NcAxisView()
@@ -39,7 +39,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
         {
             if (testAxis == null)
             {
-                testAxis = new Axis(Convert.ToUInt32(axisSelection.Text), windowData.Plc);
+                testAxis = new NcAxis(Convert.ToUInt32(axisSelection.Text), windowData.Plc);
             }
             else
             {
