@@ -161,6 +161,7 @@ namespace TwinCat_Motion_ADS
         {
             await Task.Run(() => DtiPosition = dtiPos);
         }
+        
         public async Task<string> getDtiPositionValue(CancellationTokenSource ct, int timeout = 2000, int delay = 50)
         {
             string dtiRB = string.Empty;
