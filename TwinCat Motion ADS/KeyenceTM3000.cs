@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace TwinCat_Motion_ADS
 {
-    class DigimaticIndicator
+    class KeyenceTM3000
     {
         public string Measurement { get; set; }
         private SerialPort SerialPort { get; set; }
@@ -18,7 +18,7 @@ namespace TwinCat_Motion_ADS
 
         public ObservableCollection<string> SerialPortList = new();
 
-        public DigimaticIndicator(string portName = "", int baudRate = 9600)
+        public KeyenceTM3000(string portName = "", int baudRate = 9600)
         {
             Portname = portName;
             BaudRate = baudRate;
@@ -81,8 +81,8 @@ namespace TwinCat_Motion_ADS
             if (SerialPort == null) return "No port initialised";
             if (!SerialPort.IsOpen) return "Port not open";
             SerialPort.DiscardInBuffer(); //Clear any unread data
-            SerialPort.Write("1");
-            while (SerialPort.BytesToRead == 0) { }
+            SerialPort.Write(new byte[] { 0x4D, 0x4D, 0x2C, 0x31, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x0D }, 0, 20);
+            while (SerialPort.BytesToRead < 29) { }
             Thread.Sleep(readDelay);
             Measurement = SerialPort.ReadExisting();
             return Measurement;
@@ -94,6 +94,36 @@ namespace TwinCat_Motion_ADS
             return await ReadAsync("1", ct, readDelay,timeoutMilliSeconds);
         }
 
+        public async Task<byte[]> ReadAsyncBuff(byte[] cmd,int rb, CancellationTokenSource ct, int msReadDelay, int timeout = defaultTimeout)
+        {
+            byte[] measurement = new byte[rb];
+            var readTask = Task<byte[]>.Run(async () =>
+            {
+                
+                SerialPort.DiscardInBuffer();
+                SerialPort.Write(cmd, 0, 20);   //Should be 20 bytes for a read
+                while (SerialPort.BytesToRead < rb) 
+                {
+                    if (ct.Token.IsCancellationRequested)
+                    {
+                        throw new TaskCanceledException();
+                    }
+                }
+                SerialPort.Read(measurement, 0, rb);
+                return measurement;
+            });
+            if (await Task.WhenAny(readTask, Task.Delay(timeout, ct.Token)) == readTask)
+            {
+                ct.Cancel();
+                return measurement;
+            }
+            else
+            {
+                ct.Cancel();
+                return System.Array.Empty<byte>();
+            }
+
+        }
 
 
         public async Task<string> ReadAsync(string cmd, CancellationTokenSource ct, int msReadDelay, int timeout = defaultTimeout)
@@ -126,27 +156,6 @@ namespace TwinCat_Motion_ADS
                 return "*Measurement timeout*";
             }
 
-        }
-
-
-        public string GetUnits()
-        {
-            SerialPort.DiscardInBuffer(); //Clear any unread data
-            SerialPort.Write("2");
-            while (SerialPort.BytesToRead == 0) { }
-            Thread.Sleep(readDelay);
-            Units = SerialPort.ReadExisting();
-            return Units;
-        }
-
-        public string GetReadTime()
-        {
-            SerialPort.DiscardInBuffer();
-            SerialPort.Write("3");
-            while (SerialPort.BytesToRead == 0) { }
-            Thread.Sleep(readDelay);
-            Readtime = SerialPort.ReadExisting();
-            return Readtime;
         }
     }
 }
