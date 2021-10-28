@@ -31,7 +31,8 @@ namespace TwinCat_Motion_ADS
         public ObservableCollection<string> DeviceTypeList = new ObservableCollection<string>()
         {
             "",
-        "DigimaticIndicator"
+        "DigimaticIndicator",
+        "KeyenceTM3000"
         };
 
 

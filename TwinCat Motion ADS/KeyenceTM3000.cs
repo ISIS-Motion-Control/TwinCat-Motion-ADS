@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace TwinCat_Motion_ADS
 {
@@ -74,27 +75,39 @@ namespace TwinCat_Motion_ADS
             }
             return false;
         }
-    
-        public string GetMeasurement(int timeoutMilliSeconds =0)
-        {
-                        //We need this to be async and non blocking with a timeout!!!
-            if (SerialPort == null) return "No port initialised";
-            if (!SerialPort.IsOpen) return "Port not open";
-            SerialPort.DiscardInBuffer(); //Clear any unread data
-            SerialPort.Write(new byte[] { 0x4D, 0x4D, 0x2C, 0x31, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x0D }, 0, 20);
-            while (SerialPort.BytesToRead < 29) { }
-            Thread.Sleep(readDelay);
-            Measurement = SerialPort.ReadExisting();
-            return Measurement;
-        }
 
-        public async Task<string> GetMeasurementAsync(int timeoutMilliSeconds = defaultTimeout)
+        public async Task<string> GetMeasureAsync(int measurementChannel, int timeoutMilliSeconds = defaultTimeout)
         {
             CancellationTokenSource ct = new CancellationTokenSource();
-            return await ReadAsync("1", ct, readDelay,timeoutMilliSeconds);
+            var txBuf = new byte[] { 0x4D, 0x4D, 0x2C, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x0D };
+            txBuf[measurementChannel + 2] = 0x31;
+            var rxBuf = new byte[29];
+            rxBuf = await ReadAsyncBuff(txBuf, 29, ct,timeoutMilliSeconds);
+            if (rxBuf.Length != 29)
+            {
+                return "Measurement failed";
+            }
+            byte[] measureBuf = new byte[9];
+            System.Array.Copy(rxBuf, 20, measureBuf, 0, 8);
+            var str = System.Text.Encoding.Default.GetString(measureBuf);
+            return str;
         }
 
-        public async Task<byte[]> ReadAsyncBuff(byte[] cmd,int rb, CancellationTokenSource ct, int msReadDelay, int timeout = defaultTimeout)
+        public async Task<List<string>> GetAllMeasures(int timeoutMilliSeconds = defaultTimeout)
+        {
+            List<string> measurements = new List<string>();
+            for (int i = 1; i < 17; i++)
+            {
+                var str = await GetMeasureAsync(i);
+                if(str[1]!='F' && str[1]!='X')
+                {
+                    measurements.Add(str);
+                }
+            }
+            return measurements;
+        }
+
+        public async Task<byte[]> ReadAsyncBuff(byte[] cmd,int rb, CancellationTokenSource ct, int timeout = defaultTimeout)
         {
             byte[] measurement = new byte[rb];
             var readTask = Task<byte[]>.Run(async () =>
@@ -110,6 +123,7 @@ namespace TwinCat_Motion_ADS
                     }
                 }
                 SerialPort.Read(measurement, 0, rb);
+                
                 return measurement;
             });
             if (await Task.WhenAny(readTask, Task.Delay(timeout, ct.Token)) == readTask)
@@ -126,36 +140,5 @@ namespace TwinCat_Motion_ADS
         }
 
 
-        public async Task<string> ReadAsync(string cmd, CancellationTokenSource ct, int msReadDelay, int timeout = defaultTimeout)
-        {
-            string readValue = string.Empty;
-            var readTask = Task<string>.Run(async () =>
-            {            
-                SerialPort.DiscardInBuffer(); //clear unread data
-                SerialPort.Write(cmd);
-                while (SerialPort.BytesToRead == 0)
-                {
-                    if (ct.Token.IsCancellationRequested)
-                    {
-                        throw new TaskCanceledException();
-                    }
-                }
-                await Task.Delay(msReadDelay);
-                readValue = SerialPort.ReadExisting();
-                return readValue;
-            });
-
-            if(await Task.WhenAny(readTask, Task.Delay(timeout,ct.Token)) == readTask)
-            {
-                ct.Cancel();
-                return readValue;
-            }
-            else
-            {
-                ct.Cancel();
-                return "*Measurement timeout*";
-            }
-
-        }
     }
 }
