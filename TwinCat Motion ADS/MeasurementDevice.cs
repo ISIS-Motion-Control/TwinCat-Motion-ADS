@@ -17,15 +17,46 @@ namespace TwinCat_Motion_ADS
     {
         public DeviceType DeviceType { get; set; }
         public ObservableCollection<string> SerialPortList = new();
-        public string PortName { get; set; }
+        private string _portName;
+
+        public string PortName
+        {
+            get { return _portName; }
+            set
+            {
+                switch (DeviceType)
+                {
+                    case DeviceType.DigimaticIndicator:
+                        if (dti == null)
+                        {
+                            _portName = value;
+                        }
+                        break;
+                    case DeviceType.KeyenceTm3000:
+                        if (keyence == null)
+                        {
+                            _portName = value;
+                        }
+                        //Need an else if port open method from each measurement class
+                        break;
+                }
+            }
+        }
+
+        //public string PortName { get; set; }
         private DigimaticIndicator dti;
+        private KeyenceTM3000 keyence;
 
         public MeasurementDevice(string deviceType)
         {
             if(deviceType == "DigimaticIndicator")
             {
                 DeviceType = DeviceType.DigimaticIndicator;
-            }          
+            }
+            if(deviceType == "KeyenceTM3000")
+            {
+                DeviceType = DeviceType.KeyenceTm3000;
+            }
         }
 
         public void changeDeviceType(string deviceType)
@@ -33,6 +64,10 @@ namespace TwinCat_Motion_ADS
             if (deviceType == "DigimaticIndicator")
             {
                 DeviceType = DeviceType.DigimaticIndicator;
+            }
+            if (deviceType == "KeyenceTM3000")
+            {
+                DeviceType = DeviceType.KeyenceTm3000;
             }
         }
 
@@ -60,7 +95,18 @@ namespace TwinCat_Motion_ADS
                         dti.Portname = PortName;
                     }
                     return dti.OpenPort();
-                
+                    
+                case DeviceType.KeyenceTm3000:
+                    if(keyence==null)
+                    {
+                        keyence = new KeyenceTM3000(PortName);
+                    }
+                    else
+                    {
+                        keyence.Portname = PortName;
+                    }
+                    return keyence.OpenPort();
+
                 default:
                     break;
             }
@@ -78,6 +124,22 @@ namespace TwinCat_Motion_ADS
                         return false;
                     }
                     if(dti.ClosePort())
+                    {
+                        Console.WriteLine("Port closed");
+                        return true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to close");
+                        return false;
+                    }
+
+                case DeviceType.KeyenceTm3000:
+                    if (keyence == null)
+                    {
+                        return false;
+                    }
+                    if (keyence.ClosePort())
                     {
                         Console.WriteLine("Port closed");
                         return true;
@@ -106,6 +168,15 @@ namespace TwinCat_Motion_ADS
                     }
                     return await dti.GetMeasurementAsync();
 
+                case DeviceType.KeyenceTm3000:
+                    if (keyence == null)
+                    {
+                        return "No device connected";
+                    }
+                    List<string> measures = await keyence.GetAllMeasures();
+                    var retstr = String.Join(",", measures);
+                    return retstr;
+
                 default:
                     break;
             }
@@ -119,7 +190,8 @@ namespace TwinCat_Motion_ADS
 
     public enum DeviceType
     {
-        DigimaticIndicator  //SERIAL PORT DEVICE
+        DigimaticIndicator,  //SERIAL PORT DEVICE
+        KeyenceTm3000
     }
 
     
