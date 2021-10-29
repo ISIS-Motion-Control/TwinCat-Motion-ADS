@@ -9,8 +9,7 @@ using System.Collections.ObjectModel;
 namespace TwinCat_Motion_ADS
 {
     /*
-     * The purpose of this class is to preempt the addition of other compatible measurement devices.
-     * This class acts as an interface to other measurement devices to generalise their user interface.
+     * This class acts as an interface to other measurement devices to provide a generic user interface.
      * 
      */
     public class MeasurementDevice
@@ -30,15 +29,44 @@ namespace TwinCat_Motion_ADS
                         if (dti == null)
                         {
                             _portName = value;
+                            break;
+                        }
+                        else if(dti.CheckConnected()== false)
+                        {
+                            _portName = value;
                         }
                         break;
                     case DeviceType.KeyenceTm3000:
                         if (keyence == null)
                         {
                             _portName = value;
+                            break;
                         }
-                        //Need an else if port open method from each measurement class
+                        else if(keyence.CheckConnected() == false)
+                        {
+                            _portName = value;
+                        }
                         break;
+                }
+            }
+        }
+
+        //Return a string of the device type
+        public string DeviceTypeString
+        {
+            get
+            {
+                if (DeviceType == DeviceType.DigimaticIndicator)
+                {
+                    return "DigimaticIndicator";
+                }
+                else if (DeviceType == DeviceType.KeyenceTm3000)
+                {
+                    return "KeyenceTM3000";
+                }
+                else
+                {
+                    return "";
                 }
             }
         }
@@ -47,8 +75,12 @@ namespace TwinCat_Motion_ADS
         private DigimaticIndicator dti;
         private KeyenceTM3000 keyence;
 
+        public bool Connected { get; private set; }
+
+
         public MeasurementDevice(string deviceType)
         {
+            Connected = false;
             if(deviceType == "DigimaticIndicator")
             {
                 DeviceType = DeviceType.DigimaticIndicator;
@@ -61,6 +93,7 @@ namespace TwinCat_Motion_ADS
 
         public void changeDeviceType(string deviceType)
         {
+            if (Connected) return;  //Don't change device type if connected to something
             if (deviceType == "DigimaticIndicator")
             {
                 DeviceType = DeviceType.DigimaticIndicator;
@@ -71,6 +104,9 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        /// <summary>
+        /// Populate a list of COM serial ports
+        /// </summary>
         public void UpdatePortList()
         {
             SerialPortList.Clear();
@@ -81,9 +117,20 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+
+
+        /// <summary>
+        /// Connect to selected measurement device type
+        /// </summary>
+        /// <returns></returns>
         public bool ConnectToDevice()
-        { 
-            switch(DeviceType)
+        {
+            if (Connected)
+            {
+                Console.WriteLine("Already connected");
+                return false;
+            }
+            switch (DeviceType)
             {
                 case DeviceType.DigimaticIndicator:
                     if(dti==null)
@@ -94,7 +141,11 @@ namespace TwinCat_Motion_ADS
                     {
                         dti.Portname = PortName;
                     }
-                    return dti.OpenPort();
+                    if(dti.OpenPort())
+                    {
+                        Connected = true;
+                    }
+                    return Connected;
                     
                 case DeviceType.KeyenceTm3000:
                     if(keyence==null)
@@ -105,7 +156,11 @@ namespace TwinCat_Motion_ADS
                     {
                         keyence.Portname = PortName;
                     }
-                    return keyence.OpenPort();
+                    if(keyence.OpenPort())
+                    {
+                        Connected = true;
+                    }
+                    return Connected;
 
                 default:
                     break;
@@ -116,6 +171,11 @@ namespace TwinCat_Motion_ADS
 
         public bool DisconnectFromDevice()
         {
+            if (!Connected)
+            {
+                Console.WriteLine("Nothing to disconnect from");
+                return false; //Nothing to disconnect from
+            }
             switch (DeviceType)
             {
                 case DeviceType.DigimaticIndicator:
@@ -126,6 +186,7 @@ namespace TwinCat_Motion_ADS
                     if(dti.ClosePort())
                     {
                         Console.WriteLine("Port closed");
+                        Connected = false;
                         return true;
                     }
                     else
@@ -142,6 +203,7 @@ namespace TwinCat_Motion_ADS
                     if (keyence.ClosePort())
                     {
                         Console.WriteLine("Port closed");
+                        Connected = false;
                         return true;
                     }
                     else
@@ -159,6 +221,10 @@ namespace TwinCat_Motion_ADS
 
         public async Task<string> GetMeasurement()
         {
+            if(!Connected)
+            {
+                return "No device connected"; //Nothing to disconnect from
+            }
             switch (DeviceType)
             {
                 case DeviceType.DigimaticIndicator:
@@ -174,6 +240,7 @@ namespace TwinCat_Motion_ADS
                         return "No device connected";
                     }
                     List<string> measures = await keyence.GetAllMeasures();
+                    //Keyence returns a string list which must be converted to single string
                     var retstr = String.Join(",", measures);
                     return retstr;
 
@@ -183,13 +250,12 @@ namespace TwinCat_Motion_ADS
             Console.WriteLine("No compatible device type selected");
             return string.Empty;
         }
-
-
     }
 
 
     public enum DeviceType
     {
+        NoneSelected,
         DigimaticIndicator,  //SERIAL PORT DEVICE
         KeyenceTm3000
     }
