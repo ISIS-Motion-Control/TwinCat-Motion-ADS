@@ -14,11 +14,14 @@ namespace TwinCat_Motion_ADS
         public string Readtime { get; set; }
         public string Portname { get; set; }
         public int BaudRate { get; set; }
-        private const int readDelay = 10;   //Give buffer time to fill
         private const int defaultTimeout = 1000;
 
         public ObservableCollection<string> SerialPortList = new();
-
+        /// <summary>
+        /// Constructor to initialise the KeyenceTM3000 and RS232
+        /// </summary>
+        /// <param name="portName"></param>
+        /// <param name="baudRate"></param>
         public KeyenceTM3000(string portName = "", int baudRate = 9600)
         {
             Portname = portName;
@@ -26,6 +29,9 @@ namespace TwinCat_Motion_ADS
             SerialPort = new SerialPort();
         }
 
+        /// <summary>
+        /// Populate the serial port COM list, generally unused as MeasurementDevice class can do same
+        /// </summary>
         public void UpdatePortList()
         {
             SerialPortList.Clear();
@@ -36,19 +42,23 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        /// <summary>
+        /// Connect to serial port
+        /// </summary>
+        /// <returns></returns>
         public bool OpenPort()
         {
-            if (SerialPort.IsOpen)
+            if (SerialPort.IsOpen)  //reject command if already connected
             {
                 return false;
             }
-            if (string.IsNullOrEmpty(Portname))
+            if (string.IsNullOrEmpty(Portname)) //reject command if no port name for connecting
             {
                 return false;
             }
             try
             {
-                SerialPort = new SerialPort(Portname, 9600);
+                SerialPort = new SerialPort(Portname, BaudRate);
                 SerialPort.Open();
             }
             catch
@@ -57,7 +67,20 @@ namespace TwinCat_Motion_ADS
             }
             return true;
         }
+
+        /// <summary>
+        /// Return connection status of serial port
+        /// </summary>
+        /// <returns></returns>
+        public bool CheckConnected()
+        {
+            return SerialPort.IsOpen;
+        }
         
+        /// <summary>
+        /// Disconnect from the serial port
+        /// </summary>
+        /// <returns></returns>
         public bool ClosePort()
         {
             if(SerialPort.IsOpen)
@@ -73,44 +96,66 @@ namespace TwinCat_Motion_ADS
                 }
                 return true;
             }
-            return false;
+            return false;   //port already closed
         }
 
+        /// <summary>
+        /// Get a measurement from the keyence device
+        /// </summary>
+        /// <param name="measurementChannel">Measurement channel to read</param>
+        /// <param name="timeoutMilliSeconds"></param>
+        /// <returns></returns>
         public async Task<string> GetMeasureAsync(int measurementChannel, int timeoutMilliSeconds = defaultTimeout)
         {
             CancellationTokenSource ct = new CancellationTokenSource();
+            //Create a generic message buffer of the command MM,0000000000000000 (16 measurement channels)
             var txBuf = new byte[] { 0x4D, 0x4D, 0x2C, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x0D };
+            //For the specified measurement channel, set the buffer value from 0 to 1
             txBuf[measurementChannel + 2] = 0x31;
+            //create a buffer to hold the returned value
             var rxBuf = new byte[29];
             rxBuf = await ReadAsyncBuff(txBuf, 29, ct,timeoutMilliSeconds);
-            if (rxBuf.Length != 29)
+            if (rxBuf.Length != 29) //Device should always return 29 bytes for a single channel read
             {
                 return "Measurement failed";
             }
-            byte[] measureBuf = new byte[9];
+            byte[] measureBuf = new byte[9]; //setup a buffer for extracting just the 8 bytes of measurement data
             System.Array.Copy(rxBuf, 20, measureBuf, 0, 8);
-            var str = System.Text.Encoding.Default.GetString(measureBuf);
+            var str = System.Text.Encoding.Default.GetString(measureBuf); //convert measurement buffer to a string
             return str;
         }
 
+        /// <summary>
+        /// Request all 16 measurement channels from keyence
+        /// </summary>
+        /// <param name="timeoutMilliSeconds"></param>
+        /// <returns></returns>
         public async Task<List<string>> GetAllMeasures(int timeoutMilliSeconds = defaultTimeout)
         {
-            List<string> measurements = new List<string>();
+            List<string> measurements = new List<string>(); //setup a list to hold measurement data
             for (int i = 1; i < 17; i++)
             {
                 var str = await GetMeasureAsync(i);
-                if(str[1]!='F' && str[1]!='X')
+                if(str[1]!='F' && str[1]!='X')  //Check the 2nd char of returned string, F is when no data present and X is unused channel
                 {
-                    measurements.Add(str);
+                    measurements.Add(str);  //If valid data add to the list
                 }
             }
             return measurements;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <param name="rb"></param>
+        /// <param name="ct"></param>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
         public async Task<byte[]> ReadAsyncBuff(byte[] cmd,int rb, CancellationTokenSource ct, int timeout = defaultTimeout)
         {
             byte[] measurement = new byte[rb];
-            var readTask = Task<byte[]>.Run(async () =>
+            var readTask = Task<byte[]>.Run(() =>
             {
                 
                 SerialPort.DiscardInBuffer();
@@ -122,8 +167,7 @@ namespace TwinCat_Motion_ADS
                         throw new TaskCanceledException();
                     }
                 }
-                SerialPort.Read(measurement, 0, rb);
-                
+                _ = SerialPort.Read(measurement, 0, rb);
                 return measurement;
             });
             if (await Task.WhenAny(readTask, Task.Delay(timeout, ct.Token)) == readTask)
@@ -134,9 +178,8 @@ namespace TwinCat_Motion_ADS
             else
             {
                 ct.Cancel();
-                return System.Array.Empty<byte>();
+                return System.Array.Empty<byte>(); //if timeout return empty array
             }
-
         }
 
 

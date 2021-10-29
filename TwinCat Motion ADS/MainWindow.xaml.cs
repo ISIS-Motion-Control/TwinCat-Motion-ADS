@@ -94,16 +94,25 @@ namespace TwinCat_Motion_ADS
         /// ////////////////////////////////////
         private void Measurement1Combo_DropDownClosed(object sender, EventArgs e)
         {
-            if(MeasurementDevice1 == null)
+            if (MeasurementDevice1 == null)
             {
                 if ((string)Measurement1Combo.SelectedItem != "")
                 {
                     MeasurementDevice1 = new MeasurementDevice((string)Measurement1Combo.SelectedItem);
                 }
+                return;
             }
-            else
+            if (!MeasurementDevice1.Connected && (string)Measurement1Combo.SelectedItem != "")
             {
                 MeasurementDevice1.changeDeviceType((string)Measurement1Combo.SelectedItem);
+            }
+            else if (!MeasurementDevice1.Connected && (string)Measurement1Combo.SelectedItem == "")
+            {
+                MeasurementDevice1 = null;
+            }
+            else if (MeasurementDevice1.Connected)
+            {
+                Measurement1Combo.SelectedItem = MeasurementDevice1.DeviceTypeString;
             }
         }
 
@@ -161,15 +170,23 @@ namespace TwinCat_Motion_ADS
         {
             if (MeasurementDevice2 == null)
             {
-                if ((string)Measurement2Combo.SelectedItem!="")
+                if ((string)Measurement2Combo.SelectedItem != "")
                 {
                     MeasurementDevice2 = new MeasurementDevice((string)Measurement2Combo.SelectedItem);
                 }
-                
+                return;
             }
-            else
+            if (!MeasurementDevice2.Connected && (string)Measurement2Combo.SelectedItem != "")
             {
                 MeasurementDevice2.changeDeviceType((string)Measurement2Combo.SelectedItem);
+            }
+            else if (!MeasurementDevice2.Connected && (string)Measurement2Combo.SelectedItem == "")
+            {
+                MeasurementDevice2 = null;
+            }
+            else if (MeasurementDevice2.Connected)
+            {
+                Measurement2Combo.SelectedItem = MeasurementDevice2.DeviceTypeString;
             }
         }
 
@@ -231,10 +248,19 @@ namespace TwinCat_Motion_ADS
                 {
                     MeasurementDevice3 = new MeasurementDevice((string)Measurement3Combo.SelectedItem);
                 }
+                return;
             }
-            else
+            if(!MeasurementDevice3.Connected && (string)Measurement3Combo.SelectedItem != "")
             {
                 MeasurementDevice3.changeDeviceType((string)Measurement3Combo.SelectedItem);
+            }
+            else if (!MeasurementDevice3.Connected && (string)Measurement3Combo.SelectedItem == "")
+            {
+                MeasurementDevice3 = null;
+            }
+            else if (MeasurementDevice3.Connected)
+            {
+                Measurement3Combo.SelectedItem = MeasurementDevice3.DeviceTypeString;
             }
         }
 
@@ -296,10 +322,19 @@ namespace TwinCat_Motion_ADS
                 {
                     MeasurementDevice4 = new MeasurementDevice((string)Measurement4Combo.SelectedItem);
                 }
+                return;
             }
-            else
+            if (!MeasurementDevice4.Connected && (string)Measurement4Combo.SelectedItem != "")
             {
                 MeasurementDevice4.changeDeviceType((string)Measurement4Combo.SelectedItem);
+            }
+            else if (!MeasurementDevice4.Connected && (string)Measurement4Combo.SelectedItem == "")
+            {
+                MeasurementDevice4 = null;
+            }
+            else if (MeasurementDevice4.Connected)
+            {
+                Measurement4Combo.SelectedItem = MeasurementDevice4.DeviceTypeString;
             }
         }
 

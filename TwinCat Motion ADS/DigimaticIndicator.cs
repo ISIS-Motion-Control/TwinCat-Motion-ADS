@@ -56,7 +56,12 @@ namespace TwinCat_Motion_ADS
             }
             return true;
         }
-        
+
+        public bool CheckConnected()
+        {
+            return SerialPort.IsOpen;
+        }
+
         public bool ClosePort()
         {
             if(SerialPort.IsOpen)
