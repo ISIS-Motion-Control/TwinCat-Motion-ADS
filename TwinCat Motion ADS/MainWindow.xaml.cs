@@ -10,6 +10,7 @@ using System.Windows.Media;
 using TwinCAT.Ads;
 using Ookii.Dialogs.Wpf;
 using TwinCat_Motion_ADS.MVVM.ViewModel;
+using System.Collections.ObjectModel;
 
 namespace TwinCat_Motion_ADS
 {
@@ -21,14 +22,23 @@ namespace TwinCat_Motion_ADS
     {
         public PLC Plc;
         //PLC Plc = new PLC("5.65.74.200.1.1", 852);
-        public PneumaticAxis pneumaticAxis;
+
         public string selectedFolder = string.Empty;
-        
+        public MeasurementDevice MeasurementDevice1;
+        public MeasurementDevice MeasurementDevice2;
+        public MeasurementDevice MeasurementDevice3;
+        public MeasurementDevice MeasurementDevice4;
+        public ObservableCollection<string> DeviceTypeList = new ObservableCollection<string>()
+        {
+            "",
+        "DigimaticIndicator",
+        "KeyenceTM3000"
+        };
+
 
 
         public MainWindow()
         {
-
             InitializeComponent();
             ConsoleAllocator.ShowConsoleWindow();
             Plc = new PLC(amsNetIdTb.Text, 852); //5.65.74.200.1.1
@@ -51,10 +61,8 @@ namespace TwinCat_Motion_ADS
             }
             //testAxis = new Axis(1, Plc);  //Uncomment for no DTI
             var vm = (MainViewModel)this.DataContext;
+            setupMeasurementCombos();
         }
-
-        
-
 
         private void connect2PlcButton_Click(object sender, RoutedEventArgs e)
         {
@@ -74,60 +82,309 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-
-
-        public void initPneumatic_Click(object sender, RoutedEventArgs e)
+        private void setupMeasurementCombos()
         {
-            if (pneumaticAxis == null)
-            {
-                pneumaticAxis = new PneumaticAxis(Plc);
-            }
-            else
-            {
-                pneumaticAxis = null;
-                pneumaticAxis = new PneumaticAxis(Plc);
-            }
-            pneumaticAxis.startLimitRead();
-            
-
-            
-
-            
-        }
-
-        private async void shutterEnd2End_button_Click(object sender, RoutedEventArgs e)
-        {
-            await pneumaticAxis.End2EndTest(10, 12, 500, 2, 3, 0, 0, true, false);
-        }
-
-        private void shutterTestFolderDir_button_Click(object sender, RoutedEventArgs e)
-        {
-            var fbd = new VistaFolderBrowserDialog();
-            selectedFolder = String.Empty;
-            if (fbd.ShowDialog() == true)
-            {
-                selectedFolder = fbd.SelectedPath;
-            }
-            Console.WriteLine(selectedFolder);
-            pneumaticAxis.TestDirectory = selectedFolder;
+            Measurement1Combo.ItemsSource = DeviceTypeList;
+            Measurement2Combo.ItemsSource = DeviceTypeList;
+            Measurement3Combo.ItemsSource = DeviceTypeList;
+            Measurement4Combo.ItemsSource = DeviceTypeList;
         }
 
 
-
-        private async void extendCylinder_button_Click(object sender, RoutedEventArgs e)
+        /// ////////////////////////////////////
+        private void Measurement1Combo_DropDownClosed(object sender, EventArgs e)
         {
-            if(await pneumaticAxis.extendCylinderAndWait()==false)
-            { 
-                Console.WriteLine("FAILED");
+            if (MeasurementDevice1 == null)
+            {
+                if ((string)Measurement1Combo.SelectedItem != "")
+                {
+                    MeasurementDevice1 = new MeasurementDevice((string)Measurement1Combo.SelectedItem);
+                }
+                return;
             }
-            
+            if (!MeasurementDevice1.Connected && (string)Measurement1Combo.SelectedItem != "")
+            {
+                MeasurementDevice1.changeDeviceType((string)Measurement1Combo.SelectedItem);
+            }
+            else if (!MeasurementDevice1.Connected && (string)Measurement1Combo.SelectedItem == "")
+            {
+                MeasurementDevice1 = null;
+            }
+            else if (MeasurementDevice1.Connected)
+            {
+                Measurement1Combo.SelectedItem = MeasurementDevice1.DeviceTypeString;
+            }
         }
 
-        private async void retractCylinder_button_Click(object sender, RoutedEventArgs e)
+        private void updatePorts1_Click(object sender, RoutedEventArgs e)
         {
-            if (await pneumaticAxis.retractCylinderAndWait()==false)
+            if(MeasurementDevice1!= null)
             {
-                Console.WriteLine("FAILED");
+                MeasurementDevice1.UpdatePortList();
+                Measurement1Serial.ItemsSource = MeasurementDevice1.SerialPortList;
+            }
+        }
+
+        private void initDevice1_Click(object sender, RoutedEventArgs e)
+        {
+            if(MeasurementDevice1!=null)
+            {
+                if((bool)useMeasurement1.IsChecked) //if selected to use
+                {
+                    MeasurementDevice1.PortName = (string)Measurement1Serial.SelectedItem;
+                    if (MeasurementDevice1.ConnectToDevice())
+                    {
+                        Console.WriteLine("Connected to device 1");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to connect to device 1");
+                    }
+                }
+                else
+                {
+                    if (MeasurementDevice1.DisconnectFromDevice())
+                    {
+                        Console.WriteLine("Disconnected from device 1");
+                        MeasurementDevice1 = null;
+                        Measurement1Combo.SelectedItem = "";
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to disconnect from device 1");
+                    }
+                }
+            }
+        }
+
+        private async void testDevice1_Click(object sender, RoutedEventArgs e)
+        {
+            if (MeasurementDevice1 != null)
+            {
+                string measurement = await MeasurementDevice1.GetMeasurement();
+                Console.WriteLine(measurement);
+            }
+        }
+        /// ////////////////////////////////////
+        private void Measurement2Combo_DropDownClosed(object sender, EventArgs e)
+        {
+            if (MeasurementDevice2 == null)
+            {
+                if ((string)Measurement2Combo.SelectedItem != "")
+                {
+                    MeasurementDevice2 = new MeasurementDevice((string)Measurement2Combo.SelectedItem);
+                }
+                return;
+            }
+            if (!MeasurementDevice2.Connected && (string)Measurement2Combo.SelectedItem != "")
+            {
+                MeasurementDevice2.changeDeviceType((string)Measurement2Combo.SelectedItem);
+            }
+            else if (!MeasurementDevice2.Connected && (string)Measurement2Combo.SelectedItem == "")
+            {
+                MeasurementDevice2 = null;
+            }
+            else if (MeasurementDevice2.Connected)
+            {
+                Measurement2Combo.SelectedItem = MeasurementDevice2.DeviceTypeString;
+            }
+        }
+
+        private void updatePorts2_Click(object sender, RoutedEventArgs e)
+        {
+            if (MeasurementDevice2 != null)
+            {
+                MeasurementDevice2.UpdatePortList();
+                Measurement2Serial.ItemsSource = MeasurementDevice2.SerialPortList;
+            }
+        }
+
+        private void initDevice2_Click(object sender, RoutedEventArgs e)
+        {
+            if (MeasurementDevice2 != null)
+            {
+                if ((bool)useMeasurement2.IsChecked) //if selected to use
+                {
+                    MeasurementDevice2.PortName = (string)Measurement2Serial.SelectedItem;
+                    if (MeasurementDevice2.ConnectToDevice())
+                    {
+                        Console.WriteLine("Connected to device 2");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to connect to device 2");
+                    }
+                }
+                else
+                {
+                    if (MeasurementDevice2.DisconnectFromDevice())
+                    {
+                        Console.WriteLine("Disconnected from device 2");
+                        MeasurementDevice2 = null;
+                        Measurement2Combo.SelectedItem = "";
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to disconnect from device 2");
+                    }
+                }
+            }
+        }
+
+        private async void testDevice2_Click(object sender, RoutedEventArgs e)
+        {
+            if (MeasurementDevice2 != null)
+            {
+                string measurement = await MeasurementDevice2.GetMeasurement();
+                Console.WriteLine(measurement);
+            }
+        }
+        /// ////////////////////////////////////
+        private void Measurement3Combo_DropDownClosed(object sender, EventArgs e)
+        {
+            if (MeasurementDevice3 == null)
+            {
+                if ((string)Measurement3Combo.SelectedItem != "")
+                {
+                    MeasurementDevice3 = new MeasurementDevice((string)Measurement3Combo.SelectedItem);
+                }
+                return;
+            }
+            if(!MeasurementDevice3.Connected && (string)Measurement3Combo.SelectedItem != "")
+            {
+                MeasurementDevice3.changeDeviceType((string)Measurement3Combo.SelectedItem);
+            }
+            else if (!MeasurementDevice3.Connected && (string)Measurement3Combo.SelectedItem == "")
+            {
+                MeasurementDevice3 = null;
+            }
+            else if (MeasurementDevice3.Connected)
+            {
+                Measurement3Combo.SelectedItem = MeasurementDevice3.DeviceTypeString;
+            }
+        }
+
+        private void updatePorts3_Click(object sender, RoutedEventArgs e)
+        {
+            if (MeasurementDevice3 != null)
+            {
+                MeasurementDevice3.UpdatePortList();
+                Measurement3Serial.ItemsSource = MeasurementDevice3.SerialPortList;
+            }
+        }
+
+        private void initDevice3_Click(object sender, RoutedEventArgs e)
+        {
+            if (MeasurementDevice3 != null)
+            {
+                if ((bool)useMeasurement3.IsChecked) //if selected to use
+                {
+                    MeasurementDevice3.PortName = (string)Measurement3Serial.SelectedItem;
+                    if (MeasurementDevice3.ConnectToDevice())
+                    {
+                        Console.WriteLine("Connected to device 3");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to connect to device 3");
+                    }
+                }
+                else
+                {
+                    if (MeasurementDevice3.DisconnectFromDevice())
+                    {
+                        Console.WriteLine("Disconnected from device 3");
+                        MeasurementDevice3 = null;
+                        Measurement3Combo.SelectedItem = "";
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to disconnect from device 3");
+                    }
+                }
+            }
+        }
+
+        private async void testDevice3_Click(object sender, RoutedEventArgs e)
+        {
+            if (MeasurementDevice3 != null)
+            {
+                string measurement = await MeasurementDevice3.GetMeasurement();
+                Console.WriteLine(measurement);
+            }
+        }
+        /// ////////////////////////////////////
+        private void Measurement4Combo_DropDownClosed(object sender, EventArgs e)
+        {
+            if (MeasurementDevice4 == null)
+            {
+                if ((string)Measurement4Combo.SelectedItem != "")
+                {
+                    MeasurementDevice4 = new MeasurementDevice((string)Measurement4Combo.SelectedItem);
+                }
+                return;
+            }
+            if (!MeasurementDevice4.Connected && (string)Measurement4Combo.SelectedItem != "")
+            {
+                MeasurementDevice4.changeDeviceType((string)Measurement4Combo.SelectedItem);
+            }
+            else if (!MeasurementDevice4.Connected && (string)Measurement4Combo.SelectedItem == "")
+            {
+                MeasurementDevice4 = null;
+            }
+            else if (MeasurementDevice4.Connected)
+            {
+                Measurement4Combo.SelectedItem = MeasurementDevice4.DeviceTypeString;
+            }
+        }
+
+        private void updatePorts4_Click(object sender, RoutedEventArgs e)
+        {
+            if (MeasurementDevice4 != null)
+            {
+                MeasurementDevice4.UpdatePortList();
+                Measurement4Serial.ItemsSource = MeasurementDevice4.SerialPortList;
+            }
+        }
+
+        private void initDevice4_Click(object sender, RoutedEventArgs e)
+        {
+            if (MeasurementDevice4 != null)
+            {
+                if ((bool)useMeasurement4.IsChecked) //if selected to use
+                {
+                    MeasurementDevice4.PortName = (string)Measurement4Serial.SelectedItem;
+                    if (MeasurementDevice4.ConnectToDevice())
+                    {
+                        Console.WriteLine("Connected to device 4");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to connect to device 4");
+                    }
+                }
+                else
+                {
+                    if (MeasurementDevice4.DisconnectFromDevice())
+                    {
+                        Console.WriteLine("Disconnected from device 4");
+                        MeasurementDevice4 = null;
+                        Measurement4Combo.SelectedItem = "";
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to disconnect from device 4");
+                    }
+                }
+            }
+        }
+
+        private async void testDevice4_Click(object sender, RoutedEventArgs e)
+        {
+            if (MeasurementDevice4 != null)
+            {
+                string measurement = await MeasurementDevice4.GetMeasurement();
+                Console.WriteLine(measurement);
             }
         }
     }

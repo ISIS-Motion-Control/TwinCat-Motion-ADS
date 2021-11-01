@@ -24,7 +24,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
     public partial class NcAxisView : UserControl
     {
         MainWindow windowData;
-        public Axis testAxis;
+        public NcAxis testAxis;
         public string selectedFolder = string.Empty;
 
         public NcAxisView()
@@ -39,7 +39,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
         {
             if (testAxis == null)
             {
-                testAxis = new Axis(Convert.ToUInt32(axisSelection.Text), windowData.Plc);
+                testAxis = new NcAxis(Convert.ToUInt32(axisSelection.Text), windowData.Plc);
             }
             else
             {
@@ -105,22 +105,45 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         private async void moveAbsButton_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             double posCommanded = Convert.ToDouble(positionText.Text);
             await testAxis.moveAbsoluteAndWait(posCommanded, Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
         }
 
         private async void enableButton_Click(object sender, RoutedEventArgs e)
         {
-            await testAxis.setEnable(!testAxis.AxisEnabled);
+            if (testAxis!= null)
+            {
+                await testAxis.setEnable(!testAxis.AxisEnabled);
+            }
+            else
+            {
+                Console.WriteLine("No axis initialised");
+            }
+            
         }
 
         private async void resetButton_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             await testAxis.Reset();
         }
 
         private void folderDirSelect_Click(object sender, RoutedEventArgs e)
         {
+            if(testAxis == null)
+            {
+                Console.WriteLine("Initialise an axis first");
+                return;
+            }
             var fbd = new VistaFolderBrowserDialog();
             selectedFolder = String.Empty;
             if (fbd.ShowDialog() == true)
@@ -133,27 +156,52 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         private async void moveRelButton_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             double posCommanded = Convert.ToDouble(positionText.Text);
             await testAxis.moveRelativeAndWait(posCommanded, Convert.ToDouble(velocityTB.Text));
         }
 
         private async void moveVelButton_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             await testAxis.moveVelocity(Convert.ToDouble(velocityTB.Text));
         }
 
         private async void move2High_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             await testAxis.moveToHighLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
         }
 
         private async void move2Low_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             await testAxis.moveToLowLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
         }
 
         private async void end2endTest_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
             await testAxis.end2endCycleTesting(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleDelay.Text), Convert.ToInt32(cycleTB.Text));
@@ -161,6 +209,11 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         private async void end2endReversal_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             if (selectedFolder == string.Empty)
             {
                 Console.WriteLine("No save directory selected");
@@ -168,7 +221,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
-            if (await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text), Convert.ToDouble(revVel.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleDelay.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(revExtra.Text), Convert.ToInt32(revSettle.Text)))
+            if (await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text), Convert.ToDouble(revVel.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleDelay.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(revExtra.Text), Convert.ToInt32(revSettle.Text), windowData.MeasurementDevice1,windowData.MeasurementDevice2,windowData.MeasurementDevice3,windowData.MeasurementDevice4))
             {
                 Console.WriteLine("Test Complete");
             }
@@ -181,6 +234,11 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         private async void uniDirecitonalTest_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             if (selectedFolder == string.Empty)
             {
                 Console.WriteLine("No save directory selected");
@@ -189,9 +247,9 @@ namespace TwinCat_Motion_ADS.MVVM.View
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
 
-            if (await testAxis.uniDirectionalAccuracyTest(Convert.ToDouble(initSP.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(accSteps.Text), Convert.ToDouble(stepSize.Text), Convert.ToInt32(settleTime.Text), Convert.ToDouble(revDistance.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text)))
+            if (await testAxis.uniDirectionalAccuracyTest(Convert.ToDouble(initSP.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(accSteps.Text), Convert.ToDouble(stepSize.Text), Convert.ToInt32(settleTime.Text), Convert.ToDouble(revDistance.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text),windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
             {
-                Console.WriteLine("Test Complete");
+                //
             }
             else
             {
@@ -201,6 +259,11 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         private async void biDirecitonalTest_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             if (selectedFolder == string.Empty)
             {
                 Console.WriteLine("No save directory selected");
@@ -209,7 +272,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
 
-            if (await testAxis.biDirectionalAccuracyTest(Convert.ToDouble(initSP.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(accSteps.Text), Convert.ToDouble(stepSize.Text), Convert.ToInt32(settleTime.Text), Convert.ToDouble(revDistance.Text),Convert.ToDouble(overshootDistance.Text),Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text)))
+            if (await testAxis.biDirectionalAccuracyTest(Convert.ToDouble(initSP.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(accSteps.Text), Convert.ToDouble(stepSize.Text), Convert.ToInt32(settleTime.Text), Convert.ToDouble(revDistance.Text),Convert.ToDouble(overshootDistance.Text),Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text), windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
             {
                 Console.WriteLine("Test Complete");
             }
@@ -221,27 +284,52 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         private void cancelTest_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             testAxis.CancelTest = !testAxis.CancelTest;
         }
 
         private void pauseTest_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             testAxis.PauseTest = !testAxis.PauseTest;
         }
 
         private async void stopMove_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             await testAxis.moveStop();
         }
 
         private async void highLimReversal_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             await testAxis.HighLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtra.Text),Convert.ToInt32(revSettle.Text));
             Console.WriteLine(testAxis.AxisPosition);
         }
 
         private async void lowLimReversal_Click(object sender, RoutedEventArgs e)
         {
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
             await testAxis.LowLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtra.Text), Convert.ToInt32(revSettle.Text));
             Console.WriteLine(testAxis.AxisPosition);
         }
