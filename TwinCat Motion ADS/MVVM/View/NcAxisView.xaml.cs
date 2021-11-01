@@ -16,8 +16,6 @@ using System.Windows.Shapes;
 
 namespace TwinCat_Motion_ADS.MVVM.View
 {
-    //NO DTIS IMPLEMENTED ON METHOD CALLS
-
     /// <summary>
     /// Interaction logic for NcAxisView.xaml
     /// </summary>
@@ -25,8 +23,9 @@ namespace TwinCat_Motion_ADS.MVVM.View
     {
         MainWindow windowData;
         public NcAxis testAxis;
+        public NcTestSettings NcTestSettings = new NcTestSettings();
         public string selectedFolder = string.Empty;
-
+        
         public NcAxisView()
         {
             InitializeComponent();
@@ -101,6 +100,101 @@ namespace TwinCat_Motion_ADS.MVVM.View
             testPausedBind.Path = new PropertyPath("PauseTest");
             testPausedBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             BindingOperations.SetBinding(testPausedCheck, CheckBox.IsCheckedProperty, testPausedBind);
+
+            Binding timeoutTextboxBind = new Binding();
+            timeoutTextboxBind.Mode = BindingMode.TwoWay;
+            timeoutTextboxBind.Source = NcTestSettings;
+            timeoutTextboxBind.Path = new PropertyPath("StrTimeout");
+            timeoutTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(timeoutTB, TextBox.TextProperty, timeoutTextboxBind);
+
+            Binding velocityTextboxBind = new Binding();
+            velocityTextboxBind.Mode = BindingMode.TwoWay;
+            velocityTextboxBind.Source = NcTestSettings;
+            velocityTextboxBind.Path = new PropertyPath("StrVelocity");
+            velocityTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(velocityTB, TextBox.TextProperty, velocityTextboxBind);
+
+            Binding cycleTextboxBind = new Binding();
+            cycleTextboxBind.Mode = BindingMode.TwoWay;
+            cycleTextboxBind.Source = NcTestSettings;
+            cycleTextboxBind.Path = new PropertyPath("StrCycles");
+            cycleTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(cycleTB, TextBox.TextProperty, cycleTextboxBind);
+
+            Binding cycleDelayTextboxBind = new Binding();
+            cycleDelayTextboxBind.Mode = BindingMode.TwoWay;
+            cycleDelayTextboxBind.Source = NcTestSettings;
+            cycleDelayTextboxBind.Path = new PropertyPath("StrCycleDelaySeconds");
+            cycleDelayTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(cycleDelayTB, TextBox.TextProperty, cycleDelayTextboxBind);
+
+            Binding reversalVelTextboxBind = new Binding
+            {
+                Mode = BindingMode.TwoWay,
+                Source = NcTestSettings,
+                Path = new PropertyPath("StrReversalVelocity"),
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            BindingOperations.SetBinding(revVelTB, TextBox.TextProperty, reversalVelTextboxBind);
+
+            Binding reversalExtraTimeTextboxBind = new Binding();
+            reversalExtraTimeTextboxBind.Mode = BindingMode.TwoWay;
+            reversalExtraTimeTextboxBind.Source = NcTestSettings;
+            reversalExtraTimeTextboxBind.Path = new PropertyPath("StrReversalExtraTimeSeconds");
+            reversalExtraTimeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(revExtraTB, TextBox.TextProperty, reversalExtraTimeTextboxBind);
+
+            Binding reversalSettleTimeTextboxBind = new Binding();
+            reversalSettleTimeTextboxBind.Mode = BindingMode.TwoWay;
+            reversalSettleTimeTextboxBind.Source = NcTestSettings;
+            reversalSettleTimeTextboxBind.Path = new PropertyPath("StrReversalSettleTimeSeconds");
+            reversalSettleTimeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(revSettleTB, TextBox.TextProperty, reversalSettleTimeTextboxBind);
+
+            Binding initialSetpointTextboxBind = new Binding();
+            initialSetpointTextboxBind.Mode = BindingMode.TwoWay;
+            initialSetpointTextboxBind.Source = NcTestSettings;
+            initialSetpointTextboxBind.Path = new PropertyPath("StrInitialSetpoint");
+            initialSetpointTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(initSetpointTB, TextBox.TextProperty, initialSetpointTextboxBind);
+
+            Binding numberOfStepsTextboxBind = new Binding();
+            numberOfStepsTextboxBind.Mode = BindingMode.TwoWay;
+            numberOfStepsTextboxBind.Source = NcTestSettings;
+            numberOfStepsTextboxBind.Path = new PropertyPath("StrNumberOfSteps");
+            numberOfStepsTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(NumberOfStepsTB, TextBox.TextProperty, numberOfStepsTextboxBind);
+
+            Binding stepSizeTextboxBind = new Binding();
+            stepSizeTextboxBind.Mode = BindingMode.TwoWay;
+            stepSizeTextboxBind.Source = NcTestSettings;
+            stepSizeTextboxBind.Path = new PropertyPath("StrStepSize");
+            stepSizeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(stepSizeTB, TextBox.TextProperty, stepSizeTextboxBind);
+
+            Binding settleTimeTextboxBind = new Binding();
+            settleTimeTextboxBind.Mode = BindingMode.TwoWay;
+            settleTimeTextboxBind.Source = NcTestSettings;
+            settleTimeTextboxBind.Path = new PropertyPath("StrSettleTimeSeconds");
+            settleTimeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(settleTimeTB, TextBox.TextProperty, settleTimeTextboxBind);
+
+            Binding reversalDistanceTextboxBind = new Binding();
+            reversalDistanceTextboxBind.Mode = BindingMode.TwoWay;
+            reversalDistanceTextboxBind.Source = NcTestSettings;
+            reversalDistanceTextboxBind.Path = new PropertyPath("StrReversalDistance");
+            reversalDistanceTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(revDistanceTB, TextBox.TextProperty, reversalDistanceTextboxBind);
+
+            Binding overshootDistanceTextboxBind = new Binding();
+            overshootDistanceTextboxBind.Mode = BindingMode.TwoWay;
+            overshootDistanceTextboxBind.Source = NcTestSettings;
+            overshootDistanceTextboxBind.Path = new PropertyPath("StrOvershootDistance");
+            overshootDistanceTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(overshootDistanceTB, TextBox.TextProperty, overshootDistanceTextboxBind);
+
+
         }
 
         private async void moveAbsButton_Click(object sender, RoutedEventArgs e)
@@ -204,7 +298,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
-            await testAxis.end2endCycleTesting(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleDelay.Text), Convert.ToInt32(cycleTB.Text));
+            await testAxis.end2endCycleTesting(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleDelayTB.Text), Convert.ToInt32(cycleTB.Text));
         }
 
         private async void end2endReversal_Click(object sender, RoutedEventArgs e)
@@ -221,7 +315,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
-            if (await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text), Convert.ToDouble(revVel.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleDelay.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(revExtra.Text), Convert.ToInt32(revSettle.Text), windowData.MeasurementDevice1,windowData.MeasurementDevice2,windowData.MeasurementDevice3,windowData.MeasurementDevice4))
+            if (await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text), Convert.ToDouble(revVelTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleDelayTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(revExtraTB.Text), Convert.ToInt32(revSettleTB.Text), windowData.MeasurementDevice1,windowData.MeasurementDevice2,windowData.MeasurementDevice3,windowData.MeasurementDevice4))
             {
                 Console.WriteLine("Test Complete");
             }
@@ -247,7 +341,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
 
-            if (await testAxis.uniDirectionalAccuracyTest(Convert.ToDouble(initSP.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(accSteps.Text), Convert.ToDouble(stepSize.Text), Convert.ToInt32(settleTime.Text), Convert.ToDouble(revDistance.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text),windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
+            if (await testAxis.uniDirectionalAccuracyTest(Convert.ToDouble(initSetpointTB.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(NumberOfStepsTB.Text), Convert.ToDouble(stepSizeTB.Text), Convert.ToInt32(settleTimeTB.Text), Convert.ToDouble(revDistanceTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text),windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
             {
                 //
             }
@@ -272,7 +366,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
 
-            if (await testAxis.biDirectionalAccuracyTest(Convert.ToDouble(initSP.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(accSteps.Text), Convert.ToDouble(stepSize.Text), Convert.ToInt32(settleTime.Text), Convert.ToDouble(revDistance.Text),Convert.ToDouble(overshootDistance.Text),Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text), windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
+            if (await testAxis.biDirectionalAccuracyTest(Convert.ToDouble(initSetpointTB.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(NumberOfStepsTB.Text), Convert.ToDouble(stepSizeTB.Text), Convert.ToInt32(settleTimeTB.Text), Convert.ToDouble(revDistanceTB.Text),Convert.ToDouble(overshootDistanceTB.Text),Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text), windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
             {
                 Console.WriteLine("Test Complete");
             }
@@ -319,7 +413,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 Console.WriteLine("No axis initialised");
                 return;
             }
-            await testAxis.HighLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtra.Text),Convert.ToInt32(revSettle.Text));
+            await testAxis.HighLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtraTB.Text),Convert.ToInt32(revSettleTB.Text));
             Console.WriteLine(testAxis.AxisPosition);
         }
 
@@ -330,8 +424,13 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 Console.WriteLine("No axis initialised");
                 return;
             }
-            await testAxis.LowLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtra.Text), Convert.ToInt32(revSettle.Text));
+            await testAxis.LowLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtraTB.Text), Convert.ToInt32(revSettleTB.Text));
             Console.WriteLine(testAxis.AxisPosition);
+        }
+
+        private void testButton_Click(object sender, RoutedEventArgs e)
+        {
+            NcTestSettings.Timeout = NcTestSettings.Timeout + 1;
         }
     }
 }
