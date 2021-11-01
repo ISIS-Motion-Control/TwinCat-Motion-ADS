@@ -315,7 +315,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
-            if (await testAxis.end2endCycleTestingWithReversal(Convert.ToDouble(velocityTB.Text), Convert.ToDouble(revVelTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleDelayTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(revExtraTB.Text), Convert.ToInt32(revSettleTB.Text), windowData.MeasurementDevice1,windowData.MeasurementDevice2,windowData.MeasurementDevice3,windowData.MeasurementDevice4))
+            if (await testAxis.end2endCycleTestingWithReversal(NcTestSettings, windowData.MeasurementDevice1,windowData.MeasurementDevice2,windowData.MeasurementDevice3,windowData.MeasurementDevice4))
             {
                 Console.WriteLine("Test Complete");
             }
@@ -341,7 +341,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
 
-            if (await testAxis.uniDirectionalAccuracyTest(Convert.ToDouble(initSetpointTB.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(NumberOfStepsTB.Text), Convert.ToDouble(stepSizeTB.Text), Convert.ToInt32(settleTimeTB.Text), Convert.ToDouble(revDistanceTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text),windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
+            if (await testAxis.uniDirectionalAccuracyTest(NcTestSettings,windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
             {
                 //
             }
@@ -430,7 +430,14 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         private void testButton_Click(object sender, RoutedEventArgs e)
         {
-            NcTestSettings.Timeout = NcTestSettings.Timeout + 1;
+            var fbd = new VistaOpenFileDialog();
+            string selectedFile = string.Empty;
+            if (fbd.ShowDialog() == true)
+            {
+                selectedFile = fbd.FileName;
+            }
+            Console.WriteLine(selectedFolder);
+            NcTestSettings.ImportSettings(selectedFile);
         }
     }
 }

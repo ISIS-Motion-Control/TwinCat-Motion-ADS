@@ -928,26 +928,26 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> end2endCycleTestingWithReversal(double setVelocity, double reversalVelocity, int timeout, int cycleDelay, int cycles, int resersalExtraTime, int reversalSettleTime, MeasurementDevice device1 = null, MeasurementDevice device2 = null, MeasurementDevice device3 = null, MeasurementDevice device4 = null)
+        public async Task<bool> end2endCycleTestingWithReversal(NcTestSettings testSettings, MeasurementDevice device1 = null, MeasurementDevice device2 = null, MeasurementDevice device3 = null, MeasurementDevice device4 = null)
         {
-            if (cycles == 0)
+            if (testSettings.Cycles == 0)
             {
                 Console.WriteLine("0 cycle count invalid");
                 return false;
             }
-            if (reversalVelocity == 0)
+            if (testSettings.ReversalVelocity == 0)
             {
                 Console.WriteLine("0 reversal velocity invalid");
                 return false;
             }
-            if (setVelocity == 0)
+            if (testSettings.Velocity == 0)
             {
                 Console.WriteLine("0 velocity invalid");
                 return false;
             }
 
             var currentTime = DateTime.Now;
-            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {5} -End2EndwithReversalTest-setVelo({1}) revVelo({2}) settleTime({3}) - {4} cycles", currentTime,setVelocity,reversalVelocity,reversalSettleTime,cycles,AxisID);
+            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {6} -End2EndwithReversalTest-setVelo({1}) revVelo({2}) revExtraTime({3}) settleTime({4}) - {5} cycles", currentTime,testSettings.Velocity,testSettings.ReversalVelocity,testSettings.ReversalExtraTimeSeconds,testSettings.ReversalSettleTimeSeconds,testSettings.Cycles,AxisID);
 
             string fileName = @"\" + formattedTitle + ".csv";
             var stream = File.Open(TestDirectory+fileName, FileMode.Append);
@@ -962,9 +962,9 @@ namespace TwinCat_Motion_ADS
             }
 
             Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
-            setVelocity = Math.Abs(setVelocity);
+            testSettings.Velocity = Math.Abs(testSettings.Velocity);
             //Start low
-            if (await moveToLowLimit(-setVelocity, timeout) == false)
+            if (await moveToLowLimit(-testSettings.Velocity, testSettings.Timeout) == false)
             {
                 Console.WriteLine("Failed to move to low limit for start of test");
                 return false;
@@ -978,7 +978,7 @@ namespace TwinCat_Motion_ADS
             //Start running test cycles
             end2endReversalCSV record1;
             end2endReversalCSV record2;
-            for (int i = 1; i <= cycles; i++)
+            for (int i = 1; i <= testSettings.Cycles; i++)
             {
                 Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
                 await pauseTaskRequest;
@@ -991,16 +991,16 @@ namespace TwinCat_Motion_ADS
                     return false;
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(cycleDelay)); //inter-cycle delay wait
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds)); //inter-cycle delay wait
                 
                 stopWatch.Reset();
                 stopWatch.Start();  //Clear and start the stopwatch
 
-                if (await moveToHighLimit(setVelocity, timeout))
+                if (await moveToHighLimit(testSettings.Velocity, testSettings.Timeout))
                 {
                     stopWatch.Stop();
-                    await Task.Delay(TimeSpan.FromSeconds(reversalSettleTime));//Allow axis to settle before reversal
-                    if(await HighLimitReversal(reversalVelocity, timeout, resersalExtraTime, reversalSettleTime))
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));//Allow axis to settle before reversal
+                    if(await HighLimitReversal(testSettings.ReversalVelocity, testSettings.Timeout, testSettings.ReversalExtraTimeSeconds, testSettings.ReversalSettleTimeSeconds))
                     {
                         //Do we need to check the DTIs?
                         string measurement1 = string.Empty;
@@ -1052,14 +1052,14 @@ namespace TwinCat_Motion_ADS
                     return false;
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(cycleDelay));
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds));
                 stopWatch.Reset();
                 stopWatch.Start();
-                if (await moveToLowLimit(-setVelocity, timeout))
+                if (await moveToLowLimit(-testSettings.Velocity, testSettings.Timeout))
                 {
                     stopWatch.Stop();
-                    await Task.Delay(TimeSpan.FromSeconds(reversalSettleTime));//Allow axis to settle before reversal
-                    if (await LowLimitReversal(reversalVelocity, timeout, resersalExtraTime, reversalSettleTime))
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));//Allow axis to settle before reversal
+                    if (await LowLimitReversal(testSettings.ReversalVelocity,testSettings.Timeout,testSettings.ReversalExtraTimeSeconds,testSettings.ReversalSettleTimeSeconds))
                     {
                         //Do we need to check the DTIs?
                         string measurement1 = string.Empty;
@@ -1127,31 +1127,31 @@ namespace TwinCat_Motion_ADS
         }
 
         //no timeout implemented
-        public async Task<bool> uniDirectionalAccuracyTest(double initialSetpoint, double velocity, int cycles, int steps, double stepSize, int settleTime, double reversalDistance, int timeout, int cycleDelay, MeasurementDevice device1 = null, MeasurementDevice device2 = null, MeasurementDevice device3 = null, MeasurementDevice device4 = null)
+        public async Task<bool> uniDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevice device1 = null, MeasurementDevice device2 = null, MeasurementDevice device3 = null, MeasurementDevice device4 = null)
         {
-            if (cycles == 0)
+            if (testSettings.Cycles == 0)
             {
                 Console.WriteLine("0 cycle count invalid");
                 return false;
             }
-            if (steps == 0)
+            if (testSettings.NumberOfSteps == 0)
             {
                 Console.WriteLine("0 step count invalid");
                 return false;
             }
-            if (velocity == 0)
+            if (testSettings.Velocity == 0)
             {
                 Console.WriteLine("0 velocity invalid");
                 return false;
             }
-            if (stepSize == 0)
+            if (testSettings.StepSize == 0)
             {
                 Console.WriteLine("0 step size invalid");
                 return false;
             }
             List<uniDirectionalAccuracyCSV> recordList = new List<uniDirectionalAccuracyCSV>();
             var currentTime = DateTime.Now;
-            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {8} -uniDirectionalAccuracyTest-IntialSP({1}) Velo({2}) Steps({3}) StepSize({4}) SettleTime({5}) ReversalDistance({6}) - {7} cycles", currentTime, initialSetpoint, velocity, steps, stepSize, settleTime, reversalDistance, cycles, AxisID);
+            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {8} -uniDirectionalAccuracyTest-InitialSetpoint({1}) Velo({2}) Steps({3}) StepSize({4}) SettleTime({5}) ReversalDistance({6}) - {7} cycles", currentTime,testSettings.InitialSetpoint,testSettings.Velocity,testSettings.NumberOfSteps,testSettings.StepSize,testSettings.SettleTimeSeconds,testSettings.ReversalDistance,testSettings.Cycles, AxisID);
 
             string fileName = @"\" + formattedTitle + ".csv";
             var stream = File.Open(TestDirectory + fileName, FileMode.Append);
@@ -1174,20 +1174,20 @@ namespace TwinCat_Motion_ADS
             Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
 
             Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
-            velocity = Math.Abs(velocity);  //Only want positive velocity
+            testSettings.Velocity = Math.Abs(testSettings.Velocity);  //Only want positive velocity
             //Create an ongoing task to monitor for a cancellation request. This will only trigger on start of each test cycle.
 
             double reversalPosition;
-            if (stepSize > 0)
+            if (testSettings.StepSize > 0)
             {
-                reversalPosition = initialSetpoint- reversalDistance;
+                reversalPosition = testSettings.InitialSetpoint- testSettings.ReversalDistance;
             }
             else
             {
-                reversalPosition = initialSetpoint + reversalDistance;
+                reversalPosition = testSettings.InitialSetpoint + testSettings.ReversalDistance;
             }
             stopWatch.Start();
-            for (uint i = 1; i <= cycles; i++)
+            for (uint i = 1; i <= testSettings.Cycles; i++)
             {
                 Console.WriteLine("Cycle " + i);
                 //Create a task each cycle to monitor for the pause. This is done as a task as a basic "while(paused)" would block UI and not allow an unpause
@@ -1202,11 +1202,11 @@ namespace TwinCat_Motion_ADS
                     return false;
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(cycleDelay)); //inter-cycle delay wait
-                double TargetPosition = initialSetpoint;
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds)); //inter-cycle delay wait
+                double TargetPosition = testSettings.InitialSetpoint;
 
                 //Start test at reversal position then moving to initial setpoint          
-                if (await moveAbsoluteAndWait(reversalPosition, velocity,timeout) == false)
+                if (await moveAbsoluteAndWait(reversalPosition, testSettings.Velocity, testSettings.Timeout) == false)
                 {
                     Console.WriteLine("Failed to move to reversal position");
                     stopWatch.Stop();
@@ -1214,13 +1214,13 @@ namespace TwinCat_Motion_ADS
                     ptToken.Cancel();
                     return false;
                 }
-                await Task.Delay(TimeSpan.FromSeconds(settleTime));
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
                 
 
-                for (uint j = 0; j <= steps; j++)
+                for (uint j = 0; j <= testSettings.NumberOfSteps; j++)
                 {
                     //Do the step move
-                    if (await moveAbsoluteAndWait(TargetPosition, velocity,timeout) == false)
+                    if (await moveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
                     {
                         Console.WriteLine("Failed to move to target position");
                         stopWatch.Stop();
@@ -1229,7 +1229,7 @@ namespace TwinCat_Motion_ADS
                         return false;
                     }
                     //Wait for a settle time
-                    await Task.Delay(TimeSpan.FromSeconds(settleTime));
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
 
                     //Do we need to check the DTIs?
                     string measurement1 = string.Empty;
@@ -1266,7 +1266,7 @@ namespace TwinCat_Motion_ADS
                     recordList.Add(new uniDirectionalAccuracyCSV(i, j, "Testing", TargetPosition, tmpAxisPosition,measurement1,measurement2,measurement3,measurement4));
                     //Update target position
 
-                    TargetPosition = TargetPosition + stepSize;
+                    TargetPosition = TargetPosition + testSettings.StepSize;
                 }
                 
                 //Write the cycle data
@@ -1290,7 +1290,7 @@ namespace TwinCat_Motion_ADS
         {
             List<uniDirectionalAccuracyCSV> recordList = new List<uniDirectionalAccuracyCSV>();
             var currentTime = DateTime.Now;
-            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {8} -biDirectionalAccuracyTest-IntialSP({1}) Velo({2}) Steps({3}) StepSize({4}) SettleTime({5}) ReversalDistance({6}) - {7} cycles", currentTime, initialSetpoint, velocity, steps, stepSize, settleTime, reversalDistance, cycles, AxisID);
+            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {9} -biDirectionalAccuracyTest-InitialSetpoint({1}) Velo({2}) Steps({3}) StepSize({4}) SettleTime({5}) ReversalDistance({6}) OvershootDistance({7}) - {8} cycles", currentTime, initialSetpoint, velocity, steps, stepSize, settleTime, reversalDistance, overshoot, cycles, AxisID);
 
             string fileName = @"\" + formattedTitle + ".csv";
             var stream = File.Open(TestDirectory + fileName, FileMode.Append);

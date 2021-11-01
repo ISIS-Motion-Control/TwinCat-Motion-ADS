@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -358,6 +359,139 @@ namespace TwinCat_Motion_ADS
                 OnPropertyChanged();
             }
         }
+
+
+
+        public void ImportSettings(string ImportSettingsFile)
+        {
+            //check if the input file even exists
+            if(!File.Exists(ImportSettingsFile))
+            {
+                return;
+            }
+            Console.WriteLine(ImportSettingsFile);
+            //Check the test type: Is it end2endwithreversal?
+            if(ImportSettingsFile.Contains("End2EndwithReversalTest"))
+            {
+                //velocity
+                int charStartIndex = ImportSettingsFile.IndexOf("setVelo(") + "setVelo(".Length;
+                int charLastIndex = ImportSettingsFile.LastIndexOf(") revV");
+                string subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);         
+                StrVelocity = subStr;
+                //revVelocity
+                charStartIndex = ImportSettingsFile.IndexOf("revVelo(") + "revVelo(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") revExt");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrReversalVelocity = subStr;
+                //revExtraTime
+                charStartIndex = ImportSettingsFile.IndexOf("revExtraTime(") + "revExtraTime(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") settle");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrReversalExtraTimeSeconds = subStr;
+                //revSettleTime
+                charStartIndex = ImportSettingsFile.IndexOf("settleTime(") + "settleTime(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") -");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrReversalSettleTimeSeconds = subStr;
+                //cycles
+                charStartIndex = ImportSettingsFile.IndexOf(") - ") + ") - ".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(" cycles");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrCycles = subStr;
+                Console.WriteLine("'End2End with Reversing Sequence' Test Settings imported");
+                return;
+            }
+            if(ImportSettingsFile.Contains("uniDirectionalAccuracyTest"))
+            {
+                //initialSetpoint
+                int charStartIndex = ImportSettingsFile.IndexOf("InitialSetpoint(") + "InitialSetpoint(".Length;
+                int charLastIndex = ImportSettingsFile.LastIndexOf(") Velo");
+                string subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrInitialSetpoint = subStr;
+                //Velocity
+                charStartIndex = ImportSettingsFile.IndexOf("Velo(") + "Velo(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") Steps");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrVelocity = subStr;
+                //Number of Steps
+                charStartIndex = ImportSettingsFile.IndexOf("Steps(") + "Steps(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") StepSize");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrNumberOfSteps = subStr;
+                //Size of Steps
+                charStartIndex = ImportSettingsFile.IndexOf("StepSize(") + "StepSize(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") Settle");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrStepSize = subStr;
+                //SettleTime
+                charStartIndex = ImportSettingsFile.IndexOf("SettleTime(") + "SettleTime(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") Reversal");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrSettleTimeSeconds = subStr;
+                //revDistance
+                charStartIndex = ImportSettingsFile.IndexOf("ReversalDistance(") + "ReversalDistance(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") -");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrReversalDistance = subStr;
+                //Cycles
+                charStartIndex = ImportSettingsFile.IndexOf(") - ") + ") - ".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(" cycles");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrCycles = subStr;
+                
+                Console.WriteLine("'Unidirectional Accuracy' Test Settings imported");
+                return;
+            }
+            if (ImportSettingsFile.Contains("biDirectionalAccuracyTest"))
+            {
+                //initialSetpoint
+                int charStartIndex = ImportSettingsFile.IndexOf("InitialSetpoint(") + "InitialSetpoint(".Length;
+                int charLastIndex = ImportSettingsFile.LastIndexOf(") Velo");
+                string subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrInitialSetpoint = subStr;
+                //Velocity
+                charStartIndex = ImportSettingsFile.IndexOf("Velo(") + "Velo(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") Steps");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrVelocity = subStr;
+                //Number of Steps
+                charStartIndex = ImportSettingsFile.IndexOf("Steps(") + "Steps(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") StepSize");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrNumberOfSteps = subStr;
+                //Size of Steps
+                charStartIndex = ImportSettingsFile.IndexOf("StepSize(") + "StepSize(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") Settle");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrStepSize = subStr;
+                //SettleTime
+                charStartIndex = ImportSettingsFile.IndexOf("SettleTime(") + "SettleTime(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") Reversal");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrSettleTimeSeconds = subStr;
+                //revDistance
+                charStartIndex = ImportSettingsFile.IndexOf("ReversalDistance(") + "ReversalDistance(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") Overshoot");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrReversalDistance = subStr;
+                //overshootDistance
+                charStartIndex = ImportSettingsFile.IndexOf("OvershootDistance(") + "OvershootDistance(".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(") -");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrOvershootDistance = subStr;
+                //Cycles
+                charStartIndex = ImportSettingsFile.IndexOf(") - ") + ") - ".Length;
+                charLastIndex = ImportSettingsFile.LastIndexOf(" cycles");
+                subStr = ImportSettingsFile.Substring(charStartIndex, charLastIndex - charStartIndex);
+                StrCycles = subStr;
+
+                Console.WriteLine("'Bidirectional Accuracy' Test Settings imported");
+                return;
+            }
+            Console.WriteLine("No match");
+
+        }
+
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
