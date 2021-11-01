@@ -21,8 +21,6 @@ namespace TwinCat_Motion_ADS
     public partial class MainWindow : Window
     {
         public PLC Plc;
-        //PLC Plc = new PLC("5.65.74.200.1.1", 852);
-
         public string selectedFolder = string.Empty;
         public MeasurementDevice MeasurementDevice1;
         public MeasurementDevice MeasurementDevice2;
@@ -34,8 +32,6 @@ namespace TwinCat_Motion_ADS
         "DigimaticIndicator",
         "KeyenceTM3000"
         };
-
-
 
         public MainWindow()
         {
