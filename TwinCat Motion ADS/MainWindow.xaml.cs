@@ -419,6 +419,13 @@ namespace TwinCat_Motion_ADS
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            TwinCat_Motion_ADS.MVVM.View.subWindow SubWindow = new();
+            SubWindow.Show();
+            
+        }
     }
 
 
