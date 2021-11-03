@@ -9,6 +9,8 @@
         mc:Ignorable="d"
         Title="IBEX Lite" WindowState="Maximized" Icon="/ibexHead.jpg" WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
+        Width="1000"
+        Height="1200"
         
         Background="Transparent"
         >
@@ -24,12 +26,20 @@
             <ColumnDefinition Width="857*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="30"/>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="30"/>
             <RowDefinition Height="150"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+            <Menu Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
+                  HorizontalAlignment="Left" Height="30" Background="{x:Null}">
+                <MenuItem Header="Keyence Settings" Height="30">
+                    <MenuItem Header="Baud Rate" Click="MenuItem_Click"/>
+                </MenuItem>
+                <MenuItem Header="MenuItem2"/>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+            </Menu>
+            <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
                 <RadioButton Content="NC Axis"
                              Foreground="White"
                              FontSize="24"
@@ -43,10 +53,11 @@
                              Height="30"
                              Style="{StaticResource MenuButtonTheme}"
                              Command="{Binding AirAxisCommand}"/>
+                
 
             </StackPanel>
         
-        <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+        <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
             <StackPanel Orientation="Horizontal">
                 <TextBox x:Name="amsNetIdTb"  
                              Height="20"
@@ -253,8 +264,9 @@
 
 
 
-        <StackPanel x:Name="StackPanel___MainWindow" Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" Grid.RowSpan="2">
+        <StackPanel x:Name="StackPanel___MainWindow" Orientation="Horizontal" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" Grid.RowSpan="2">
                 <ContentControl Content="{Binding CurrentView}" d:IsHidden="True"/>
+                
             </StackPanel>
 
         </Grid>
