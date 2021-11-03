@@ -7,8 +7,7 @@
         xmlns:view="clr-namespace:TwinCat_Motion_ADS.MVVM.View"
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
-        Title="IBEX Lite" Height="800" Width="1000" Icon="/ibexHead.jpg" WindowStartupLocation="CenterScreen"
-        
+        Title="IBEX Lite" WindowState="Maximized" Icon="/ibexHead.jpg" WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
         
         Background="Transparent"
@@ -49,9 +48,9 @@
         
         <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
             <StackPanel Orientation="Horizontal">
-                <TextBox x:Name="amsNetIdTb" 
-                             Text="130.246.58.3.1.1" 
+                <TextBox x:Name="amsNetIdTb"  
                              Height="20"
+                         Width="150"
                              VerticalAlignment="Top"
                              Margin="10,5,0,0"/>
                 <Button x:Name="connect2PlcButton" 
@@ -255,9 +254,9 @@
 
 
         <StackPanel x:Name="StackPanel___MainWindow" Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" Grid.RowSpan="2">
-                <ContentControl
-                                    Content="{Binding CurrentView}" d:IsHidden="True"/>
+                <ContentControl Content="{Binding CurrentView}" d:IsHidden="True"/>
             </StackPanel>
-    </Grid>
+
+        </Grid>
     </Border>
 </Window>

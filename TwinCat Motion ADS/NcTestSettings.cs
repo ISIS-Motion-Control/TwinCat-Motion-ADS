@@ -18,19 +18,19 @@ namespace TwinCat_Motion_ADS
          */
         public NcTestSettings()
         {
-            Velocity = 0;
-            Timeout = 0;
-            Cycles = 1;
-            CycleDelaySeconds = 0;
-            ReversalVelocity = 0;
-            ReversalExtraTimeSeconds = 0;
-            ReversalSettleTimeSeconds = 0;
-            InitialSetpoint = 0;
-            NumberOfSteps = 1;
-            StepSize = 0;
-            SettleTimeSeconds = 0;
-            ReversalDistance = 0;
-            OvershootDistance = 0;
+            StrVelocity = Properties.Settings.Default.velocity;
+            StrTimeout = Properties.Settings.Default.timeout;
+            StrCycles = Properties.Settings.Default.cycles;
+            StrCycleDelaySeconds = Properties.Settings.Default.cycleDelaySeconds;
+            StrReversalVelocity = Properties.Settings.Default.reversalVelocity;
+            StrReversalExtraTimeSeconds = Properties.Settings.Default.reversalExtraTimeSeconds;
+            StrReversalSettleTimeSeconds = Properties.Settings.Default.reversalSettleTimeSeconds;
+            StrInitialSetpoint = Properties.Settings.Default.initialSetpoint;
+            StrNumberOfSteps = Properties.Settings.Default.numberOfSteps;
+            StrStepSize = Properties.Settings.Default.stepSize;
+            StrSettleTimeSeconds = Properties.Settings.Default.settleTimeSeconds;
+            StrReversalDistance = Properties.Settings.Default.reversalDistance;
+            StrOvershootDistance = Properties.Settings.Default.overshootDistance;
         }
 
         //Method to import and export test settings
@@ -44,6 +44,7 @@ namespace TwinCat_Motion_ADS
                 if(double.TryParse(value, out _velocity))
                 {
                     _strVelocity = value;
+                    Properties.Settings.Default.velocity = value;
                     OnPropertyChanged();
                 }
             }
@@ -69,6 +70,7 @@ namespace TwinCat_Motion_ADS
                 if(int.TryParse(value, out _timeout))
                 {
                     _strTimeout = value;
+                    Properties.Settings.Default.timeout = value;
                     OnPropertyChanged();
                 }
             }
@@ -94,6 +96,7 @@ namespace TwinCat_Motion_ADS
                 if(int.TryParse(value, out _cycles))
                 {
                     _strCycles = value;
+                    Properties.Settings.Default.cycles = value;
                     OnPropertyChanged();
                 }
             }
@@ -119,6 +122,7 @@ namespace TwinCat_Motion_ADS
                 if (int.TryParse(value, out _cycleDelaySeconds))
                 {
                     _strCycleDelaySeconds = value;
+                    Properties.Settings.Default.cycleDelaySeconds = value;
                     OnPropertyChanged();
                 }
             }
@@ -144,6 +148,7 @@ namespace TwinCat_Motion_ADS
                 if(double.TryParse(value, out _reversalVelocity))
                 {
                     _strReversalVelocity = value;
+                    Properties.Settings.Default.reversalVelocity = value;
                     OnPropertyChanged();
                 }
             }
@@ -169,6 +174,7 @@ namespace TwinCat_Motion_ADS
                 if(int.TryParse(value, out _reversalExtraTimeSeconds))
                 {
                     _strReversalExtraTimeSeconds = value;
+                    Properties.Settings.Default.reversalExtraTimeSeconds = value;
                     OnPropertyChanged();
                 }
             }
@@ -194,6 +200,7 @@ namespace TwinCat_Motion_ADS
                 if (int.TryParse(value, out _reversalSettleTimeSeconds))
                 {
                     _strReversalSettleTimeSeconds = value;
+                    Properties.Settings.Default.reversalSettleTimeSeconds = value;
                     OnPropertyChanged();
                 }
             }
@@ -219,6 +226,7 @@ namespace TwinCat_Motion_ADS
                 if (double.TryParse(value, out _initialSetpoint))
                 {
                     _strInitialSetpoint = value;
+                    Properties.Settings.Default.initialSetpoint = value;
                     OnPropertyChanged();
                 }
             }
@@ -244,6 +252,7 @@ namespace TwinCat_Motion_ADS
                 if (int.TryParse(value, out _numberOfSteps))
                 {
                     _strNumberOfSteps = value;
+                    Properties.Settings.Default.numberOfSteps = value;
                     OnPropertyChanged();
                 }
             }
@@ -269,6 +278,7 @@ namespace TwinCat_Motion_ADS
                 if (double.TryParse(value, out _stepSize))
                 {
                     _strStepSize = value;
+                    Properties.Settings.Default.stepSize = value;
                     OnPropertyChanged();
                 }
             }
@@ -294,6 +304,7 @@ namespace TwinCat_Motion_ADS
                 if (int.TryParse(value, out _settleTimeSeconds))
                 {
                     _strSettleTimeSeconds = value;
+                    Properties.Settings.Default.settleTimeSeconds = value;
                     OnPropertyChanged();
                 }
             }
@@ -319,6 +330,7 @@ namespace TwinCat_Motion_ADS
                 if (double.TryParse(value, out _reversalDistance))
                 {
                     _strReversalDistance = value;
+                    Properties.Settings.Default.reversalDistance = value;
                     OnPropertyChanged();
                 }
             }
@@ -344,6 +356,7 @@ namespace TwinCat_Motion_ADS
                 if (double.TryParse(value, out _overshootDistance))
                 {
                     _strOvershootDistance = value;
+                    Properties.Settings.Default.overshootDistance = value;
                     OnPropertyChanged();
                 }
             }
