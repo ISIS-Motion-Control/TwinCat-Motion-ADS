@@ -70,6 +70,24 @@ namespace TwinCat_Motion_ADS
                 }
             }
         }
+        public string BaudRate
+        {
+            get
+            {
+                if (DeviceType == DeviceType.DigimaticIndicator && dti!= null)
+                {
+                    return dti.BaudRate.ToString();
+                }
+                else if (DeviceType == DeviceType.KeyenceTm3000 && keyence!= null)
+                {
+                    return keyence.BaudRate.ToString();
+                }
+                else
+                {
+                    return "";
+                }
+            }
+        }
 
         //public string PortName { get; set; }
         private DigimaticIndicator dti;

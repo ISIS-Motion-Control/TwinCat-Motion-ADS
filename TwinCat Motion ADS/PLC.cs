@@ -19,7 +19,15 @@ namespace TwinCat_Motion_ADS
         }
         public PLC(string ID, int PORT)
         {
-            TcAds.Connect(ID, PORT);
+            try
+            {
+                TcAds.Connect(ID, PORT);
+            }
+            catch
+            {
+                Console.WriteLine("Invalid AMS NET ID FORMAT");
+            }
+                
         }
         public bool checkConnection()
         {

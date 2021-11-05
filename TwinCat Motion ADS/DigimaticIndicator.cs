@@ -13,7 +13,7 @@ namespace TwinCat_Motion_ADS
         public string Readtime { get; set; }
         public string Portname { get; set; }
         public int BaudRate { get; set; }
-        private const int readDelay = 10;   //Give buffer time to fill
+        private const int readDelay = 25;   //Give buffer time to fill
         private const int defaultTimeout = 1000;
 
         public ObservableCollection<string> SerialPortList = new();
