@@ -22,7 +22,7 @@ namespace TwinCat_Motion_ADS
         /// </summary>
         /// <param name="portName"></param>
         /// <param name="baudRate"></param>
-        public KeyenceTM3000(string portName = "", int baudRate = 9600)
+        public KeyenceTM3000(string portName = "", int baudRate = 115200)
         {
             Portname = portName;
             BaudRate = baudRate;
@@ -164,7 +164,8 @@ namespace TwinCat_Motion_ADS
                 {
                     if (ct.Token.IsCancellationRequested)
                     {
-                        throw new TaskCanceledException();
+                        return null;
+                        //throw new TaskCanceledException();
                     }
                 }
                 _ = SerialPort.Read(measurement, 0, rb);
