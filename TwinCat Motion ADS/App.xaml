@@ -4,7 +4,8 @@
              xmlns:local="clr-namespace:TwinCat_Motion_ADS"
              xmlns:viewModel="clr-namespace:TwinCat_Motion_ADS.MVVM.ViewModel"
              xmlns:view="clr-namespace:TwinCat_Motion_ADS.MVVM.View"
-             StartupUri="MainWindow.xaml">
+             StartupUri="MainWindow.xaml"
+             Exit="Application_Exit">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

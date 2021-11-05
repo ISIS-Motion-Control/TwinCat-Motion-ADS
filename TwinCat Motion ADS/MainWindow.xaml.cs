@@ -11,6 +11,9 @@ using TwinCAT.Ads;
 using Ookii.Dialogs.Wpf;
 using TwinCat_Motion_ADS.MVVM.ViewModel;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace TwinCat_Motion_ADS
 {
@@ -21,8 +24,6 @@ namespace TwinCat_Motion_ADS
     public partial class MainWindow : Window
     {
         public PLC Plc;
-        //PLC Plc = new PLC("5.65.74.200.1.1", 852);
-
         public string selectedFolder = string.Empty;
         public MeasurementDevice MeasurementDevice1;
         public MeasurementDevice MeasurementDevice2;
@@ -34,34 +35,60 @@ namespace TwinCat_Motion_ADS
         "DigimaticIndicator",
         "KeyenceTM3000"
         };
-
-
+        private string _amsNetID;
+        public string AmsNetID
+        {
+            get { return _amsNetID; }
+            set
+            {
+                _amsNetID = value;
+                Properties.Settings.Default.amsNetID = value;
+                OnPropertyChanged();
+            }
+        }
 
         public MainWindow()
         {
             InitializeComponent();
             ConsoleAllocator.ShowConsoleWindow();
-            Plc = new PLC(amsNetIdTb.Text, 852); //5.65.74.200.1.1
-            //Plc = new PLC("5.65.74.200.1.1", 852);
-            Plc.setupPLC();
-            if (Plc.AdsState == AdsState.Invalid)
+            AmsNetID = Properties.Settings.Default.amsNetID;
+            setupBinds();
+            if (!string.IsNullOrEmpty(amsNetIdTb.Text))
             {
-                Console.WriteLine("Ads state is invalid");
+                Plc = new PLC(amsNetIdTb.Text, 852); //5.65.74.200.1.1
+                                                     //Plc = new PLC("5.65.74.200.1.1", 852);
+                Plc.setupPLC();
+                if (Plc.AdsState == AdsState.Invalid)
+                {
+                    Console.WriteLine("Ads state is invalid");
 
-            }
-            else if (Plc.AdsState == AdsState.Stop)
-            {
-                Console.WriteLine("Device connected but PLC not running");
+                }
+                else if (Plc.AdsState == AdsState.Stop)
+                {
+                    Console.WriteLine("Device connected but PLC not running");
 
-            }
-            else if (Plc.AdsState == AdsState.Run)
-            {
-                Console.WriteLine("Device connected and running");
+                }
+                else if (Plc.AdsState == AdsState.Run)
+                {
+                    Console.WriteLine("Device connected and running");
 
+                }
             }
+            
             //testAxis = new Axis(1, Plc);  //Uncomment for no DTI
             var vm = (MainViewModel)this.DataContext;
             setupMeasurementCombos();
+            
+        }
+
+        private void setupBinds()
+        {
+            Binding amsNetBinding = new();
+            amsNetBinding.Source = this;
+            amsNetBinding.Path = new PropertyPath("AmsNetID"); ;
+            amsNetBinding.Mode = BindingMode.TwoWay;
+            amsNetBinding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(amsNetIdTb, TextBox.TextProperty, amsNetBinding);
         }
 
         private void connect2PlcButton_Click(object sender, RoutedEventArgs e)
@@ -387,7 +414,20 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine(measurement);
             }
         }
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            TwinCat_Motion_ADS.MVVM.View.subWindow SubWindow = new();
+            SubWindow.Show();
+            
+        }
     }
+
 
 
     internal static class ConsoleAllocator
@@ -425,6 +465,7 @@ namespace TwinCat_Motion_ADS
 
             ShowWindow(handle, SwHide);
         }
+        
     }
 
 }
