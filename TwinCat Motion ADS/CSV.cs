@@ -34,6 +34,27 @@ namespace TwinCat_Motion_ADS
             Device4Measurement = device4Measurement;
         }
     }
+    public class end2endCSV
+    {
+        [Name("Cycle")]
+        public int Cycle { get; set; }
+        [Name("Status")]
+        public string Status { get; set; }
+        [Name("ElapsedTime")]
+        public long ElapsedTime { get; set; }
+        [Name("LimitPosition")]
+        public double LimitPosition { get; set; }
+
+
+        public end2endCSV(int cycle, string status, long elapsedTime, double limitPosition)
+        {
+            Cycle = cycle;
+            Status = status;
+            ElapsedTime = elapsedTime;
+            LimitPosition = limitPosition;
+        }
+    }
+
     public class uniDirectionalAccuracyCSV
     {
         [Name("Cycle")]
@@ -66,6 +87,28 @@ namespace TwinCat_Motion_ADS
             Device2Measurement = device2Measurement;
             Device3Measurement = device3Measurement;
             Device4Measurement = device4Measurement;
+        }
+    }
+    public class uniDirectionalAccCSV
+    {
+        [Name("Cycle")]
+        public uint Cycle { get; set; }
+        [Name("Step")]
+        public uint Step { get; set; }
+        [Name("Status")]
+        public string Status { get; set; }
+        [Name("TargetPosition")]
+        public double TargetPosition { get; set; }
+        [Name("EncoderPosition")]
+        public double EncoderPosition { get; set; }
+
+        public uniDirectionalAccCSV(uint cycle, uint step, string status, double targetPosition, double encoderPosition)
+        {
+            Cycle = cycle;
+            Step = step;
+            Status = status;
+            TargetPosition = targetPosition;
+            EncoderPosition = encoderPosition;
         }
     }
 

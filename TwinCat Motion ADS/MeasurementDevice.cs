@@ -31,22 +31,26 @@ namespace TwinCat_Motion_ADS
                         if (dti == null)
                         {
                             _portName = value;
+                            OnPropertyChanged();
                             break;
                         }
                         else if(dti.CheckConnected()== false)
                         {
                             _portName = value;
+                            OnPropertyChanged();
                         }
                         break;
                     case DeviceType.KeyenceTm3000:
                         if (keyence == null)
                         {
                             _portName = value;
+                            OnPropertyChanged();
                             break;
                         }
                         else if(keyence.CheckConnected() == false)
                         {
                             _portName = value;
+                            OnPropertyChanged();
                         }
                         break;
                 }
@@ -119,7 +123,19 @@ namespace TwinCat_Motion_ADS
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
-        public bool Connected { get; private set; }
+        //public bool Connected { get; private set; }
+
+        private bool _connected;
+
+        public bool Connected
+        {
+            get { return _connected; }
+            private set { 
+                _connected = value;
+                OnPropertyChanged();
+            }
+        }
+
 
 
         public MeasurementDevice(string deviceType)

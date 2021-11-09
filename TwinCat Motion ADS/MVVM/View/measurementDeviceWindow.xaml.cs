@@ -77,7 +77,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
         private void updateWindow()
         {
             deviceSettings.Children.Clear();
-            if(MDevice.DeviceTypeString== "DigimaticIndicator")
+            if(MDevice.DeviceTypeString== "DigimaticIndicator" || MDevice.DeviceTypeString == "KeyenceTM3000")
             {
                 //Create stack panel for 1st setting
                 StackPanel setting1 = new();
@@ -154,6 +154,26 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 buttons.Children.Add(connectButton);
                 buttons.Children.Add(disconnectButton);
                 buttons.Children.Add(testReadButton);
+
+                StackPanel status = new();
+                status.Orientation = Orientation.Horizontal;
+                status.HorizontalAlignment = HorizontalAlignment.Right;
+                deviceSettings.Children.Add(status);
+
+                CheckBox connected = new();
+                connected.IsEnabled = false;
+                connected.Content = "Connection status";
+                Binding connectBind = new();
+                connectBind.Mode = BindingMode.OneWay;
+                connectBind.Source = MDevice;
+                connectBind.Path = new PropertyPath("Connected");
+                connectBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+                BindingOperations.SetBinding(connected, CheckBox.IsCheckedProperty, connectBind);
+
+                //NEED DELETE DEVICE BUTTON
+                    
+                status.Children.Add(connected);
+
             }
         }
 
@@ -205,8 +225,8 @@ namespace TwinCat_Motion_ADS.MVVM.View
         public void setupButton(ref Button but, string butText)
         {
             but.Content = butText;
-            but.Width = 150;
-            but.Margin = new Thickness(20);
+            but.Width = 120;
+            but.Margin = new Thickness(5);
             but.Height = 20;
         }
 
@@ -233,7 +253,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
         {
             var combo = sender as ComboBox;
             MDevice.PortName = (string)combo.SelectedItem;
-            Console.WriteLine(combo.SelectedValue);
+            combo.SelectedItem = MDevice.PortName;
         }
         private void baudSelect_DropDownClosed(object sender, EventArgs e)
         {
