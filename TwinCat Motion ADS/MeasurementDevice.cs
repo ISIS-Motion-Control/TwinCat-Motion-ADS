@@ -100,9 +100,18 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        public void UpdateBaudRate(string bRate)
+        {
+            if (DeviceType == DeviceType.DigimaticIndicator && dti!= null)
+            {
+                if (!dti.CheckConnected()) dti.BaudRate = Convert.ToInt32(bRate);
+            }
+
+        }
+
         //public string PortName { get; set; }
-        private DigimaticIndicator dti;
-        private KeyenceTM3000 keyence;
+        private DigimaticIndicator dti = new();
+        private KeyenceTM3000 keyence = new();
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
@@ -137,6 +146,7 @@ namespace TwinCat_Motion_ADS
             if (deviceType == "DigimaticIndicator")
             {
                 DeviceType = DeviceType.DigimaticIndicator;
+                
             }
             else if (deviceType == "KeyenceTM3000")
             {
