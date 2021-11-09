@@ -33,8 +33,8 @@
         </Grid.RowDefinitions>
             <Menu Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
                   HorizontalAlignment="Left" Height="30" Background="{x:Null}">
-                <MenuItem Header="Keyence Settings" Height="30">
-                    <MenuItem Header="Baud Rate" Click="MenuItem_Click"/>
+                <MenuItem x:Name="MeasureDevicesMenu" Header="Measurement Devices" Height="30">
+                    <MenuItem Header="Add new device..." Click="addNewDevice"/>
                 </MenuItem>
                 <MenuItem Header="MenuItem2"/>
 

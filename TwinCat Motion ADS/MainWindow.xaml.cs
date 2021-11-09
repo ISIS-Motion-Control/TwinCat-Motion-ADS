@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 
 namespace TwinCat_Motion_ADS
 {
@@ -29,6 +30,8 @@ namespace TwinCat_Motion_ADS
         public MeasurementDevice MeasurementDevice2;
         public MeasurementDevice MeasurementDevice3;
         public MeasurementDevice MeasurementDevice4;
+        public MeasurementDevices MeasurementDevices = new();
+        public List<MenuItem> measurementMenuItems = new();
         public ObservableCollection<string> DeviceTypeList = new ObservableCollection<string>()
         {
             "",
@@ -426,6 +429,53 @@ namespace TwinCat_Motion_ADS
             SubWindow.Show();
             
         }
+
+        private void addNewDevice(object sender, RoutedEventArgs e)
+        {
+            MeasurementDevices.AddDevice("none");
+            updateMeasurementMenu();
+        }
+
+        private void deviceMenuClick(object sender, RoutedEventArgs e)
+        {
+            MenuItem mI = sender as MenuItem;
+            int i = 0;
+            int deviceIndex = 0;
+            foreach(var device in measurementMenuItems)
+            {
+                if(mI == device)
+                {
+                    deviceIndex = i;
+                    Console.WriteLine("That's a match on " + deviceIndex);
+                }
+                i++;
+            }
+
+            
+
+
+        }
+
+        //update devices menu
+        private void updateMeasurementMenu()
+        {
+            MenuItem newMenuItem = new MenuItem();
+
+            Binding menuItemName = new();
+            menuItemName.Mode = BindingMode.TwoWay;
+            menuItemName.Source = MeasurementDevices.MeasurementDeviceList[MeasurementDevices.NumberOfDevices - 1];
+            menuItemName.Path = new PropertyPath("Name");
+            menuItemName.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(newMenuItem, MenuItem.HeaderProperty, menuItemName);
+
+           // newMenuItem.Header = MeasurementDevices.MeasurementDeviceList[MeasurementDevices.NumberOfDevices-1].Name;
+            newMenuItem.Click += new RoutedEventHandler(deviceMenuClick);
+            MeasureDevicesMenu.Items.Add(newMenuItem);
+            measurementMenuItems.Add(newMenuItem);
+        }
+
+
+
     }
 
 

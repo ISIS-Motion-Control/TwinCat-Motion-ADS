@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO.Ports;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace TwinCat_Motion_ADS
 {
@@ -12,7 +14,7 @@ namespace TwinCat_Motion_ADS
      * This class acts as an interface to other measurement devices to provide a generic user interface.
      * 
      */
-    public class MeasurementDevice
+    public class MeasurementDevice : INotifyPropertyChanged
     {
         public DeviceType DeviceType { get; set; }
         public ObservableCollection<string> SerialPortList = new();
@@ -50,6 +52,15 @@ namespace TwinCat_Motion_ADS
                 }
             }
         }
+
+        private string _name;
+
+        public string Name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+
 
         //Return a string of the device type
         public string DeviceTypeString
@@ -93,6 +104,12 @@ namespace TwinCat_Motion_ADS
         private DigimaticIndicator dti;
         private KeyenceTM3000 keyence;
 
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
         public bool Connected { get; private set; }
 
 
@@ -103,10 +120,15 @@ namespace TwinCat_Motion_ADS
             {
                 DeviceType = DeviceType.DigimaticIndicator;
             }
-            if(deviceType == "KeyenceTM3000")
+            else if(deviceType == "KeyenceTM3000")
             {
                 DeviceType = DeviceType.KeyenceTm3000;
             }
+            else
+            {
+                DeviceType = DeviceType.NoneSelected;
+            }
+            Name = "*NEW DEVICE*";
         }
 
         public void changeDeviceType(string deviceType)
