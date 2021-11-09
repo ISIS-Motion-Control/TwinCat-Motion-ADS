@@ -138,9 +138,13 @@ namespace TwinCat_Motion_ADS
             {
                 DeviceType = DeviceType.DigimaticIndicator;
             }
-            if (deviceType == "KeyenceTM3000")
+            else if (deviceType == "KeyenceTM3000")
             {
                 DeviceType = DeviceType.KeyenceTm3000;
+            }
+            else
+            {
+                DeviceType = DeviceType.NoneSelected;
             }
         }
 

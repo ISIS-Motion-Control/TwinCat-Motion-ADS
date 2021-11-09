@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using TwinCat_Motion_ADS;
 
 namespace TwinCat_Motion_ADS.MVVM.View
 {
@@ -19,19 +21,57 @@ namespace TwinCat_Motion_ADS.MVVM.View
     /// </summary>
     public partial class measurementDeviceWindow : Window
     {
-        public measurementDeviceWindow()
+        int DeviceIndex;
+        public ObservableCollection<string> DeviceTypeList = new ObservableCollection<string>()
+        {
+            "",
+        "DigimaticIndicator",
+        "KeyenceTM3000"
+        };
+        MeasurementDevice MDevice;
+        public measurementDeviceWindow(int deviceIndex, MeasurementDevice mDevice)
         {
             
             InitializeComponent();
+            DeviceIndex = deviceIndex;
+            MDevice = mDevice;
+            //Setup device name bind
+            Binding deviceNameBind = new();
+            deviceNameBind.Mode = BindingMode.TwoWay;
+            deviceNameBind.Source = MDevice;
+            deviceNameBind.Path = new PropertyPath("Name");
+            deviceNameBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(deviceName, TextBox.TextProperty, deviceNameBind);
 
-            baudRateTB.Text = ((MainWindow)(Application.Current.MainWindow)).MeasurementDevice1.BaudRate;
-            /*Binding baudRateBind = new Binding();
-            baudRateBind.Mode = BindingMode.TwoWay;
-            //baudRateBind.Source = ;
-            baudRateBind.Path = new PropertyPath("AxisPosition");
-            baudRateBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            baudRateBind.StringFormat = "F3";
-            BindingOperations.SetBinding(baudRateTB, TextBox.TextProperty, baudRateBind);*/
+            DeviceType.ItemsSource = DeviceTypeList;
+
+            Binding deviceTypeBind = new();
+            deviceTypeBind.Mode = BindingMode.OneWay;
+            deviceTypeBind.Source = MDevice;
+            deviceTypeBind.Path = new PropertyPath("DeviceTypeString");
+            deviceTypeBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(DeviceType, ComboBox.SelectedValueProperty, deviceTypeBind);
+
+
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            ((MainWindow)(Application.Current.MainWindow)).measurementMenuItems[DeviceIndex].Header = MDevice.Name;
+        }
+
+        private void DeviceType_DropDownClosed(object sender, EventArgs e)
+        {
+            if(!MDevice.Connected)
+            {
+                MDevice.changeDeviceType((string)DeviceType.SelectedItem);
+            }
+            updateWindow();
+        }
+        private void updateWindow()
+        {
+            Console.WriteLine(MDevice.DeviceTypeString);
+            //if (MDevice.)
         }
     }
 }
