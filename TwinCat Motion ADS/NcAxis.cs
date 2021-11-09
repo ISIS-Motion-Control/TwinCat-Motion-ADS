@@ -835,99 +835,7 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        //No longer in use. Measuring position after stopping not useful if at high velocity
-        public async Task<bool> end2endCycleTesting(double velocity, int timeout, int cycleDelay, int cycles)
-        {
-            if (timeout <= 0)
-            {
-                timeout = 100000; //I think this is fine to do because i'm using an overload on the Task.Delay methods to provide a cancellation token which should clear up that task
-            }
-          
-            //will need a string fileDir input
-            //this ultimately needs to include the data logging and file writing too!
-            Stopwatch stopWatch = new Stopwatch();
-            velocity = Math.Abs(velocity);
-            //Start low
-            if(await moveToLowLimit(-velocity,timeout)==false)
-            {
-                Console.WriteLine("Failed to move to low limit for start of test");
-                return false;
-            }
-            var cancelTaskToken = new CancellationTokenSource();
-            var cancelTask = Task.Run(() =>
-            {
-                while(CancelTest == false)
-                {
-                }
-            },cancelTaskToken.Token);
-            var pauseTaskToken = new CancellationTokenSource();
-
-            for (int i = 1; i<=cycles; i++)
-            {
-                var pauseTask = Task.Run(() =>
-                {
-                    if (PauseTest)
-                    {
-                        Console.WriteLine("Test paused");
-                    }         
-                    while (PauseTest)
-                    {
-                        if(CancelTest)
-                        {
-                            return;
-                        }
-                    }
-                }, pauseTaskToken.Token);
-
-                await pauseTask;
-                //Do a check each cycle to see if we wanted to cancel
-                if (cancelTask.IsCompleted)
-                {
-                    //Cancelled the test
-                    pauseTaskToken.Cancel();
-                    CancelTest = false;
-                    Console.WriteLine("Test cancelled");
-                    return false;
-                }
-
-                await Task.Delay(TimeSpan.FromSeconds(cycleDelay));
-                stopWatch.Reset();
-                stopWatch.Start();
-                if (await moveToHighLimit(velocity, timeout))
-                {
-                    stopWatch.Stop();
-
-                        double tmpAxisPosition = await read_AxisPosition();
-                    Console.WriteLine("Cycle " + i + ": Low limit to high limit:-  " + stopWatch.ElapsedMilliseconds + "ms. High limit at " + tmpAxisPosition);
-                    
-                }
-                else
-                {
-                    stopWatch.Stop();
-                    Console.WriteLine("Move to high failed");
-                    return false;
-                }
-                await Task.Delay(TimeSpan.FromSeconds(cycleDelay));
-                stopWatch.Reset();
-                stopWatch.Start();
-                if (await moveToLowLimit(-velocity, timeout))
-                {
-                    stopWatch.Stop();
-
-                        double tmpAxisPosition = await read_AxisPosition();
-                        Console.WriteLine("Cycle " + i + ": High limit to low limit:-  " + stopWatch.ElapsedMilliseconds + "ms. Low limit at " + tmpAxisPosition);
-                    
-                }
-                else
-                {
-                    stopWatch.Stop();
-                    Console.WriteLine("Move to low failed");
-                    return false;
-                }
-            }
-            return true;
-        }
-
+        
         public async Task<bool> end2endCycleTestingWithReversal(NcTestSettings testSettings, MeasurementDevice device1 = null, MeasurementDevice device2 = null, MeasurementDevice device3 = null, MeasurementDevice device4 = null)
         {
             if (testSettings.Cycles == 0)
@@ -1126,6 +1034,211 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
+
+
+        public async Task<bool> end2endCycleTestingWithReversal(NcTestSettings testSettings, MeasurementDevices devices = null)
+        {
+            if (testSettings.Cycles == 0)
+            {
+                Console.WriteLine("0 cycle count invalid");
+                return false;
+            }
+            if (testSettings.ReversalVelocity == 0)
+            {
+                Console.WriteLine("0 reversal velocity invalid");
+                return false;
+            }
+            if (testSettings.Velocity == 0)
+            {
+                Console.WriteLine("0 velocity invalid");
+                return false;
+            }
+
+            var currentTime = DateTime.Now;
+            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {6} -End2EndwithReversalTest-setVelo({1}) revVelo({2}) revExtraTime({3}) settleTime({4}) - {5} cycles", currentTime, testSettings.Velocity, testSettings.ReversalVelocity, testSettings.ReversalExtraTimeSeconds, testSettings.ReversalSettleTimeSeconds, testSettings.Cycles, AxisID);
+
+            string fileName = @"\" + formattedTitle + ".csv";
+            var stream = File.Open(TestDirectory + fileName, FileMode.Append);
+            StreamWriter writer = new StreamWriter(stream);
+            CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+            using (stream)
+            using (writer)
+            using (csv)
+            {
+                csv.WriteHeader<end2endCSV>();
+                if (devices != null)    //populate CSV headers with device names
+                {
+                    foreach (var device in devices.MeasurementDeviceList)
+                    {
+                        if (device.Connected)
+                        {
+                            csv.WriteField(device.Name);
+                        }
+                    }
+
+                }
+                csv.NextRecord();
+            }
+
+            Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
+            testSettings.Velocity = Math.Abs(testSettings.Velocity);
+            //Start low
+            if (await moveToLowLimit(-testSettings.Velocity, testSettings.Timeout) == false)
+            {
+                Console.WriteLine("Failed to move to low limit for start of test");
+                return false;
+            }
+
+            CancellationTokenSource ctToken = new CancellationTokenSource();
+            CancellationTokenSource ptToken = new CancellationTokenSource();
+            Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
+
+
+            //Start running test cycles
+            end2endCSV record1;
+            end2endCSV record2;
+            List<string> measurementsHigh = new();
+            List<string> measurementsLow = new();
+            for (int i = 1; i <= testSettings.Cycles; i++)
+            {
+                Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
+                await pauseTaskRequest;
+                if (cancelRequestTask.IsCompleted)
+                {
+                    //Cancelled the test
+                    ptToken.Cancel();
+                    CancelTest = false;
+                    Console.WriteLine("Test cancelled");
+                    return false;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds)); //inter-cycle delay wait
+
+                stopWatch.Reset();
+                stopWatch.Start();  //Clear and start the stopwatch
+
+                if (await moveToHighLimit(testSettings.Velocity, testSettings.Timeout))
+                {
+                    stopWatch.Stop();
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));//Allow axis to settle before reversal
+                    if (await HighLimitReversal(testSettings.ReversalVelocity, testSettings.Timeout, testSettings.ReversalExtraTimeSeconds, testSettings.ReversalSettleTimeSeconds))
+                    {
+
+                        ///READ MEASUREMENT DEVICES///
+                        ///
+                        if (devices != null)    //If devices input, check for connected
+                        {
+                            measurementsHigh.Clear();
+                            foreach(var device in devices.MeasurementDeviceList)
+                            {
+                                if (device.Connected)
+                                {
+                                    string measure = string.Empty;
+                                    measure = await device.GetMeasurement();
+                                    measurementsHigh.Add(measure);
+                                    Console.WriteLine(device.Name + ": " + measure);
+                                }
+                            }
+
+                        }
+
+                        double tmpAxisPosition = await read_AxisPosition();
+                        record1 = new end2endCSV(i, "Low limit to high limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition);
+                        Console.WriteLine("Cycle " + i + "- Low limit to high limit: " + stopWatch.ElapsedMilliseconds + "ms. High limit triggered at " + tmpAxisPosition);
+                    }
+                    else
+                    {
+                        Console.WriteLine("High limit reversal failed");
+                        ctToken.Cancel();
+                        ptToken.Cancel();
+                        return false;
+                    }
+                }
+                else
+                {
+                    stopWatch.Stop();
+                    Console.WriteLine("Move to high failed");
+                    ctToken.Cancel();
+                    ptToken.Cancel();
+                    return false;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds));
+                stopWatch.Reset();
+                stopWatch.Start();
+                if (await moveToLowLimit(-testSettings.Velocity, testSettings.Timeout))
+                {
+                    stopWatch.Stop();
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));//Allow axis to settle before reversal
+                    if (await LowLimitReversal(testSettings.ReversalVelocity, testSettings.Timeout, testSettings.ReversalExtraTimeSeconds, testSettings.ReversalSettleTimeSeconds))
+                    {
+                        
+
+                        ///READ MEASUREMENT DEVICES///
+                        ///
+                        if (devices != null)    //If devices input, check for connected
+                        {
+                            measurementsLow.Clear();
+                            foreach (var device in devices.MeasurementDeviceList)
+                            {
+                                if (device.Connected)
+                                {
+                                    string measure = string.Empty;
+                                    measure = await device.GetMeasurement();
+                                    measurementsLow.Add(measure);
+                                    Console.WriteLine(device.Name + ": " + measure);
+                                }
+                            }
+                        }
+                        double tmpAxisPosition = await read_AxisPosition();
+                        record2 = new end2endCSV(i, "High limit to low limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition);
+
+                        Console.WriteLine("Cycle " + i + "- High limit to low limit: " + stopWatch.ElapsedMilliseconds + "ms. Low limit triggered at " + tmpAxisPosition);
+                        
+                    }
+                    else
+                    {
+                        Console.WriteLine("Low limit reversal failed");
+                        ctToken.Cancel();
+                        ptToken.Cancel();
+                        return false;
+                    }
+                }
+                else
+                {
+                    stopWatch.Stop();
+                    Console.WriteLine("Move to low failed");
+                    ctToken.Cancel();
+                    ptToken.Cancel();
+                    return false;
+                }
+                using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
+                using (writer = new StreamWriter(stream))
+                using (csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                {
+                    csv.WriteRecord(record1);
+                    foreach(var m in measurementsHigh)
+                    {
+                        csv.WriteField(m);
+                    }
+                    csv.NextRecord();
+                    csv.WriteRecord(record2);
+                    foreach (var m in measurementsLow)
+                    {
+                        csv.WriteField(m);
+                    }
+                    csv.NextRecord();
+                }
+                record1 = null;
+                record2 = null;
+            }
+            ctToken.Cancel();
+            return true;
+        }
+
+
+
+
         //no timeout implemented
         public async Task<bool> uniDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevice device1 = null, MeasurementDevice device2 = null, MeasurementDevice device3 = null, MeasurementDevice device4 = null)
         {
@@ -1215,7 +1328,6 @@ namespace TwinCat_Motion_ADS
                     return false;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
-                
 
                 for (uint j = 0; j <= testSettings.NumberOfSteps; j++)
                 {
@@ -1284,6 +1396,638 @@ namespace TwinCat_Motion_ADS
             ptToken.Cancel();
             return true;
         }
+
+
+        //no timeout implemented
+        public async Task<bool> uniDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
+        {
+            if (testSettings.Cycles == 0)
+            {
+                Console.WriteLine("0 cycle count invalid");
+                return false;
+            }
+            if (testSettings.NumberOfSteps == 0)
+            {
+                Console.WriteLine("0 step count invalid");
+                return false;
+            }
+            if (testSettings.Velocity == 0)
+            {
+                Console.WriteLine("0 velocity invalid");
+                return false;
+            }
+            if (testSettings.StepSize == 0)
+            {
+                Console.WriteLine("0 step size invalid");
+                return false;
+            }
+            List<uniDirectionalAccCSV> recordList = new List<uniDirectionalAccCSV>();
+            
+
+
+            var currentTime = DateTime.Now;
+            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {8} -uniDirectionalAccuracyTest-InitialSetpoint({1}) Velo({2}) Steps({3}) StepSize({4}) SettleTime({5}) ReversalDistance({6}) - {7} cycles", currentTime, testSettings.InitialSetpoint, testSettings.Velocity, testSettings.NumberOfSteps, testSettings.StepSize, testSettings.SettleTimeSeconds, testSettings.ReversalDistance, testSettings.Cycles, AxisID);
+
+            string fileName = @"\" + formattedTitle + ".csv";
+            var stream = File.Open(TestDirectory + fileName, FileMode.Append);
+            var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
+            { HasHeaderRecord = false, };
+
+            StreamWriter writer = new StreamWriter(stream);
+            CsvWriter csv = new CsvWriter(writer, config);
+
+            using (stream)
+            using (writer)
+            using (csv)
+            {
+                csv.WriteHeader<uniDirectionalAccCSV>();
+                if (devices != null)    //populate CSV headers with device names
+                {
+                    foreach (var device in devices.MeasurementDeviceList)
+                    {
+                        if (device.Connected)
+                        {
+                            csv.WriteField(device.Name);
+                        }
+                    }
+
+                }
+                csv.NextRecord();
+            }
+
+            CancellationTokenSource ctToken = new CancellationTokenSource();
+            CancellationTokenSource ptToken = new CancellationTokenSource();
+            Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
+
+            Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
+            testSettings.Velocity = Math.Abs(testSettings.Velocity);  //Only want positive velocity
+            //Create an ongoing task to monitor for a cancellation request. This will only trigger on start of each test cycle.
+
+            double reversalPosition;
+            if (testSettings.StepSize > 0)
+            {
+                reversalPosition = testSettings.InitialSetpoint - testSettings.ReversalDistance;
+            }
+            else
+            {
+                reversalPosition = testSettings.InitialSetpoint + testSettings.ReversalDistance;
+            }
+            stopWatch.Start();
+
+            List<string> measurements = new();
+            List<List<string>> cycleMeasurements = new();
+
+            for (uint i = 1; i <= testSettings.Cycles; i++)
+            {
+                measurements.Clear();
+                cycleMeasurements.Clear();
+                Console.WriteLine("Cycle " + i);
+                //Create a task each cycle to monitor for the pause. This is done as a task as a basic "while(paused)" would block UI and not allow an unpause
+                Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
+                await pauseTaskRequest;
+                if (cancelRequestTask.IsCompleted)
+                {
+                    //Cancelled the test
+                    ptToken.Cancel();
+                    CancelTest = false;
+                    Console.WriteLine("Test cancelled");
+                    return false;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds)); //inter-cycle delay wait
+                double TargetPosition = testSettings.InitialSetpoint;
+
+                //Start test at reversal position then moving to initial setpoint          
+                if (await moveAbsoluteAndWait(reversalPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                {
+                    Console.WriteLine("Failed to move to reversal position");
+                    stopWatch.Stop();
+                    ctToken.Cancel();
+                    ptToken.Cancel();
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+
+                for (uint j = 0; j <= testSettings.NumberOfSteps; j++)
+                {
+                    //Do the step move
+                    if (await moveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                    {
+                        Console.WriteLine("Failed to move to target position");
+                        stopWatch.Stop();
+                        ctToken.Cancel();
+                        ptToken.Cancel();
+                        return false;
+                    }
+                    //Wait for a settle time
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+
+                    ///READ MEASUREMENT DEVICES///
+                    ///
+                    if (devices != null)    //If devices input, check for connected
+                    {
+                        measurements = new();
+                        foreach (var device in devices.MeasurementDeviceList)
+                        {
+                            if (device.Connected)
+                            {
+                                string measure = string.Empty;
+                                measure = await device.GetMeasurement();
+                                measurements.Add(measure);
+                                Console.WriteLine(device.Name + ": " + measure);
+                            }
+                        }
+
+                    }
+
+
+                    //Log the data
+                    double tmpAxisPosition = await read_AxisPosition();
+                    recordList.Add(new uniDirectionalAccCSV(i, j, "Testing", TargetPosition, tmpAxisPosition));
+                    cycleMeasurements.Add(measurements);
+                    //debug line
+                    TargetPosition = TargetPosition + testSettings.StepSize;
+                }
+
+                //Write the cycle data
+                using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
+                using (writer = new StreamWriter(stream))
+                using (csv = new CsvWriter(writer, config))
+                {
+
+                    int loopIndex = 0;
+                    foreach(var record in recordList)
+                    {
+                        csv.WriteRecord(record);
+                        if(devices!=null)
+                        {
+                            foreach(var measure in cycleMeasurements[loopIndex])
+                            {
+                                csv.WriteField(measure);
+                            }
+                        }
+
+                        loopIndex++;
+                        csv.NextRecord();
+                    }                  
+                }
+                recordList.Clear();
+                cycleMeasurements.Clear();
+            }
+            stopWatch.Stop();
+            Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
+            ctToken.Cancel();
+            ptToken.Cancel();
+            return true;
+        }
+
+        public async Task<bool> biDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
+        {
+            List<uniDirectionalAccCSV> recordList = new List<uniDirectionalAccCSV>();
+            var currentTime = DateTime.Now;
+            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {9} -biDirectionalAccuracyTest-InitialSetpoint({1}) Velo({2}) Steps({3}) StepSize({4}) SettleTime({5}) ReversalDistance({6}) OvershootDistance({7}) - {8} cycles", currentTime, testSettings.InitialSetpoint, testSettings.Velocity, testSettings.NumberOfSteps, testSettings.StepSize, testSettings.SettleTimeSeconds, testSettings.ReversalDistance, testSettings.OvershootDistance, testSettings.Cycles, AxisID);
+
+            string fileName = @"\" + formattedTitle + ".csv";
+            var stream = File.Open(TestDirectory + fileName, FileMode.Append);
+            var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
+            { HasHeaderRecord = false, };
+
+            StreamWriter writer = new StreamWriter(stream);
+            CsvWriter csv = new CsvWriter(writer, config);
+
+            if (testSettings.Cycles == 0)
+            {
+                Console.WriteLine("0 cycle count invalid");
+                return false;
+            }
+            if (testSettings.NumberOfSteps == 0)
+            {
+                Console.WriteLine("0 step count invalid");
+                return false;
+            }
+            if (testSettings.Velocity == 0)
+            {
+                Console.WriteLine("0 velocity invalid");
+                return false;
+            }
+            if (testSettings.StepSize == 0)
+            {
+                Console.WriteLine("0 step size invalid");
+                return false;
+            }
+
+
+            using (stream)
+            using (writer)
+            using (csv)
+            {
+                csv.WriteHeader<uniDirectionalAccCSV>();
+                if (devices != null)    //populate CSV headers with device names
+                {
+                    foreach (var device in devices.MeasurementDeviceList)
+                    {
+                        if (device.Connected)
+                        {
+                            csv.WriteField(device.Name);
+                        }
+                    }
+
+                }
+                csv.NextRecord();
+            }
+
+            Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
+            testSettings.Velocity = Math.Abs(testSettings.Velocity);  //Only want positive velocity
+            //Create an ongoing task to monitor for a cancellation request. This will only trigger on start of each test cycle.
+            CancellationTokenSource ctToken = new CancellationTokenSource();
+            CancellationTokenSource ptToken = new CancellationTokenSource();
+            Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
+
+            double reversalPosition;
+            if (testSettings.StepSize > 0)
+            {
+                reversalPosition = testSettings.InitialSetpoint - testSettings.ReversalDistance;
+            }
+            else
+            {
+                reversalPosition = testSettings.InitialSetpoint + testSettings.ReversalDistance;
+            }
+            double overshootPosition;
+            if (testSettings.StepSize > 0)
+            {
+                overshootPosition = testSettings.InitialSetpoint + ((testSettings.NumberOfSteps - 1) * testSettings.StepSize) + testSettings.OvershootDistance;
+            }
+            else
+            {
+                overshootPosition = testSettings.InitialSetpoint + ((testSettings.NumberOfSteps - 1) * testSettings.StepSize) - testSettings.OvershootDistance;
+            }
+
+            stopWatch.Start();
+            List<string> measurements = new();
+            List<List<string>> cycleMeasurements = new();
+            for (uint i = 1; i <= testSettings.Cycles; i++)
+            {
+                Console.WriteLine("Cycle " + i);
+                //Create a task each cycle to monitor for the pause. This is done as a task as a basic "while(paused)" would block UI and not allow an unpause
+                Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
+                await pauseTaskRequest;
+                if (cancelRequestTask.IsCompleted)
+                {
+                    //Cancelled the test
+                    ptToken.Cancel();
+                    CancelTest = false;
+                    Console.WriteLine("Test cancelled");
+                    return false;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds)); //inter-cycle delay wait
+                double TargetPosition = testSettings.InitialSetpoint;
+
+                //Start test at reversal position then moving to initial setpoint          
+                if (await moveAbsoluteAndWait(reversalPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                {
+                    Console.WriteLine("Failed to move to reversal position");
+                    stopWatch.Stop();
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+
+                //going up the steps
+                for (uint j = 0; j <= testSettings.NumberOfSteps; j++)
+                {
+                    //Do the step move
+                    if (await moveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                    {
+                        Console.WriteLine("Failed to move to target position");
+                        stopWatch.Stop();
+                        return false;
+                    }
+                    //Wait for a settle time
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+                    ///READ MEASUREMENT DEVICES///
+                    ///
+                    if (devices != null)    //If devices input, check for connected
+                    {
+                        measurements = new();
+                        foreach (var device in devices.MeasurementDeviceList)
+                        {
+                            if (device.Connected)
+                            {
+                                string measure = string.Empty;
+                                measure = await device.GetMeasurement();
+                                measurements.Add(measure);
+                                Console.WriteLine(device.Name + ": " + measure);
+                            }
+                        }
+
+                    }
+
+                    //Log the data
+                    double tmpAxisPosition = await read_AxisPosition();
+                    recordList.Add(new uniDirectionalAccCSV(i, j, "Forward approach", TargetPosition, tmpAxisPosition));
+                    cycleMeasurements.Add(measurements);
+                    //Update target position
+
+                    TargetPosition = TargetPosition + testSettings.StepSize;
+                }
+                TargetPosition = TargetPosition - testSettings.StepSize;
+                //Overshoot the final position before coming back down
+                if (await moveAbsoluteAndWait(overshootPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                {
+                    Console.WriteLine("Failed to move to overshoot position");
+                    stopWatch.Stop();
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+                //going down the steps. Need the cast here as we require j to go negative to cancel the loop
+                for (int j = (int)testSettings.NumberOfSteps; j >= 0; j--)
+                {
+                    Console.WriteLine("Moving down. Step: " + j);
+                    //Do the step move
+                    if (await moveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                    {
+                        Console.WriteLine("Failed to move to target position");
+                        stopWatch.Stop();
+                        return false;
+                    }
+                    //Wait for a settle time
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+                    ///READ MEASUREMENT DEVICES///
+                    ///
+                    if (devices != null)    //If devices input, check for connected
+                    {
+                        measurements = new();
+                        foreach (var device in devices.MeasurementDeviceList)
+                        {
+                            if (device.Connected)
+                            {
+                                string measure = string.Empty;
+                                measure = await device.GetMeasurement();
+                                measurements.Add(measure);
+                                Console.WriteLine(device.Name + ": " + measure);
+                            }
+                        }
+
+                    }
+                    //Log the data
+                    double tmpAxisPosition = await read_AxisPosition();
+                    recordList.Add(new uniDirectionalAccCSV(i, (uint)j, "Backward approach", TargetPosition, tmpAxisPosition));
+                    cycleMeasurements.Add(measurements);
+                    //Update target position
+
+                    TargetPosition = TargetPosition - testSettings.StepSize;
+                }
+
+                //Write the cycle data
+                using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
+                using (writer = new StreamWriter(stream))
+                using (csv = new CsvWriter(writer, config))
+                {
+
+                    int loopIndex = 0;
+                    foreach (var record in recordList)
+                    {
+                        csv.WriteRecord(record);
+                        if (devices != null)
+                        {
+                            foreach (var measure in cycleMeasurements[loopIndex])
+                            {
+                                csv.WriteField(measure);
+                            }
+                        }
+
+                        loopIndex++;
+                        csv.NextRecord();
+                    }
+                }
+                recordList.Clear();
+                cycleMeasurements.Clear();
+            }
+            stopWatch.Stop();
+            Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed);
+            return true;
+        }
+
+
+
+        public async Task<bool> biDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevice device1 = null, MeasurementDevice device2 = null, MeasurementDevice device3 = null, MeasurementDevice device4 = null)
+        {
+            List<uniDirectionalAccuracyCSV> recordList = new List<uniDirectionalAccuracyCSV>();
+            var currentTime = DateTime.Now;
+            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {9} -biDirectionalAccuracyTest-InitialSetpoint({1}) Velo({2}) Steps({3}) StepSize({4}) SettleTime({5}) ReversalDistance({6}) OvershootDistance({7}) - {8} cycles", currentTime, testSettings.InitialSetpoint, testSettings.Velocity, testSettings.NumberOfSteps, testSettings.StepSize, testSettings.SettleTimeSeconds, testSettings.ReversalDistance, testSettings.OvershootDistance, testSettings.Cycles, AxisID);
+
+            string fileName = @"\" + formattedTitle + ".csv";
+            var stream = File.Open(TestDirectory + fileName, FileMode.Append);
+            var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
+            { HasHeaderRecord = false, };
+
+            StreamWriter writer = new StreamWriter(stream);
+            CsvWriter csv = new CsvWriter(writer, config);
+
+            if (testSettings.Cycles == 0)
+            {
+                Console.WriteLine("0 cycle count invalid");
+                return false;
+            }
+            if (testSettings.NumberOfSteps == 0)
+            {
+                Console.WriteLine("0 step count invalid");
+                return false;
+            }
+            if (testSettings.Velocity == 0)
+            {
+                Console.WriteLine("0 velocity invalid");
+                return false;
+            }
+            if (testSettings.StepSize == 0)
+            {
+                Console.WriteLine("0 step size invalid");
+                return false;
+            }
+
+
+            using (stream)
+            using (writer)
+            using (csv)
+            {
+                csv.WriteHeader<uniDirectionalAccuracyCSV>();
+                csv.NextRecord();
+            }
+
+            Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
+            testSettings.Velocity = Math.Abs(testSettings.Velocity);  //Only want positive velocity
+            //Create an ongoing task to monitor for a cancellation request. This will only trigger on start of each test cycle.
+            CancellationTokenSource ctToken = new CancellationTokenSource();
+            CancellationTokenSource ptToken = new CancellationTokenSource();
+            Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
+
+            double reversalPosition;
+            if (testSettings.StepSize > 0)
+            {
+                reversalPosition = testSettings.InitialSetpoint - testSettings.ReversalDistance;
+            }
+            else
+            {
+                reversalPosition = testSettings.InitialSetpoint + testSettings.ReversalDistance;
+            }
+            double overshootPosition;
+            if (testSettings.StepSize > 0)
+            {
+                overshootPosition = testSettings.InitialSetpoint + ((testSettings.NumberOfSteps - 1) * testSettings.StepSize) + testSettings.OvershootDistance;
+            }
+            else
+            {
+                overshootPosition = testSettings.InitialSetpoint + ((testSettings.NumberOfSteps - 1) * testSettings.StepSize) - testSettings.OvershootDistance;
+            }
+
+            stopWatch.Start();
+            for (uint i = 1; i <= testSettings.Cycles; i++)
+            {
+                Console.WriteLine("Cycle " + i);
+                //Create a task each cycle to monitor for the pause. This is done as a task as a basic "while(paused)" would block UI and not allow an unpause
+                Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
+                await pauseTaskRequest;
+                if (cancelRequestTask.IsCompleted)
+                {
+                    //Cancelled the test
+                    ptToken.Cancel();
+                    CancelTest = false;
+                    Console.WriteLine("Test cancelled");
+                    return false;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds)); //inter-cycle delay wait
+                double TargetPosition = testSettings.InitialSetpoint;
+
+                //Start test at reversal position then moving to initial setpoint          
+                if (await moveAbsoluteAndWait(reversalPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                {
+                    Console.WriteLine("Failed to move to reversal position");
+                    stopWatch.Stop();
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+
+                //going up the steps
+                for (uint j = 0; j <= testSettings.NumberOfSteps; j++)
+                {
+                    //Do the step move
+                    if (await moveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                    {
+                        Console.WriteLine("Failed to move to target position");
+                        stopWatch.Stop();
+                        return false;
+                    }
+                    //Wait for a settle time
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+                    //Do we need to check the DTIs?
+                    string measurement1 = string.Empty;
+                    string measurement2 = string.Empty;
+                    string measurement3 = string.Empty;
+                    string measurement4 = string.Empty;
+
+                    ///READ MEASUREMENT DEVICES///
+                    ///
+                    if (device1 != null)
+                    {
+                        measurement1 = await device1.GetMeasurement();
+                        Console.WriteLine("Device 1: " + measurement1);
+                    }
+                    if (device2 != null)
+                    {
+                        measurement2 = await device2.GetMeasurement();
+                        Console.WriteLine("Device 2: " + measurement2);
+                    }
+                    if (device3 != null)
+                    {
+                        measurement3 = await device3.GetMeasurement();
+                        Console.WriteLine("Device 3: " + measurement3);
+                    }
+                    if (device4 != null)
+                    {
+                        measurement4 = await device4.GetMeasurement();
+                        Console.WriteLine("Device 4: " + measurement4);
+                    }
+
+                    //Log the data
+                    double tmpAxisPosition = await read_AxisPosition();
+                    recordList.Add(new uniDirectionalAccuracyCSV(i, j, "Forward approach", TargetPosition, tmpAxisPosition, measurement1, measurement2, measurement3, measurement4));
+                    //Update target position
+
+                    TargetPosition = TargetPosition + testSettings.StepSize;
+                }
+                TargetPosition = TargetPosition - testSettings.StepSize;
+                //Overshoot the final position before coming back down
+                if (await moveAbsoluteAndWait(overshootPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                {
+                    Console.WriteLine("Failed to move to overshoot position");
+                    stopWatch.Stop();
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+                //going down the steps. Need the cast here as we require j to go negative to cancel the loop
+                for (int j = (int)testSettings.NumberOfSteps; j >= 0; j--)
+                {
+                    Console.WriteLine("Moving down. Step: " + j);
+                    //Do the step move
+                    if (await moveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                    {
+                        Console.WriteLine("Failed to move to target position");
+                        stopWatch.Stop();
+                        return false;
+                    }
+                    //Wait for a settle time
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+                    //Do we need to check the DTIs?
+                    string measurement1 = string.Empty;
+                    string measurement2 = string.Empty;
+                    string measurement3 = string.Empty;
+                    string measurement4 = string.Empty;
+
+                    ///READ MEASUREMENT DEVICES///
+                    ///
+                    if (device1 != null)
+                    {
+                        measurement1 = await device1.GetMeasurement();
+                        Console.WriteLine("Device 1: " + measurement1);
+                    }
+                    if (device2 != null)
+                    {
+                        measurement2 = await device2.GetMeasurement();
+                        Console.WriteLine("Device 2: " + measurement2);
+                    }
+                    if (device3 != null)
+                    {
+                        measurement3 = await device3.GetMeasurement();
+                        Console.WriteLine("Device 3: " + measurement3);
+                    }
+                    if (device4 != null)
+                    {
+                        measurement4 = await device4.GetMeasurement();
+                        Console.WriteLine("Device 4: " + measurement4);
+                    }
+                    //Log the data
+                    double tmpAxisPosition = await read_AxisPosition();
+                    recordList.Add(new uniDirectionalAccuracyCSV(i, (uint)j, "Backward approach", TargetPosition, tmpAxisPosition, measurement1, measurement2, measurement3, measurement4));
+                    //Update target position
+
+                    TargetPosition = TargetPosition - testSettings.StepSize;
+                }
+
+                //Write the cycle data
+                using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
+                using (writer = new StreamWriter(stream))
+                using (csv = new CsvWriter(writer, config))
+                {
+                    csv.WriteRecords(recordList);
+                }
+                recordList.Clear();
+            }
+            stopWatch.Stop();
+            Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed);
+            return true;
+        }
+
 
         //no timeout implemented
         public async Task<bool> biDirectionalAccuracyTest(double initialSetpoint, double velocity, int cycles, int steps, double stepSize, int settleTime, double reversalDistance,double overshoot, int timeout, int cycleDelay, MeasurementDevice device1 = null, MeasurementDevice device2 = null, MeasurementDevice device3 = null, MeasurementDevice device4 = null)

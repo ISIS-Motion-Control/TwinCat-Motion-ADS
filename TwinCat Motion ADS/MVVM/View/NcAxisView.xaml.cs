@@ -289,17 +289,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
             await testAxis.moveToLowLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
         }
 
-        private async void end2endTest_Click(object sender, RoutedEventArgs e)
-        {
-            if (testAxis == null)
-            {
-                Console.WriteLine("No axis initialised");
-                return;
-            }
-            cancelTest.IsEnabled = true;
-            pauseTest.IsEnabled = true;
-            await testAxis.end2endCycleTesting(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleDelayTB.Text), Convert.ToInt32(cycleTB.Text));
-        }
 
         private async void end2endReversal_Click(object sender, RoutedEventArgs e)
         {
@@ -315,7 +304,8 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
-            if (await testAxis.end2endCycleTestingWithReversal(NcTestSettings, windowData.MeasurementDevice1,windowData.MeasurementDevice2,windowData.MeasurementDevice3,windowData.MeasurementDevice4))
+            //if (await testAxis.end2endCycleTestingWithReversal(NcTestSettings, windowData.MeasurementDevice1,windowData.MeasurementDevice2,windowData.MeasurementDevice3,windowData.MeasurementDevice4))
+            if (await testAxis.end2endCycleTestingWithReversal(NcTestSettings, windowData.MeasurementDevices))
             {
                 Console.WriteLine("Test Complete");
             }
@@ -341,7 +331,9 @@ namespace TwinCat_Motion_ADS.MVVM.View
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
 
-            if (await testAxis.uniDirectionalAccuracyTest(NcTestSettings,windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
+            //if (await testAxis.uniDirectionalAccuracyTest(NcTestSettings,windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
+            if (await testAxis.uniDirectionalAccuracyTest(NcTestSettings, windowData.MeasurementDevices))
+
             {
                 //
             }
@@ -366,7 +358,9 @@ namespace TwinCat_Motion_ADS.MVVM.View
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
 
-            if (await testAxis.biDirectionalAccuracyTest(Convert.ToDouble(initSetpointTB.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(NumberOfStepsTB.Text), Convert.ToDouble(stepSizeTB.Text), Convert.ToInt32(settleTimeTB.Text), Convert.ToDouble(revDistanceTB.Text),Convert.ToDouble(overshootDistanceTB.Text),Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text), windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
+            //if (await testAxis.biDirectionalAccuracyTest(Convert.ToDouble(initSetpointTB.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(NumberOfStepsTB.Text), Convert.ToDouble(stepSizeTB.Text), Convert.ToInt32(settleTimeTB.Text), Convert.ToDouble(revDistanceTB.Text),Convert.ToDouble(overshootDistanceTB.Text),Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text), windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
+            if (await testAxis.biDirectionalAccuracyTest(NcTestSettings, windowData.MeasurementDevices))
+
             {
                 Console.WriteLine("Test Complete");
             }
