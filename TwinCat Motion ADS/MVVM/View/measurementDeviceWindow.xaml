@@ -5,10 +5,25 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TwinCat_Motion_ADS.MVVM.View"
         mc:Ignorable="d"
-        Title="measurementDeviceWindow" Height="250" Width="400" ResizeMode="NoResize">
-    <Grid>
-        <TextBox x:Name="baudRateTB" Height="30">
-            
-        </TextBox>
-    </Grid>
+        Title="Measurement Device Settings" Height="250" Width="400" ResizeMode="NoResize" Closing="Window_Closing">
+    <StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+            <TextBlock Text="Device Name:" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <TextBox x:Name="deviceName" Margin="3,0,0,0" HorizontalAlignment="Left" Text="TextBox" VerticalAlignment="Center" Width="150"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+            <TextBlock Text="Device Type:" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <ComboBox Name="DeviceType" Margin="10,0,0,0" Width="150" Height="20" DropDownClosed="DeviceType_DropDownClosed">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+        
+    
+    </StackPanel>
 </Window>

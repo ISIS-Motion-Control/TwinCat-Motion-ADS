@@ -446,14 +446,13 @@ namespace TwinCat_Motion_ADS
                 if(mI == device)
                 {
                     deviceIndex = i;
-                    Console.WriteLine("That's a match on " + deviceIndex);
+                    //Console.WriteLine("That's a match on " + deviceIndex); //debugging line to check we can find item based on menuItemList
                 }
                 i++;
             }
-
-            
-
-
+            Console.WriteLine(MeasurementDevices.MeasurementDeviceList[deviceIndex].Name);
+            TwinCat_Motion_ADS.MVVM.View.measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
+            newMeasureWindow.Show();
         }
 
         //update devices menu
@@ -461,8 +460,9 @@ namespace TwinCat_Motion_ADS
         {
             MenuItem newMenuItem = new MenuItem();
 
+            //This binding seems to be bugged, works fine but does not update.
             Binding menuItemName = new();
-            menuItemName.Mode = BindingMode.TwoWay;
+            menuItemName.Mode = BindingMode.OneWay;
             menuItemName.Source = MeasurementDevices.MeasurementDeviceList[MeasurementDevices.NumberOfDevices - 1];
             menuItemName.Path = new PropertyPath("Name");
             menuItemName.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
@@ -472,6 +472,12 @@ namespace TwinCat_Motion_ADS
             newMenuItem.Click += new RoutedEventHandler(deviceMenuClick);
             MeasureDevicesMenu.Items.Add(newMenuItem);
             measurementMenuItems.Add(newMenuItem);
+
+            int deviceIndex = MeasurementDevices.NumberOfDevices - 1;
+
+            TwinCat_Motion_ADS.MVVM.View.measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
+            newMeasureWindow.Show();
+
         }
 
 
