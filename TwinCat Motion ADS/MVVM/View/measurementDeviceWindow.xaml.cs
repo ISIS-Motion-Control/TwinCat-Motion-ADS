@@ -26,7 +26,8 @@ namespace TwinCat_Motion_ADS.MVVM.View
         {
             "",
         "DigimaticIndicator",
-        "KeyenceTM3000"
+        "KeyenceTM3000",
+        "Beckhoff"
         };
         public ObservableCollection<string> BaudRateList = new ObservableCollection<string>()
         {
