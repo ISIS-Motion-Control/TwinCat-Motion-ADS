@@ -100,6 +100,7 @@ namespace TwinCat_Motion_ADS
         public void updateInstance(uint axisID)
         {
             StopPositionRead();
+            AxisID = axisID;
             //These variable handles rely on the twinCAT standard solution naming.
             eCommandHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.eCommand");
             fVelocityHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.fVelocity");
