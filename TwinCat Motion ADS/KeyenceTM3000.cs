@@ -136,7 +136,7 @@ namespace TwinCat_Motion_ADS
             for (int i = 1; i < 17; i++)
             {
                 var str = await GetMeasureAsync(i);
-                if(str[1]!='F' && str[1]!='X')  //Check the 2nd char of returned string, F is when no data present and X is unused channel
+                if(str[1]!='X')  //Check the 2nd char of returned string, F is when no data present and X is unused channel
                 {
                     measurements.Add(str);  //If valid data add to the list
                 }

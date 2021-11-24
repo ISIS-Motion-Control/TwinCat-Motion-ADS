@@ -395,14 +395,14 @@ namespace TwinCat_Motion_ADS
 
             if(await Task.WhenAny(waitingTask)==limitTask)
             {
-                Console.WriteLine("Forward limit reached");
+                Console.WriteLine("High limit reached");
                 ct.Cancel();
                 return true;
             }
             else //Timeout on command
             {
                 await Task.Delay(20);
-                Console.WriteLine("Timeout on move to forward limit");
+                Console.WriteLine("Timeout on move to high limit");
                 await moveStop();
                 return false;
             }
@@ -448,14 +448,14 @@ namespace TwinCat_Motion_ADS
 
             if (await Task.WhenAny(waitingTask) == limitTask)
             {
-                Console.WriteLine("Backward limit reached");
+                Console.WriteLine("Lower limit hit");
                 ct.Cancel();
                 return true;
             }
             else //Timeout on command
             {
                 await Task.Delay(20);
-                Console.WriteLine("Timeout on move to backward limit");
+                Console.WriteLine("Timeout on move to lower limit");
                 await moveStop();
                 return false;
             }
@@ -654,10 +654,13 @@ namespace TwinCat_Motion_ADS
             }
 
             var currentTime = DateTime.Now;
-            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {6} -End2EndwithReversalTest-setVelo({1}) revVelo({2}) revExtraTime({3}) settleTime({4}) - {5} cycles", currentTime, testSettings.Velocity, testSettings.ReversalVelocity, testSettings.ReversalExtraTimeSeconds, testSettings.ReversalSettleTimeSeconds, testSettings.Cycles, AxisID);
+            string newTitle = string.Format(@"{0:yyMMdd} {0:HH};{0:mm};{0:ss} Axis {1}~ " + testSettings.StrTestTitle, currentTime, AxisID);
+            Console.WriteLine(newTitle);
+            string settingFileFullPath = TestDirectory + @"\" + newTitle + ".settingsfile";
+            string csvFileFullPath = TestDirectory + @"\" + newTitle + ".csv";
+            SaveSettingsFile(testSettings, settingFileFullPath, "Limit to Limit Test");
 
-            string fileName = @"\" + formattedTitle + ".csv";
-            var stream = File.Open(TestDirectory + fileName, FileMode.Append);
+            var stream = File.Open(csvFileFullPath, FileMode.Append);
             StreamWriter writer = new StreamWriter(stream);
             CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
             using (stream)
@@ -811,7 +814,7 @@ namespace TwinCat_Motion_ADS
                     ptToken.Cancel();
                     return false;
                 }
-                using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
+                using (stream = File.Open(csvFileFullPath, FileMode.Append))
                 using (writer = new StreamWriter(stream))
                 using (csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
@@ -859,14 +862,16 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
             List<uniDirectionalAccCSV> recordList = new List<uniDirectionalAccCSV>();
-            
-
 
             var currentTime = DateTime.Now;
-            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {8} -uniDirectionalAccuracyTest-InitialSetpoint({1}) Velo({2}) Steps({3}) StepSize({4}) SettleTime({5}) ReversalDistance({6}) - {7} cycles", currentTime, testSettings.InitialSetpoint, testSettings.Velocity, testSettings.NumberOfSteps, testSettings.StepSize, testSettings.SettleTimeSeconds, testSettings.ReversalDistance, testSettings.Cycles, AxisID);
+            
+            string newTitle = string.Format(@"{0:yyMMdd} {0:HH};{0:mm};{0:ss} Axis {1}~ " + testSettings.StrTestTitle, currentTime, AxisID);
+            Console.WriteLine(newTitle);
+            string settingFileFullPath = TestDirectory + @"\" + newTitle + ".settingsfile";
+            string csvFileFullPath = TestDirectory + @"\" + newTitle + ".csv";
+            SaveSettingsFile(testSettings,settingFileFullPath, "Unidirectional Accuracy Test");
 
-            string fileName = @"\" + formattedTitle + ".csv";
-            var stream = File.Open(TestDirectory + fileName, FileMode.Append);
+            var stream = File.Open(csvFileFullPath, FileMode.Append);
             var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
             { HasHeaderRecord = false, };
 
@@ -947,6 +952,7 @@ namespace TwinCat_Motion_ADS
 
                 for (uint j = 0; j <= testSettings.NumberOfSteps; j++)
                 {
+                    Console.WriteLine("Step: " + j);
                     //Do the step move
                     if (await moveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
                     {
@@ -987,7 +993,7 @@ namespace TwinCat_Motion_ADS
                 }
 
                 //Write the cycle data
-                using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
+                using (stream = File.Open(csvFileFullPath, FileMode.Append))
                 using (writer = new StreamWriter(stream))
                 using (csv = new CsvWriter(writer, config))
                 {
@@ -1022,10 +1028,14 @@ namespace TwinCat_Motion_ADS
         {
             List<uniDirectionalAccCSV> recordList = new List<uniDirectionalAccCSV>();
             var currentTime = DateTime.Now;
-            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-Axis {9} -biDirectionalAccuracyTest-InitialSetpoint({1}) Velo({2}) Steps({3}) StepSize({4}) SettleTime({5}) ReversalDistance({6}) OvershootDistance({7}) - {8} cycles", currentTime, testSettings.InitialSetpoint, testSettings.Velocity, testSettings.NumberOfSteps, testSettings.StepSize, testSettings.SettleTimeSeconds, testSettings.ReversalDistance, testSettings.OvershootDistance, testSettings.Cycles, AxisID);
 
-            string fileName = @"\" + formattedTitle + ".csv";
-            var stream = File.Open(TestDirectory + fileName, FileMode.Append);
+            string newTitle = string.Format(@"{0:yyMMdd} {0:HH};{0:mm};{0:ss} Axis {1}~ " + testSettings.StrTestTitle, currentTime, AxisID);
+            Console.WriteLine(newTitle);
+            string settingFileFullPath = TestDirectory + @"\" + newTitle + ".settingsfile";
+            string csvFileFullPath = TestDirectory + @"\" + newTitle + ".csv";
+            SaveSettingsFile(testSettings, settingFileFullPath, "Bidirectional Accuracy Test");
+
+            var stream = File.Open(csvFileFullPath, FileMode.Append);
             var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
             { HasHeaderRecord = false, };
 
@@ -1132,6 +1142,7 @@ namespace TwinCat_Motion_ADS
                 //going up the steps
                 for (uint j = 0; j <= testSettings.NumberOfSteps; j++)
                 {
+                    Console.WriteLine("Positive Move. Step: " + j);
                     //Do the step move
                     if (await moveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
                     {
@@ -1161,7 +1172,7 @@ namespace TwinCat_Motion_ADS
 
                     //Log the data
                     double tmpAxisPosition = await read_AxisPosition();
-                    recordList.Add(new uniDirectionalAccCSV(i, j, "Forward approach", TargetPosition, tmpAxisPosition));
+                    recordList.Add(new uniDirectionalAccCSV(i, j, "Positive approach", TargetPosition, tmpAxisPosition));
                     cycleMeasurements.Add(measurements);
                     //Update target position
 
@@ -1179,7 +1190,7 @@ namespace TwinCat_Motion_ADS
                 //going down the steps. Need the cast here as we require j to go negative to cancel the loop
                 for (int j = (int)testSettings.NumberOfSteps; j >= 0; j--)
                 {
-                    Console.WriteLine("Moving down. Step: " + j);
+                    Console.WriteLine("Negative Move. Step: " + j);
                     //Do the step move
                     if (await moveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
                     {
@@ -1208,7 +1219,7 @@ namespace TwinCat_Motion_ADS
                     }
                     //Log the data
                     double tmpAxisPosition = await read_AxisPosition();
-                    recordList.Add(new uniDirectionalAccCSV(i, (uint)j, "Backward approach", TargetPosition, tmpAxisPosition));
+                    recordList.Add(new uniDirectionalAccCSV(i, (uint)j, "Negative approach", TargetPosition, tmpAxisPosition));
                     cycleMeasurements.Add(measurements);
                     //Update target position
 
@@ -1216,7 +1227,7 @@ namespace TwinCat_Motion_ADS
                 }
 
                 //Write the cycle data
-                using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
+                using (stream = File.Open(csvFileFullPath, FileMode.Append))
                 using (writer = new StreamWriter(stream))
                 using (csv = new CsvWriter(writer, config))
                 {
@@ -1245,5 +1256,27 @@ namespace TwinCat_Motion_ADS
             return true;
         }
    
+
+        private void SaveSettingsFile(NcTestSettings testSettings, string filePath, string testType)
+        {
+            List<string> settings = new();
+            settings.Add("Test Type: " + testType);
+            settings.Add("Axis Number: " + AxisID);
+            settings.Add("Velocity: " + testSettings.StrVelocity);
+            settings.Add("Timeout: " + testSettings.StrTimeout);
+            settings.Add("Cycles: " + testSettings.StrCycles);
+            settings.Add("Cycle Delay (s): " + testSettings.StrCycleDelaySeconds);
+            settings.Add("Reversal Velocity: " + testSettings.StrReversalVelocity);
+            settings.Add("Reversal Extra Time (s): " + testSettings.StrReversalExtraTimeSeconds);
+            settings.Add("Reversal Settle Time (s): " + testSettings.StrReversalSettleTimeSeconds);
+            settings.Add("Initial Setpoint: " + testSettings.StrInitialSetpoint);
+            settings.Add("Number of Steps : " + testSettings.StrNumberOfSteps);
+            settings.Add("Step Size: " + testSettings.StrStepSize);
+            settings.Add("Settle Time (s): " + testSettings.StrSettleTimeSeconds);
+            settings.Add("Reversal Distance: " + testSettings.StrReversalDistance);
+            settings.Add("Overshoot Distance: " + testSettings.StrOvershootDistance);
+
+            File.WriteAllLines(filePath, settings);
+        }
     }
 }
