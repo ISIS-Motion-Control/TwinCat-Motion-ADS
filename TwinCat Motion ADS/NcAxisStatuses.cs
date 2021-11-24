@@ -107,6 +107,10 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> read_bDone()
         {
+            if (!Plc.checkConnection())
+            {
+                throw new Exception();
+            }
             try
             {
                 var result = await Plc.TcAds.ReadAnyAsync<bool>(bDoneHandle, CancellationToken.None);
@@ -114,6 +118,7 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
+                StopPositionRead();
                 throw new Exception();
             }
             
@@ -121,6 +126,10 @@ namespace TwinCat_Motion_ADS
 
         public async Task<double> read_AxisPosition()
         {
+            if (!Plc.checkConnection())
+            {
+                throw new Exception();
+            }
             try
             {
                 var result = await Plc.TcAds.ReadAnyAsync<double>(fActPositionHandle, CancellationToken.None);
@@ -129,12 +138,17 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
+                StopPositionRead();
                 throw new Exception();
             }
         }
 
         public async Task<bool> read_bBusy()
         {
+            if (!Plc.checkConnection())
+            {
+                throw new Exception();
+            }
             try
             {
                 var result = await Plc.TcAds.ReadAnyAsync<bool>(bBusyHandle, CancellationToken.None);
@@ -142,6 +156,7 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
+                StopPositionRead();
                 throw new Exception();
             }
             
@@ -149,6 +164,10 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> read_bEnabled()
         {
+            if (!Plc.checkConnection())
+            {
+                throw new Exception();
+            }
             try
             {
                 var result = await Plc.TcAds.ReadAnyAsync<bool>(bEnabledHandle, CancellationToken.None);
@@ -157,6 +176,7 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
+                StopPositionRead();
                 throw new Exception();
             }
             
@@ -166,12 +186,26 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var result = await Plc.TcAds.ReadAnyAsync<bool>(bFwEnabledHandle, CancellationToken.None);
-                AxisFwEnabled = result.Value;
-                return result.Value;
+                var thisTask = Plc.TcAds.ReadAnyAsync<bool>(bFwEnabledHandle, CancellationToken.None);
+                await thisTask;
+                if (thisTask.Status == TaskStatus.Faulted)
+                {
+                    StopPositionRead();
+                    throw new Exception();
+                }
+                else
+                {
+                    AxisFwEnabled = thisTask.Result.Value;
+                    return AxisFwEnabled;
+                }
+
+                //var result = await Plc.TcAds.ReadAnyAsync<bool>(bFwEnabledHandle, CancellationToken.None);
+                //AxisFwEnabled = result.Value;
+               // return result.Value;
             }
             catch
             {
+                StopPositionRead();
                 throw new Exception();
             }
             
@@ -179,6 +213,10 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> read_bBwEnabled()
         {
+            if (!Plc.checkConnection())
+            {
+                throw new Exception();
+            }
             try
             {
                 var result = await Plc.TcAds.ReadAnyAsync<bool>(bBwEnabledHandle, CancellationToken.None);
@@ -187,12 +225,17 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
+                StopPositionRead();
                 throw new Exception();
             }
         }
 
         public async Task<bool> read_bError()
         {
+            if(!Plc.checkConnection())
+            {
+                throw new Exception();
+            }
             try
             {
                 var result = await Plc.TcAds.ReadAnyAsync<bool>(bErrorHandle, CancellationToken.None);
