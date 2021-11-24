@@ -107,49 +107,102 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> read_bDone()
         {
-            var result = await Plc.TcAds.ReadAnyAsync<bool>(bDoneHandle, CancellationToken.None);
-            return result.Value;
+            try
+            {
+                var result = await Plc.TcAds.ReadAnyAsync<bool>(bDoneHandle, CancellationToken.None);
+                return result.Value;
+            }
+            catch
+            {
+                throw new Exception();
+            }
+            
         }
 
         public async Task<double> read_AxisPosition()
         {
-            var result = await Plc.TcAds.ReadAnyAsync<double>(fActPositionHandle, CancellationToken.None);
-            AxisPosition = result.Value;
-            return result.Value;
+            try
+            {
+                var result = await Plc.TcAds.ReadAnyAsync<double>(fActPositionHandle, CancellationToken.None);
+                AxisPosition = result.Value;
+                return result.Value;
+            }
+            catch
+            {
+                throw new Exception();
+            }
         }
 
         public async Task<bool> read_bBusy()
         {
-            var result = await Plc.TcAds.ReadAnyAsync<bool>(bBusyHandle, CancellationToken.None);
-            return result.Value;
+            try
+            {
+                var result = await Plc.TcAds.ReadAnyAsync<bool>(bBusyHandle, CancellationToken.None);
+                return result.Value;
+            }
+            catch
+            {
+                throw new Exception();
+            }
+            
         }
 
         public async Task<bool> read_bEnabled()
         {
-            var result = await Plc.TcAds.ReadAnyAsync<bool>(bEnabledHandle, CancellationToken.None);
-            AxisEnabled = result.Value;
-            return result.Value;
+            try
+            {
+                var result = await Plc.TcAds.ReadAnyAsync<bool>(bEnabledHandle, CancellationToken.None);
+                AxisEnabled = result.Value;
+                return result.Value;
+            }
+            catch
+            {
+                throw new Exception();
+            }
+            
         }
 
         public async Task<bool> read_bFwEnabled()
         {
-            var result = await Plc.TcAds.ReadAnyAsync<bool>(bFwEnabledHandle, CancellationToken.None);
-            AxisFwEnabled = result.Value;
-            return result.Value;
+            try
+            {
+                var result = await Plc.TcAds.ReadAnyAsync<bool>(bFwEnabledHandle, CancellationToken.None);
+                AxisFwEnabled = result.Value;
+                return result.Value;
+            }
+            catch
+            {
+                throw new Exception();
+            }
+            
         }
 
         public async Task<bool> read_bBwEnabled()
         {
-            var result = await Plc.TcAds.ReadAnyAsync<bool>(bBwEnabledHandle, CancellationToken.None);
-            AxisBwEnabled = result.Value;
-            return result.Value;
+            try
+            {
+                var result = await Plc.TcAds.ReadAnyAsync<bool>(bBwEnabledHandle, CancellationToken.None);
+                AxisBwEnabled = result.Value;
+                return result.Value;
+            }
+            catch
+            {
+                throw new Exception();
+            }
         }
 
         public async Task<bool> read_bError()
         {
-            var result = await Plc.TcAds.ReadAnyAsync<bool>(bErrorHandle, CancellationToken.None);
-            Error = result.Value;
-            return result.Value;
+            try
+            {
+                var result = await Plc.TcAds.ReadAnyAsync<bool>(bErrorHandle, CancellationToken.None);
+                Error = result.Value;
+                return result.Value;
+            }
+            catch
+            {
+                throw new Exception();
+            }
         }
 
         CancellationTokenSource wtoken;
@@ -177,7 +230,9 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
+                Console.WriteLine("Lost connection to controller");
                 StopPositionRead();
+                Plc.Disconnect();
             }
             
         }

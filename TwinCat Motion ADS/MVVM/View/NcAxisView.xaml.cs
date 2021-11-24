@@ -367,10 +367,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
             //if (await testAxis.biDirectionalAccuracyTest(Convert.ToDouble(initSetpointTB.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(NumberOfStepsTB.Text), Convert.ToDouble(stepSizeTB.Text), Convert.ToInt32(settleTimeTB.Text), Convert.ToDouble(revDistanceTB.Text),Convert.ToDouble(overshootDistanceTB.Text),Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text), windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
             if (await testAxis.biDirectionalAccuracyTest(NcTestSettings, windowData.MeasurementDevices))
-
-            {
-                Console.WriteLine("Test Complete");
-            }
+            {          }
             else
             {
                 Console.WriteLine("Test did not complete");
@@ -432,13 +429,15 @@ namespace TwinCat_Motion_ADS.MVVM.View
         private void testButton_Click(object sender, RoutedEventArgs e)
         {
             var fbd = new VistaOpenFileDialog();
+            fbd.Filter = "*.settingsfile|*.*";
             string selectedFile = string.Empty;
             if (fbd.ShowDialog() == true)
             {
                 selectedFile = fbd.FileName;
+                NcTestSettings.ImportSettings(selectedFile);
             }
             Console.WriteLine(selectedFolder);
-            NcTestSettings.ImportSettings(selectedFile);
+            
         }
     }
 }
