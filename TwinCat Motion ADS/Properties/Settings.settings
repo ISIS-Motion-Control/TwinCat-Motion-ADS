@@ -44,5 +44,8 @@
     <Setting Name="amsNetID" Type="System.String" Scope="User">
       <Value Profile="(Default)">130.246.58.3.1.1</Value>
     </Setting>
+    <Setting Name="measurementDevices" Type="(Web Service URL)" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>
