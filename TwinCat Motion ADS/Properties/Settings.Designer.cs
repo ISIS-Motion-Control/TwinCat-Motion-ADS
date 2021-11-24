@@ -190,5 +190,17 @@ namespace TwinCat_Motion_ADS.Properties {
                 this["amsNetID"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.WebServiceUrl)]
+        public string measurementDevices {
+            get {
+                return ((string)(this["measurementDevices"]));
+            }
+            set {
+                this["measurementDevices"] = value;
+            }
+        }
     }
 }
