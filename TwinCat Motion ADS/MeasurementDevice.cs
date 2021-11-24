@@ -22,7 +22,10 @@ namespace TwinCat_Motion_ADS
         //Device type instances
         private DigimaticIndicator dti = new();
         private KeyenceTM3000 keyence = new();
-        private PLC beckhoff = new("",851);
+
+        private PLC beckhoffPlc { get; set; }
+        public Beckhoff beckhoff { get; set; }         //public for now
+
 
         private string _portName;
         public string PortName
@@ -53,29 +56,29 @@ namespace TwinCat_Motion_ADS
         private string _amsNetID;
         public string AmsNetId
         {
-            get { return _amsNetID; }
-            set 
-            { 
+            get { return beckhoffPlc.ID; }
+            set
+            {
                 if(DeviceType == DeviceType.Beckhoff && !Connected)
                 {
                     _amsNetID = value;
+                    beckhoffPlc.ID = value;
                     OnPropertyChanged();
                 }
-                
             }
         }
 
-        private int _plcPortt;
+        private int _plcPort;
         public int PlcPort
         {
-            get { return _plcPortt; }
+            get { return _plcPort; }
             set 
             {
                 if (DeviceType == DeviceType.Beckhoff && !Connected)
                 {
-                    _plcPortt = value;
+                    _plcPort = value;
                     OnPropertyChanged();
-                }                   
+                }
             }
         }
 
@@ -111,6 +114,10 @@ namespace TwinCat_Motion_ADS
                 else if (DeviceType == DeviceType.KeyenceTm3000)
                 {
                     return "KeyenceTM3000";
+                }
+                else if (DeviceType == DeviceType.Beckhoff)
+                {
+                    return "Beckhoff";
                 }
                 else
                 {
@@ -176,6 +183,8 @@ namespace TwinCat_Motion_ADS
 
         public MeasurementDevice(string deviceType)
         {
+            beckhoffPlc = new("", 851);
+            beckhoff = new(beckhoffPlc);
             Connected = false;
             if(deviceType == "DigimaticIndicator")
             {
@@ -184,6 +193,10 @@ namespace TwinCat_Motion_ADS
             else if(deviceType == "KeyenceTM3000")
             {
                 DeviceType = DeviceType.KeyenceTm3000;
+            }
+            else if(deviceType == "Beckhoff")
+            {
+                DeviceType = DeviceType.Beckhoff;
             }
             else
             {
@@ -198,11 +211,15 @@ namespace TwinCat_Motion_ADS
             if (deviceType == "DigimaticIndicator")
             {
                 DeviceType = DeviceType.DigimaticIndicator;
-                
+
             }
             else if (deviceType == "KeyenceTM3000")
             {
                 DeviceType = DeviceType.KeyenceTm3000;
+            }
+            else if (deviceType == "Beckhoff")
+            {
+                DeviceType = DeviceType.Beckhoff;
             }
             else
             {
@@ -239,14 +256,7 @@ namespace TwinCat_Motion_ADS
             switch (DeviceType)
             {
                 case DeviceType.DigimaticIndicator:
-                    if(dti==null)
-                    {
-                        dti = new DigimaticIndicator(PortName);
-                    }
-                    else
-                    {
                         dti.Portname = PortName;
-                    }
                     if(dti.OpenPort())
                     {
                         Connected = true;
@@ -258,6 +268,17 @@ namespace TwinCat_Motion_ADS
                     if(keyence.OpenPort())
                     {
                         Connected = true;
+                    }
+                    return Connected;
+
+                case DeviceType.Beckhoff:
+                    if(beckhoffPlc.Connect())
+                    {
+                        if(beckhoffPlc.IsStateRun())
+                        {
+
+                            Connected = true;
+                        }
                     }
                     return Connected;
 
@@ -314,6 +335,24 @@ namespace TwinCat_Motion_ADS
                         return true;
                     }
 
+                case DeviceType.Beckhoff:
+                    if(beckhoffPlc.Disconnect())
+                    {
+                        Console.WriteLine("Disconnected");
+                        Connected = false;
+                        return true;
+                    }
+                    else if (beckhoffPlc.checkConnection())
+                    {
+                        Console.WriteLine("Disconnect failed");
+                        return false;
+                    }
+                    else
+                    {
+                        Connected = false;
+                        return true;
+                    }
+
                 default:
                     break;
             }
@@ -338,6 +377,8 @@ namespace TwinCat_Motion_ADS
                     var retstr = String.Join(",", measures);
                     return retstr;
 
+                case DeviceType.Beckhoff:
+                    return await beckhoff.ReadChannels();
                 default:
                     break;
             }
