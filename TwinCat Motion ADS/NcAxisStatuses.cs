@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
 namespace TwinCat_Motion_ADS
 {
@@ -117,8 +118,85 @@ namespace TwinCat_Motion_ADS
             return result.Value;
         }
 
+        public async Task<bool> read_bBusy()
+        {
+            var result = await Plc.TcAds.ReadAnyAsync<bool>(bBusyHandle, CancellationToken.None);
+            return result.Value;
+        }
 
+        public async Task<bool> read_bEnabled()
+        {
+            var result = await Plc.TcAds.ReadAnyAsync<bool>(bEnabledHandle, CancellationToken.None);
+            AxisEnabled = result.Value;
+            return result.Value;
+        }
 
+        public async Task<bool> read_bFwEnabled()
+        {
+            var result = await Plc.TcAds.ReadAnyAsync<bool>(bFwEnabledHandle, CancellationToken.None);
+            AxisFwEnabled = result.Value;
+            return result.Value;
+        }
+
+        public async Task<bool> read_bBwEnabled()
+        {
+            var result = await Plc.TcAds.ReadAnyAsync<bool>(bBwEnabledHandle, CancellationToken.None);
+            AxisBwEnabled = result.Value;
+            return result.Value;
+        }
+
+        public async Task<bool> read_bError()
+        {
+            var result = await Plc.TcAds.ReadAnyAsync<bool>(bErrorHandle, CancellationToken.None);
+            Error = result.Value;
+            return result.Value;
+        }
+
+        CancellationTokenSource wtoken;
+        ActionBlock<DateTimeOffset> taskPos;
+        ActionBlock<DateTimeOffset> taskEnabled;
+        ActionBlock<DateTimeOffset> taskFwEnabled;
+        ActionBlock<DateTimeOffset> taskBwEnabled;
+        ActionBlock<DateTimeOffset> taskError;
+
+        public void StartPositionRead()
+        {
+            try
+            {
+                wtoken = new CancellationTokenSource();
+                taskPos = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_AxisPosition(), wtoken.Token, TimeSpan.FromMilliseconds(50));
+                taskEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bEnabled(), wtoken.Token, TimeSpan.FromMilliseconds(200));
+                taskFwEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bFwEnabled(), wtoken.Token, TimeSpan.FromMilliseconds(200));
+                taskBwEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bBwEnabled(), wtoken.Token, TimeSpan.FromMilliseconds(200));
+                taskError = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bError(), wtoken.Token, TimeSpan.FromMilliseconds(200));
+                taskPos.Post(DateTimeOffset.Now);
+                taskEnabled.Post(DateTimeOffset.Now);
+                taskFwEnabled.Post(DateTimeOffset.Now);
+                taskBwEnabled.Post(DateTimeOffset.Now);
+                taskError.Post(DateTimeOffset.Now);
+            }
+            catch
+            {
+                StopPositionRead();
+            }
+            
+        }
+        public void StopPositionRead()
+        {
+            if (wtoken == null)
+            {
+                return;
+            }
+            using (wtoken)
+            {
+                wtoken.Cancel();
+            }
+            wtoken = null;
+            taskPos = null;
+            taskEnabled = null;
+            taskFwEnabled = null;
+            taskBwEnabled = null;
+        }
 
     }
 }
