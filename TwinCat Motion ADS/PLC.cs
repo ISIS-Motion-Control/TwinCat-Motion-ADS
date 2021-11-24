@@ -17,11 +17,30 @@ namespace TwinCat_Motion_ADS
             get { return _adsState; }
             set { _adsState = value; }
         }
-        public PLC(string ID, int PORT)
+
+        private string _id;
+        public string ID
         {
+            get { return _id; }
+            set { _id = value; }
+        }
+        private int _port;
+
+        public int Port
+        {
+            get { return _port; }
+            set { _port = value; }
+        }
+
+
+
+        public PLC(string amsID, int port)
+        {
+            ID = amsID;
+            Port = port;
             try
             {
-                TcAds.Connect(ID, PORT);
+                TcAds.Connect(ID, port);
             }
             catch
             {
@@ -29,6 +48,34 @@ namespace TwinCat_Motion_ADS
             }
                 
         }
+
+        public bool Connect()
+        {
+            try
+            {
+                TcAds.Connect(ID, Port);
+                return true;
+            }
+            catch
+            {
+                Console.WriteLine("Invalid configuration");
+                return false;
+            }
+        }
+
+        public bool Disconnect()
+        {
+            try
+            {
+                return TcAds.Disconnect();
+            }
+            catch
+            {
+                Console.WriteLine("Disconnect Failed");
+                return false;
+            }
+        }
+
         public bool checkConnection()
         {
             return TcAds.IsConnected;
@@ -46,6 +93,24 @@ namespace TwinCat_Motion_ADS
                 return AdsState.Invalid;
             }
         }
+        public bool IsStateRun()
+        {
+            try
+            {
+                if(TcAds.ReadState().AdsState == AdsState.Run)
+                {
+                    Console.WriteLine("PLC is running");
+                    return true;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+
         public AdsState setupPLC()
         {
             if (checkConnection())

@@ -94,9 +94,6 @@ namespace TwinCat_Motion_ADS
         /// <summary>
         /// Update current axis instance  - generates new variable handles for testing a different axis ID
         /// </summary>
-        /// <param name="axisID"></param>
-        /// <param name="dti1Present"></param>
-        /// <param name="dti2Present"></param>
         public void updateInstance(uint axisID)
         {
             StopPositionRead();
@@ -657,11 +654,11 @@ namespace TwinCat_Motion_ADS
         public async Task<bool> HighLimitReversal(double velocity, int timeout, int extraReversalTime, int settleTime)
         {   
             //Only allow the command if already on the high limit
-            if (await read_bFwEnabled() == true)
+           /* if (await read_bFwEnabled() == true)
             {
                 Console.WriteLine("Not on high limit. Reversal command rejected");
                 return false;
-            }
+            }*/
             //Correct the velocity setting if needed
             if (velocity < 0)
             {
@@ -752,11 +749,11 @@ namespace TwinCat_Motion_ADS
         public async Task<bool> LowLimitReversal(double velocity, int timeout, int extraReversalTime, int settleTime)
         {
             //Only allow the command if already on the low limit
-            if (await read_bBwEnabled() == true)
+           /* if (await read_bBwEnabled() == true)
             {
                 Console.WriteLine("Not on low limit. Reversal command rejected");
                 return false;
-            }
+            }*/
             //Correct the velocity setting if needed
             if (velocity > 0)
             {

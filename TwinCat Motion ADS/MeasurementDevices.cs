@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Configuration;
 
 namespace TwinCat_Motion_ADS
 {
+    [SettingsSerializeAs(SettingsSerializeAs.Xml)]
     public class MeasurementDevices
-    {
+    {//TwinCat_Motion_ADS.MeasurementDevices
         public List<MeasurementDevice> MeasurementDeviceList { get; set; }
 
         public MeasurementDevices()
