@@ -18,6 +18,7 @@ namespace TwinCat_Motion_ADS
          */
         public NcTestSettings()
         {
+            StrTestTitle = Properties.Settings.Default.testTitle;
             StrVelocity = Properties.Settings.Default.velocity;
             StrTimeout = Properties.Settings.Default.timeout;
             StrCycles = Properties.Settings.Default.cycles;
@@ -34,7 +35,21 @@ namespace TwinCat_Motion_ADS
         }
 
         //Method to import and export test settings
-     
+        private string _strTestTitle;
+        public string StrTestTitle
+        {
+            get { return _strTestTitle; }
+            set
+            {
+                _strTestTitle = value;
+                Properties.Settings.Default.testTitle = value;
+                OnPropertyChanged();   
+            }
+        }
+
+
+
+
         private string _strVelocity;
         public string StrVelocity
         {

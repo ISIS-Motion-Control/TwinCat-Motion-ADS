@@ -240,6 +240,19 @@
                         <TextBlock HorizontalAlignment="Left" 
                                        VerticalAlignment="Top" 
                                        Width="180"
+                                       Text="Test Title:"
+                                       Style="{StaticResource defaultTB}"/>
+                        <TextBox x:Name="testTitleTB" 
+                                     HorizontalAlignment="Left" 
+                                     Text="*New Test*"  
+                                     VerticalAlignment="Top" 
+                                     Width="250"
+                             Margin="5,0,0,0" FontSize="20"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Height="32">
+                        <TextBlock HorizontalAlignment="Left" 
+                                       VerticalAlignment="Top" 
+                                       Width="180"
                                        Text="Timeout (s):"
                                        Style="{StaticResource defaultTB}"/>
                         <TextBox x:Name="timeoutTB" 
@@ -247,8 +260,7 @@
                                      Text="0"  
                                      VerticalAlignment="Top" 
                                      Width="60"
-                             Margin="5,0,0,0" FontSize="20"
-                                     />
+                             Margin="5,0,0,0" FontSize="20"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Height="32">
                         <TextBlock Width="180" 

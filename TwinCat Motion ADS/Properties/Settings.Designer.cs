@@ -202,5 +202,17 @@ namespace TwinCat_Motion_ADS.Properties {
                 this["measurementDevices"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("New Test")]
+        public string testTitle {
+            get {
+                return ((string)(this["testTitle"]));
+            }
+            set {
+                this["testTitle"] = value;
+            }
+        }
     }
 }

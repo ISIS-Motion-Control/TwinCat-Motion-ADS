@@ -108,6 +108,13 @@ namespace TwinCat_Motion_ADS.MVVM.View
             timeoutTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             BindingOperations.SetBinding(timeoutTB, TextBox.TextProperty, timeoutTextboxBind);
 
+            Binding testTitleTextboxBind = new Binding();
+            testTitleTextboxBind.Mode = BindingMode.TwoWay;
+            testTitleTextboxBind.Source = NcTestSettings;
+            testTitleTextboxBind.Path = new PropertyPath("StrTestTitle");
+            testTitleTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(testTitleTB, TextBox.TextProperty, testTitleTextboxBind);
+            
             Binding velocityTextboxBind = new Binding();
             velocityTextboxBind.Mode = BindingMode.TwoWay;
             velocityTextboxBind.Source = NcTestSettings;

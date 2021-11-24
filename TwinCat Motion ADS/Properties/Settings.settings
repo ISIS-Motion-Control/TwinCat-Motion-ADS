@@ -47,5 +47,8 @@
     <Setting Name="measurementDevices" Type="(Web Service URL)" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="testTitle" Type="System.String" Scope="User">
+      <Value Profile="(Default)">New Test</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
