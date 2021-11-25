@@ -42,10 +42,14 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
             else
             {
-                testAxis.updateInstance(Convert.ToUInt32(axisSelection.Text));
+                testAxis.updateInstance(Convert.ToUInt32(axisSelection.Text), windowData.Plc);
             }
             setupBinds();
+        }
 
+        private void nukeIt_Click(object sender, RoutedEventArgs e)
+        {
+            testAxis = null;
         }
 
         

@@ -107,77 +107,84 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> read_bDone()
         {
-            if (!Plc.checkConnection())
+            var thisTask = Plc.TcAds.ReadAnyAsync<bool>(bDoneHandle, CancellationToken.None);
+            await thisTask;
+            if (thisTask.Status == TaskStatus.Faulted)
             {
                 throw new Exception();
             }
-            try
+            else
             {
-                var result = await Plc.TcAds.ReadAnyAsync<bool>(bDoneHandle, CancellationToken.None);
-                return result.Value;
+                return thisTask.Result.Value; ;
             }
-            catch
-            {
-                StopPositionRead();
-                throw new Exception();
-            }
-            
         }
 
         public async Task<double> read_AxisPosition()
         {
-            if (!Plc.checkConnection())
+            if (!ValidCommand()) return -9999999;
+            
+            
+
+            var thisTask = Plc.TcAds.ReadAnyAsync<double>(fActPositionHandle, CancellationToken.None);
+            Task.WaitAny(thisTask);
+            if(thisTask == null)
             {
-                throw new Exception();
+                Console.WriteLine("Shit went wrong");
             }
-            try
+            //await thisTask;
+            if (thisTask.Status == TaskStatus.Faulted)
             {
-                var result = await Plc.TcAds.ReadAnyAsync<double>(fActPositionHandle, CancellationToken.None);
-                AxisPosition = result.Value;
-                return result.Value;
+                //StopPositionRead();
+                return -9999999;
             }
-            catch
+            else
             {
-                StopPositionRead();
-                throw new Exception();
+                AxisPosition = thisTask.Result.Value;
+                return thisTask.Result.Value; ;
             }
         }
 
         public async Task<bool> read_bBusy()
         {
-            if (!Plc.checkConnection())
-            {
-                throw new Exception();
-            }
             try
             {
-                var result = await Plc.TcAds.ReadAnyAsync<bool>(bBusyHandle, CancellationToken.None);
-                return result.Value;
+                var thisTask = Plc.TcAds.ReadAnyAsync<bool>(bBusyHandle, CancellationToken.None);
+                await thisTask;
+                if (thisTask.Status == TaskStatus.Faulted)
+                {
+                    throw new Exception();
+                }
+                else
+                {
+                    return thisTask.Result.Value; ;
+                }
             }
             catch
             {
-                StopPositionRead();
-                throw new Exception();
+                return false;
             }
             
         }
 
         public async Task<bool> read_bEnabled()
         {
-            if (!Plc.checkConnection())
-            {
-                throw new Exception();
-            }
             try
             {
-                var result = await Plc.TcAds.ReadAnyAsync<bool>(bEnabledHandle, CancellationToken.None);
-                AxisEnabled = result.Value;
-                return result.Value;
+                var thisTask = Plc.TcAds.ReadAnyAsync<bool>(bEnabledHandle, CancellationToken.None);
+                await thisTask;
+                if (thisTask.Status == TaskStatus.Faulted)
+                {
+                    throw new Exception();
+                }
+                else
+                {
+                    AxisEnabled = thisTask.Result.Value;
+                    return thisTask.Result.Value; ;
+                }
             }
             catch
             {
-                StopPositionRead();
-                throw new Exception();
+                return false;
             }
             
         }
@@ -190,7 +197,6 @@ namespace TwinCat_Motion_ADS
                 await thisTask;
                 if (thisTask.Status == TaskStatus.Faulted)
                 {
-                    StopPositionRead();
                     throw new Exception();
                 }
                 else
@@ -205,95 +211,107 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
-                StopPositionRead();
-                throw new Exception();
+                return false;
             }
             
         }
 
         public async Task<bool> read_bBwEnabled()
         {
-            if (!Plc.checkConnection())
-            {
-                throw new Exception();
-            }
             try
             {
-                var result = await Plc.TcAds.ReadAnyAsync<bool>(bBwEnabledHandle, CancellationToken.None);
-                AxisBwEnabled = result.Value;
-                return result.Value;
+                var thisTask = Plc.TcAds.ReadAnyAsync<bool>(bBwEnabledHandle, CancellationToken.None);
+                await thisTask;
+                if (thisTask.Status == TaskStatus.Faulted)
+                {
+                    throw new Exception();
+                }
+                else
+                {
+                    AxisBwEnabled = thisTask.Result.Value;
+                    return AxisBwEnabled;
+                }
             }
             catch
             {
-                StopPositionRead();
-                throw new Exception();
+                return false;
             }
         }
 
         public async Task<bool> read_bError()
         {
-            if(!Plc.checkConnection())
-            {
-                throw new Exception();
-            }
             try
             {
-                var result = await Plc.TcAds.ReadAnyAsync<bool>(bErrorHandle, CancellationToken.None);
-                Error = result.Value;
-                return result.Value;
+                var thisTask = Plc.TcAds.ReadAnyAsync<bool>(bErrorHandle, CancellationToken.None);
+                await thisTask;
+                if (thisTask.Status == TaskStatus.Faulted)
+                {
+                    throw new Exception();
+                }
+                else
+                {
+                    Error = thisTask.Result.Value;
+                    return Error;
+                }
             }
             catch
             {
-                throw new Exception();
+                return false;
             }
         }
 
-        CancellationTokenSource wtoken;
+        
         ActionBlock<DateTimeOffset> taskPos;
         ActionBlock<DateTimeOffset> taskEnabled;
         ActionBlock<DateTimeOffset> taskFwEnabled;
         ActionBlock<DateTimeOffset> taskBwEnabled;
         ActionBlock<DateTimeOffset> taskError;
 
+        CancellationTokenSource readToken; //= new CancellationTokenSource();
         public void StartPositionRead()
         {
             try
             {
-                wtoken = new CancellationTokenSource();
-                taskPos = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_AxisPosition(), wtoken.Token, TimeSpan.FromMilliseconds(50));
-                taskEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bEnabled(), wtoken.Token, TimeSpan.FromMilliseconds(200));
-                taskFwEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bFwEnabled(), wtoken.Token, TimeSpan.FromMilliseconds(200));
-                taskBwEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bBwEnabled(), wtoken.Token, TimeSpan.FromMilliseconds(200));
-                taskError = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bError(), wtoken.Token, TimeSpan.FromMilliseconds(200));
+                readToken = new CancellationTokenSource();
+                taskPos = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_AxisPosition(), readToken.Token, TimeSpan.FromMilliseconds(50));
+                //taskEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bEnabled(), CancellationToken.None, TimeSpan.FromMilliseconds(200));
+                //taskFwEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bFwEnabled(), wtoken.Token, TimeSpan.FromMilliseconds(200));
+                //taskBwEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bBwEnabled(), wtoken.Token, TimeSpan.FromMilliseconds(200));
+               // taskError = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bError(), wtoken.Token, TimeSpan.FromMilliseconds(200));
                 taskPos.Post(DateTimeOffset.Now);
-                taskEnabled.Post(DateTimeOffset.Now);
-                taskFwEnabled.Post(DateTimeOffset.Now);
-                taskBwEnabled.Post(DateTimeOffset.Now);
-                taskError.Post(DateTimeOffset.Now);
+                //taskEnabled.Post(DateTimeOffset.Now);
+                //taskFwEnabled.Post(DateTimeOffset.Now);
+               // //taskBwEnabled.Post(DateTimeOffset.Now);
+                //taskError.Post(DateTimeOffset.Now);
             }
-            catch
+            catch(Exception)
             {
                 Console.WriteLine("Lost connection to controller");
-                StopPositionRead();
-                Plc.Disconnect();
             }
             
         }
         public void StopPositionRead()
         {
-            if (wtoken == null)
-            {
-                return;
-            }
-            using (wtoken)
-            {
-                wtoken.Cancel();
-            }
-            wtoken = null;
-            taskPos = null;
-            taskEnabled = null;
-            taskFwEnabled = null;
-            taskBwEnabled = null;
+             if (readToken == null)
+             {
+                 return;
+             }
+             using (readToken)
+             {
+                 readToken.Cancel();
+             }
+            readToken = null;
+            //taskPos = null;
+            //taskEnabled = null;
+
+
+            //if (readToken == null) return;
+            //readToken.Cancel();
+            //readToken.Dispose();
+            //readToken = new CancellationTokenSource();
+
+            //taskFwEnabled = null;
+            //taskBwEnabled = null;
         }
 
     }

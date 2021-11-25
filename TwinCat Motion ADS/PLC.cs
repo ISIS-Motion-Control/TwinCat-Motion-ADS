@@ -99,7 +99,6 @@ namespace TwinCat_Motion_ADS
             {
                 if(TcAds.ReadState().AdsState == AdsState.Run)
                 {
-                    Console.WriteLine("PLC is running");
                     return true;
                 }
                 return false;
@@ -115,8 +114,9 @@ namespace TwinCat_Motion_ADS
         {
             if (checkConnection())
             { Console.WriteLine("Port open"); };
-
+            //Connect();
             return checkAdsState();
+            
         }
     }
 }
