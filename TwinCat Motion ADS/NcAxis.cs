@@ -7,7 +7,6 @@ using CsvHelper;
 using System.IO;
 using System.Globalization;
 
-
 namespace TwinCat_Motion_ADS
 {
     public partial class NcAxis : TestAdmin
@@ -43,36 +42,55 @@ namespace TwinCat_Motion_ADS
         {
             Plc = plc;
             AxisID = axisID;
-            updateInstance(axisID);
+            updateInstance(AxisID, Plc);
         }
 
-        public void updateInstance(uint axisID)
+        private bool ValidCommand(bool motionCheck = false) //always going to check if PLC is valid or not
         {
+            if(!Plc.IsStateRun())
+            {
+                Console.WriteLine("Incorrect PLC configuration");
+                StopPositionRead();
+                return false;
+            }
+            //check some motion parameters???
+            
+
+            return true;
+        }
+
+        public void updateInstance(uint axisID, PLC plc)
+        {
+            if (!ValidCommand()) return;
             try
             {
-                StopPositionRead();
+                
+                
                 AxisID = axisID;
+                Plc = plc;
                 //These variable handles rely on the twinCAT standard solution naming.
-                eCommandHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.eCommand");
-                fVelocityHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.fVelocity");
-                fPositionHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.fPosition");
-                bExecuteHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.bExecute");
-                fActPositionHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stStatus.fActPosition");
-                bDoneHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stStatus.bDone");
-                bBusyHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stStatus.bBusy");
-                bFwEnabledHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stStatus.bFwEnabled");
-                bBwEnabledHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stStatus.bBwEnabled");
-                bEnabledHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stStatus.bEnabled");
-                bStopHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.bHalt");    //bStop causes an error on the axis. bHalt just ends movement
-                bErrorHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stStatus.bError");
-                bEnableHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.bEnable");
-                bResetHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + axisID + "].stControl.bReset");
+                eCommandHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stControl.eCommand");
+                fVelocityHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stControl.fVelocity");
+                fPositionHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stControl.fPosition");
+                bExecuteHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stControl.bExecute");
+                fActPositionHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stStatus.fActPosition");
+                bDoneHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stStatus.bDone");
+                bBusyHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stStatus.bBusy");
+                bFwEnabledHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stStatus.bFwEnabled");
+                bBwEnabledHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stStatus.bBwEnabled");
+                bEnabledHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stStatus.bEnabled");
+                bStopHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stControl.bHalt");    //bStop causes an error on the axis. bHalt just ends movement
+                bErrorHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stStatus.bError");
+                bEnableHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stControl.bEnable");
+                bResetHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stControl.bReset");
                 StartPositionRead();
+                //StopPositionRead();
+                //StartPositionRead();
+                
             }
             catch
             {
-                Console.WriteLine("Invalid PLC Setup");
-                Plc.Disconnect();
+                Console.WriteLine("Invalid PLC Configuration - unable to create variable handles");
             }
                    
 
@@ -80,36 +98,43 @@ namespace TwinCat_Motion_ADS
 
         private async Task setCommand(byte command)
         {
+            if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(eCommandHandle, command, CancellationToken.None);
         }
         
         private async Task setVelocity(double velocity)
         {
+            if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(fVelocityHandle, velocity, CancellationToken.None);
         }
 
         private async Task setPosition(double position)
         {
+            if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(fPositionHandle, position, CancellationToken.None);
         }
 
         private async Task execute()
         {
+            if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(bExecuteHandle, true, CancellationToken.None);
         }
 
         public async Task setEnable(bool enable)
         {
+            if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(bEnableHandle, enable, CancellationToken.None);
         }
 
         public async Task Reset()
         {
+            if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(bResetHandle, true, CancellationToken.None);
         }
 
         public async Task<bool> moveAbsolute(double position, double velocity)
         {
+            if (!ValidCommand()) return false;
             if (await read_bBusy())
             {
                 return false;   //command fails if axis already busy
@@ -153,6 +178,7 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> moveAbsoluteAndWait(double position, double velocity, int timeout = 0)
         {
+            if (!ValidCommand()) return false;
             CancellationTokenSource ct = new CancellationTokenSource();
 
             if (await moveAbsolute(position, velocity))
@@ -162,9 +188,10 @@ namespace TwinCat_Motion_ADS
                 Task<bool> errorTask = checkForError(ct.Token);
                 Task<bool> limitTask;
                 List<Task> waitingTask;
-                
+
                 //Check direction of travel for monitoring limits
-                double currentPosition = await read_AxisPosition();
+                //double currentPosition = await read_AxisPosition();
+                double currentPosition = AxisPosition;
                 if(position>currentPosition)
                 {
                     limitTask = checkFwLimitTask(true, ct.Token);
@@ -216,6 +243,7 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> moveRelative(double position, double velocity)
         {
+            if (!ValidCommand()) return false;
             if (await read_bBusy())
             {
                 return false;   //command fails if axis already busy
@@ -255,6 +283,7 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> moveRelativeAndWait(double position, double velocity, int timeout=0)
         {
+            if (!ValidCommand()) return false;
             CancellationTokenSource ct = new CancellationTokenSource();
 
             if (await moveRelative(position,velocity))
@@ -317,6 +346,7 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> moveVelocity(double velocity)
         {
+            if (!ValidCommand()) return false;
             if (await read_bBusy())
             {
                 return false;   //command fails if axis already busy
@@ -352,13 +382,15 @@ namespace TwinCat_Motion_ADS
 
         public async Task moveStop()
         {
+            if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(bStopHandle, true, CancellationToken.None);
         }
 
         public async Task<bool> moveToHighLimit(double velocity, int timeout)
         {
+            if (!ValidCommand()) return false;
             //Check to see if already on the high limit
-            if(await read_bFwEnabled() == false)
+            if (await read_bFwEnabled() == false)
             {
                 Console.WriteLine("Already at high limit");
                 return true;
@@ -410,6 +442,7 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> moveToLowLimit(double velocity, int timeout)
         {
+            if (!ValidCommand()) return false;
             //Check to see if already on the low limit
             if (await read_bBwEnabled() == false)
             {
@@ -462,13 +495,14 @@ namespace TwinCat_Motion_ADS
         }
 
         public async Task<bool> HighLimitReversal(double velocity, int timeout, int extraReversalTime, int settleTime)
-        {   
+        {
+            if (!ValidCommand()) return false;
             //Only allow the command if already on the high limit
-           /* if (await read_bFwEnabled() == true)
-            {
-                Console.WriteLine("Not on high limit. Reversal command rejected");
-                return false;
-            }*/
+            /* if (await read_bFwEnabled() == true)
+             {
+                 Console.WriteLine("Not on high limit. Reversal command rejected");
+                 return false;
+             }*/
             //Correct the velocity setting if needed
             if (velocity < 0)
             {
@@ -550,12 +584,13 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> LowLimitReversal(double velocity, int timeout, int extraReversalTime, int settleTime)
         {
+            if (!ValidCommand()) return false;
             //Only allow the command if already on the low limit
-           /* if (await read_bBwEnabled() == true)
-            {
-                Console.WriteLine("Not on low limit. Reversal command rejected");
-                return false;
-            }*/
+            /* if (await read_bBwEnabled() == true)
+             {
+                 Console.WriteLine("Not on low limit. Reversal command rejected");
+                 return false;
+             }*/
             //Correct the velocity setting if needed
             if (velocity > 0)
             {
@@ -637,6 +672,7 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> end2endCycleTestingWithReversal(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
+            if (!ValidCommand()) return false;
             if (testSettings.Cycles == 0)
             {
                 Console.WriteLine("0 cycle count invalid");
@@ -841,6 +877,7 @@ namespace TwinCat_Motion_ADS
         //no timeout implemented
         public async Task<bool> uniDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
+            if (!ValidCommand()) return false;
             if (testSettings.Cycles == 0)
             {
                 Console.WriteLine("0 cycle count invalid");
@@ -1026,6 +1063,7 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> biDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
+            if (!ValidCommand()) return false;
             List<uniDirectionalAccCSV> recordList = new List<uniDirectionalAccCSV>();
             var currentTime = DateTime.Now;
 

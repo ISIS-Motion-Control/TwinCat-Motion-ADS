@@ -78,10 +78,7 @@ namespace TwinCat_Motion_ADS
 
                 }
             }
-            
-            //testAxis = new Axis(1, Plc);  //Uncomment for no DTI
-            var vm = (MainViewModel)this.DataContext;
-            
+            var vm = (MainViewModel)this.DataContext;            
         }
 
         private void setupBinds()
