@@ -108,7 +108,7 @@
         <Grid.RowDefinitions>
                 <RowDefinition Height="30"/>
                 <RowDefinition Height="30"/>
-            <RowDefinition Height="150"/>
+            <RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
             <Menu IsMainMenu="True" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 

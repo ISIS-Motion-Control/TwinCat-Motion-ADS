@@ -33,10 +33,29 @@ namespace TwinCat_Motion_ADS
         private uint bEnableHandle;
         private uint bResetHandle;
 
-       
+        private bool _valid;
+        public bool Valid
+        {
+            get { return _valid; }
+            set { _valid = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+
 
         //Current axis ID
-        public uint AxisID { get; set; }
+        private uint _axisID;
+
+        public uint AxisID
+        {
+            get { return _axisID; }
+            set { _axisID = value;
+                OnPropertyChanged();
+            }
+        }
+
 
         public NcAxis(uint axisID, PLC plc)
         {
@@ -51,11 +70,12 @@ namespace TwinCat_Motion_ADS
             {
                 Console.WriteLine("Incorrect PLC configuration");
                 StopPositionRead();
+                Valid = false;
                 return false;
             }
             //check some motion parameters???
-            
 
+            Valid = true;
             return true;
         }
 
