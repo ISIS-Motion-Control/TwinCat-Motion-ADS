@@ -46,12 +46,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
             setupBinds();
         }
-
-        private void nukeIt_Click(object sender, RoutedEventArgs e)
-        {
-            testAxis = null;
-        }
-
         
         public void setupBinds()
         {
@@ -90,6 +84,20 @@ namespace TwinCat_Motion_ADS.MVVM.View
             errorBind.Path = new PropertyPath("Error");
             errorBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             BindingOperations.SetBinding(errorCheck, CheckBox.IsCheckedProperty, errorBind);
+
+            Binding validBind = new Binding();
+            validBind.Mode = BindingMode.OneWay;
+            validBind.Source = testAxis;
+            validBind.Path = new PropertyPath("Valid");
+            validBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(validAxis, CheckBox.IsCheckedProperty, validBind);
+
+            Binding axisNumBind = new Binding();
+            axisNumBind.Mode = BindingMode.OneWay;
+            axisNumBind.Source = testAxis;
+            axisNumBind.Path = new PropertyPath("AxisID");
+            axisNumBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(currentAxis, TextBlock.TextProperty, axisNumBind);
 
             Binding testCancelledBind = new Binding();
             testCancelledBind.Mode = BindingMode.OneWay;

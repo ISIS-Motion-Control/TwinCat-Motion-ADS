@@ -267,22 +267,30 @@ namespace TwinCat_Motion_ADS
         ActionBlock<DateTimeOffset> taskBwEnabled;
         ActionBlock<DateTimeOffset> taskError;
 
-        CancellationTokenSource readToken; //= new CancellationTokenSource();
+        CancellationTokenSource readToken;
+        CancellationTokenSource readToken1;
+        CancellationTokenSource readToken2;
+        CancellationTokenSource readToken3;
+        CancellationTokenSource readToken4;
         public void StartPositionRead()
         {
             try
             {
                 readToken = new CancellationTokenSource();
+                readToken1 = new CancellationTokenSource();
+                readToken2 = new CancellationTokenSource();
+                readToken3 = new CancellationTokenSource();
+                readToken4 = new CancellationTokenSource();
                 taskPos = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_AxisPosition(), readToken.Token, TimeSpan.FromMilliseconds(50));
-                //taskEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bEnabled(), CancellationToken.None, TimeSpan.FromMilliseconds(200));
-                //taskFwEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bFwEnabled(), wtoken.Token, TimeSpan.FromMilliseconds(200));
-                //taskBwEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bBwEnabled(), wtoken.Token, TimeSpan.FromMilliseconds(200));
-               // taskError = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bError(), wtoken.Token, TimeSpan.FromMilliseconds(200));
+                taskEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bEnabled(), readToken1.Token, TimeSpan.FromMilliseconds(200));
+                taskFwEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bFwEnabled(), readToken2.Token, TimeSpan.FromMilliseconds(200));
+                taskBwEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bBwEnabled(), readToken3.Token, TimeSpan.FromMilliseconds(200));
+                taskError = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bError(), readToken4.Token, TimeSpan.FromMilliseconds(200));
                 taskPos.Post(DateTimeOffset.Now);
-                //taskEnabled.Post(DateTimeOffset.Now);
-                //taskFwEnabled.Post(DateTimeOffset.Now);
-               // //taskBwEnabled.Post(DateTimeOffset.Now);
-                //taskError.Post(DateTimeOffset.Now);
+                taskEnabled.Post(DateTimeOffset.Now);
+                taskFwEnabled.Post(DateTimeOffset.Now);
+                taskBwEnabled.Post(DateTimeOffset.Now);
+                taskError.Post(DateTimeOffset.Now);
             }
             catch(Exception)
             {
@@ -292,26 +300,30 @@ namespace TwinCat_Motion_ADS
         }
         public void StopPositionRead()
         {
-             if (readToken == null)
-             {
-                 return;
-             }
-             using (readToken)
-             {
-                 readToken.Cancel();
-             }
+            if (readToken == null) return;
+            using (readToken) readToken.Cancel();
+
+            if (readToken1 == null) return;
+            using (readToken1) readToken1.Cancel();
+            if (readToken2 == null) return;
+            using (readToken2) readToken2.Cancel();
+            if (readToken3 == null) return;
+            using (readToken3) readToken3.Cancel();
+            if (readToken4 == null) return;
+            using (readToken4) readToken4.Cancel();
+
+
             readToken = null;
-            //taskPos = null;
-            //taskEnabled = null;
+            readToken1 = null;
+            readToken2 = null;
+            readToken3 = null;
+            readToken4 = null;
 
-
-            //if (readToken == null) return;
-            //readToken.Cancel();
-            //readToken.Dispose();
-            //readToken = new CancellationTokenSource();
-
-            //taskFwEnabled = null;
-            //taskBwEnabled = null;
+            taskPos = null;
+            taskEnabled = null;
+            taskFwEnabled = null;
+            taskBwEnabled = null;
+            taskError = null;
         }
 
     }
