@@ -250,11 +250,6 @@
                                     Content="Import Settings" 
                                     Margin="0,5,0,0"
                                     Style="{StaticResource myDefaultButton}" Click="testButton_Click"/>
-                    <Button x:Name="nukeButton" 
-                                    Focusable="False"
-                                    Content="Nuke it" 
-                                    Margin="0,5,0,0"
-                                    Style="{StaticResource myDefaultButton}"/>
                 </StackPanel>
                 <StackPanel x:Name="testSettings" Margin="45,0,0,0">
                     <StackPanel Orientation="Horizontal" Height="32">
