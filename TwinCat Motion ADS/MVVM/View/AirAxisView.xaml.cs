@@ -24,6 +24,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
         MainWindow windowData;
         public PneumaticAxis pneumaticAxis;
         public string selectedFolder = string.Empty;
+        public AirTestSettings TestSettings = new();
 
         public AirAxisView()
         {
@@ -58,6 +59,69 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
             };
             BindingOperations.SetBinding(CylinderAir, CheckBox.IsCheckedProperty, cylinderBinding);
+
+            Binding cycleBinding = new Binding
+            {
+                Mode = BindingMode.TwoWay,
+                Source = TestSettings,
+                Path = new PropertyPath("StrCycles"),
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            BindingOperations.SetBinding(cycles, TextBox.TextProperty, cycleBinding);
+
+            Binding settleReadsBinding = new Binding
+            {
+                Mode = BindingMode.TwoWay,
+                Source = TestSettings,
+                Path = new PropertyPath("StrSettlingReads"),
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            BindingOperations.SetBinding(settlingReads, TextBox.TextProperty, settleReadsBinding);
+
+            Binding ReadDelayBinding = new Binding
+            {
+                Mode = BindingMode.TwoWay,
+                Source = TestSettings,
+                Path = new PropertyPath("StrReadDelayMs"),
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            BindingOperations.SetBinding(readDelay, TextBox.TextProperty, ReadDelayBinding);
+
+            Binding extendDelayBinding = new Binding
+            {
+                Mode = BindingMode.TwoWay,
+                Source = TestSettings,
+                Path = new PropertyPath("StrDelayAfterExtend"),
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            BindingOperations.SetBinding(extendDelay, TextBox.TextProperty, extendDelayBinding);
+
+            Binding retractDelayBinding = new Binding
+            {
+                Mode = BindingMode.TwoWay,
+                Source = TestSettings,
+                Path = new PropertyPath("StrDelayAfterRetract"),
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            BindingOperations.SetBinding(retractDelay, TextBox.TextProperty, retractDelayBinding);
+
+            Binding extendTimeoutBinding = new Binding
+            {
+                Mode = BindingMode.TwoWay,
+                Source = TestSettings,
+                Path = new PropertyPath("StrExtendTimeout"),
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            BindingOperations.SetBinding(extendTimeout, TextBox.TextProperty, extendTimeoutBinding);
+
+            Binding retractTimeoutBinding = new Binding
+            {
+                Mode = BindingMode.TwoWay,
+                Source = TestSettings,
+                Path = new PropertyPath("StrRetractTimeout"),
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            BindingOperations.SetBinding(retractTimeout, TextBox.TextProperty, retractTimeoutBinding);
         }
 
 
@@ -72,6 +136,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 pneumaticAxis = null;
                 pneumaticAxis = new PneumaticAxis(windowData.Plc);
             }
+            setupBinds();
             pneumaticAxis.startLimitRead();
         }
 
@@ -93,7 +158,9 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         private async void shutterEnd2End_button_Click(object sender, RoutedEventArgs e)
         {
-            await pneumaticAxis.End2EndTest(Convert.ToInt32(cycles.Text), Convert.ToInt32(settlingReads.Text), Convert.ToInt32(readDelay.Text), Convert.ToInt32(extendDelay.Text), Convert.ToInt32(retractDelay.Text), Convert.ToInt32(extendTimeout.Text), Convert.ToInt32(retractTimeout.Text));
+           // await pneumaticAxis.End2EndTest(Convert.ToInt32(cycles.Text), Convert.ToInt32(settlingReads.Text), Convert.ToInt32(readDelay.Text), Convert.ToInt32(extendDelay.Text), Convert.ToInt32(retractDelay.Text), Convert.ToInt32(extendTimeout.Text), Convert.ToInt32(retractTimeout.Text));
+            await pneumaticAxis.End2EndTest(TestSettings,windowData.MeasurementDevices);
+
         }
 
         private void shutterTestFolderDir_button_Click(object sender, RoutedEventArgs e)

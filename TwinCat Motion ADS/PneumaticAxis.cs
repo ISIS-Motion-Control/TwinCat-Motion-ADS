@@ -361,6 +361,165 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
+        public async Task<bool> End2EndTest(AirTestSettings ts, MeasurementDevices md =null)
+        {
+            Stopwatch testStopwatch = new Stopwatch();
+            testStopwatch.Start();
+            //Start the test retracted
+            if (await retractCylinderAndWait(ts.RetractTimeout) == false)
+            {
+                Console.WriteLine("TEST STATUS: Retract init failed");
+                testStopwatch.Stop();
+                return false;
+            }
+
+            //Setup the csv file:
+            List<PneumaticEnd2EndCSVv2> recordList = new List<PneumaticEnd2EndCSVv2>();
+            List<PneumaticEnd2EndCSVv2> retractRecord = new List<PneumaticEnd2EndCSVv2>();
+            List<string> measurements = new();
+            List<List<string>> cycleMeasurements = new();
+            var currentTime = DateTime.Now;
+            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-PneumaticAxis-end2end-settlingReads({1}) settlingReadDelay({2}) ext2retDelay({3}) re2extDelay({4}) - {5} cycles", currentTime, ts.SettlingReads, ts.ReadDelayMs, ts.DelayAfterExtend, ts.DelayAfterRetract, ts.Cycles);
+
+            string fileName = @"\" + formattedTitle + ".csv";
+            var stream = File.Open(TestDirectory + fileName, FileMode.Append);
+            var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
+            { HasHeaderRecord = false, };
+
+            StreamWriter writer = new StreamWriter(stream);
+            CsvWriter csv = new CsvWriter(writer, config);
+
+            using (stream)
+            using (writer)
+            using (csv)
+            {
+                csv.WriteHeader<PneumaticEnd2EndCSVv2>();
+                if (md != null)    //populate CSV headers with device names
+                {
+                    foreach (var device in md.MeasurementDeviceList)
+                    {
+                        if (device.Connected)
+                        {
+                            csv.WriteField(device.Name);
+                            csv.WriteField(device.Name + "Timestamp");
+                        }
+                    }
+
+                }
+                csv.NextRecord();
+            }
+            Stopwatch stopwatch = new Stopwatch();
+            CancellationTokenSource ctToken = new CancellationTokenSource();
+            CancellationTokenSource ptToken = new CancellationTokenSource();
+            Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
+
+            for (int i = 0; i < ts.Cycles; i++)
+            {
+                measurements.Clear();
+                cycleMeasurements.Clear();
+                Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
+                await pauseTaskRequest;
+                if (cancelRequestTask.IsCompleted)
+                {
+                    //Cancelled the test
+                    ptToken.Cancel();
+                    CancelTest = false;
+                    Console.WriteLine("Test cancelled");
+                    return false;
+                }
+
+
+                Console.WriteLine("Starting test cycle " + i);
+                stopwatch.Reset();
+
+                //Wait the allotted delay time
+                await Task.Delay(TimeSpan.FromSeconds(ts.DelayAfterRetract));
+                stopwatch.Start();
+                if (await extendCylinderAndWait(ts.ExtendTimeout) == false)
+                {
+                    Console.WriteLine("TEST STATUS: Extension failed");
+                    stopwatch.Stop();
+                    testStopwatch.Stop();
+                    return false;
+                }
+                stopwatch.Stop();
+                for (int j = 0; j < ts.SettlingReads; j++)
+                {
+                    //do a read of DTIs (both should be in extend position)
+                    //These will not be highly synchronised reads, very low "read rate".
+
+
+                    CancellationTokenSource testToken = new CancellationTokenSource();
+                    if(md != null)
+                    {
+                        measurements = new();
+                        foreach(var device in md.MeasurementDeviceList)
+                        {
+                            if(device.Connected)
+                            {
+                                string measure = string.Empty;
+                                string timestamp = string.Empty;
+                                measure = await device.GetMeasurement();
+                                timestamp = testStopwatch.Elapsed.ToString();
+                                measurements.Add(measure);
+                                measurements.Add(timestamp);
+
+                                Console.WriteLine(device.Name + ": " + measure + "@" + timestamp);
+                            }
+                        }
+                    }
+                    
+                    await Task.Delay(ts.ReadDelayMs);
+                    //log a record
+                    recordList.Add(new PneumaticEnd2EndCSVv2((uint)i, (uint)j, "Extending", ExtendedLimit, RetractedLimit, stopwatch.Elapsed));
+                    cycleMeasurements.Add(measurements);
+                }
+                //Settling reads finished
+                //User delay before retracting cylinder
+                await Task.Delay(TimeSpan.FromSeconds(ts.DelayAfterExtend));
+                stopwatch.Reset();
+                stopwatch.Start();
+                if (await retractCylinderAndWait(ts.RetractTimeout) == false)
+                {
+                    Console.WriteLine("TEST STATUS: Retraction failed");
+                    stopwatch.Stop();
+                    testStopwatch.Stop();
+                    return false;
+                }
+                stopwatch.Stop();
+                retractRecord.Add(new PneumaticEnd2EndCSVv2((uint)i, 0, "Retracting", ExtendedLimit, RetractedLimit, stopwatch.Elapsed));
+                //Retract finished and logged. Write to csv
+                //Write the cycle data
+                using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
+                using (writer = new StreamWriter(stream))
+                
+                
+                using (csv = new CsvWriter(writer, config))
+                {
+                    //csv.WriteRecords(recordList);
+                    int loopIndex = 0;
+                    foreach(var record in recordList)
+                    {
+                        csv.WriteRecord(record);
+                        if (md != null)
+                        {
+                            foreach (var measure in cycleMeasurements[loopIndex])
+                            {
+                                csv.WriteField(measure);
+                            }
+                        }
+                        loopIndex++;
+                        csv.NextRecord();
+                    }
+                    csv.WriteRecords(retractRecord);
+                }
+                recordList.Clear();
+                retractRecord.Clear();
+            }
+            testStopwatch.Stop();
+            Console.WriteLine("Test complete. Time taken: " + testStopwatch.Elapsed);
+            return true;
+        }
 
 
         ActionBlock<DateTimeOffset> taskExtendedLimit;
@@ -369,6 +528,7 @@ namespace TwinCat_Motion_ADS
         CancellationTokenSource wtoken = new CancellationTokenSource();
         public void startLimitRead()
         {
+            Console.WriteLine("Starting reads");
             taskExtendedLimit = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_ExtendedLimit(), wtoken.Token, TimeSpan.FromMilliseconds(20));
             taskRetractedLimit = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_RetractedLimit(), wtoken.Token, TimeSpan.FromMilliseconds(20));
             taskCylinder = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bCylinder(), wtoken.Token, TimeSpan.FromMilliseconds(20));
