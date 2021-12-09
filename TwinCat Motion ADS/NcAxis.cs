@@ -730,7 +730,7 @@ namespace TwinCat_Motion_ADS
             Stopwatch stopWatch = new(); //Create stopwatch for rough end to end timing
             testSettings.Velocity = Math.Abs(testSettings.Velocity);
             //Start low
-            if (await MoveToLowLimit(-testSettings.Velocity, testSettings.Timeout) == false)
+            if (await MoveToLowLimit(-testSettings.Velocity, (int)testSettings.Timeout) == false)
             {
                 Console.WriteLine("Failed to move to low limit for start of test");
                 return false;
@@ -764,11 +764,11 @@ namespace TwinCat_Motion_ADS
                 stopWatch.Reset();
                 stopWatch.Start();  //Clear and start the stopwatch
 
-                if (await MoveToHighLimit(testSettings.Velocity, testSettings.Timeout))
+                if (await MoveToHighLimit(testSettings.Velocity, (int)testSettings.Timeout))
                 {
                     stopWatch.Stop();
                     await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));//Allow axis to settle before reversal
-                    if (await HighLimitReversal(testSettings.ReversalVelocity, testSettings.Timeout, testSettings.ReversalExtraTimeSeconds, testSettings.ReversalSettleTimeSeconds))
+                    if (await HighLimitReversal(testSettings.ReversalVelocity, (int)testSettings.Timeout, (int)testSettings.ReversalExtraTimeSeconds, (int)testSettings.ReversalSettleTimeSeconds))
                     {
 
                         ///READ MEASUREMENT DEVICES///
@@ -813,11 +813,11 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds));
                 stopWatch.Reset();
                 stopWatch.Start();
-                if (await MoveToLowLimit(-testSettings.Velocity, testSettings.Timeout))
+                if (await MoveToLowLimit(-testSettings.Velocity, (int)testSettings.Timeout))
                 {
                     stopWatch.Stop();
                     await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));//Allow axis to settle before reversal
-                    if (await LowLimitReversal(testSettings.ReversalVelocity, testSettings.Timeout, testSettings.ReversalExtraTimeSeconds, testSettings.ReversalSettleTimeSeconds))
+                    if (await LowLimitReversal(testSettings.ReversalVelocity, (int)testSettings.Timeout, (int)testSettings.ReversalExtraTimeSeconds, (int)testSettings.ReversalSettleTimeSeconds))
                     {
                         
 
@@ -984,7 +984,7 @@ namespace TwinCat_Motion_ADS
                 double TargetPosition = testSettings.InitialSetpoint;
 
                 //Start test at reversal position then moving to initial setpoint          
-                if (await MoveAbsoluteAndWait(reversalPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                if (await MoveAbsoluteAndWait(reversalPosition, testSettings.Velocity, (int)testSettings.Timeout) == false)
                 {
                     Console.WriteLine("Failed to move to reversal position");
                     stopWatch.Stop();
@@ -998,7 +998,7 @@ namespace TwinCat_Motion_ADS
                 {
                     Console.WriteLine("Step: " + j);
                     //Do the step move
-                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity, (int)testSettings.Timeout) == false)
                     {
                         Console.WriteLine("Failed to move to target position");
                         stopWatch.Stop();
@@ -1176,7 +1176,7 @@ namespace TwinCat_Motion_ADS
                 double TargetPosition = testSettings.InitialSetpoint;
 
                 //Start test at reversal position then moving to initial setpoint          
-                if (await MoveAbsoluteAndWait(reversalPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                if (await MoveAbsoluteAndWait(reversalPosition, testSettings.Velocity, (int)testSettings.Timeout) == false)
                 {
                     Console.WriteLine("Failed to move to reversal position");
                     stopWatch.Stop();
@@ -1189,7 +1189,7 @@ namespace TwinCat_Motion_ADS
                 {
                     Console.WriteLine("Positive Move. Step: " + j);
                     //Do the step move
-                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity, (int)testSettings.Timeout) == false)
                     {
                         Console.WriteLine("Failed to move to target position");
                         stopWatch.Stop();
@@ -1225,7 +1225,7 @@ namespace TwinCat_Motion_ADS
                 }
                 TargetPosition -= testSettings.StepSize;
                 //Overshoot the final position before coming back down
-                if (await MoveAbsoluteAndWait(overshootPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                if (await MoveAbsoluteAndWait(overshootPosition, testSettings.Velocity, (int)testSettings.Timeout) == false)
                 {
                     Console.WriteLine("Failed to move to overshoot position");
                     stopWatch.Stop();
@@ -1237,7 +1237,7 @@ namespace TwinCat_Motion_ADS
                 {
                     Console.WriteLine("Negative Move. Step: " + j);
                     //Do the step move
-                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity, (int)testSettings.Timeout) == false)
                     {
                         Console.WriteLine("Failed to move to target position");
                         stopWatch.Stop();

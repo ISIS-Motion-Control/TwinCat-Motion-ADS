@@ -117,35 +117,35 @@ namespace TwinCat_Motion_ADS.MVVM.View
             timeoutTextboxBind.Mode = BindingMode.TwoWay;
             timeoutTextboxBind.Source = NcTestSettings;
             timeoutTextboxBind.Path = new PropertyPath("StrTimeout");
-            timeoutTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            timeoutTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
             BindingOperations.SetBinding(timeoutTB, TextBox.TextProperty, timeoutTextboxBind);
 
             Binding testTitleTextboxBind = new();
             testTitleTextboxBind.Mode = BindingMode.TwoWay;
             testTitleTextboxBind.Source = NcTestSettings;
             testTitleTextboxBind.Path = new PropertyPath("StrTestTitle");
-            testTitleTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            testTitleTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
             BindingOperations.SetBinding(testTitleTB, TextBox.TextProperty, testTitleTextboxBind);
             
             Binding velocityTextboxBind = new();
             velocityTextboxBind.Mode = BindingMode.TwoWay;
             velocityTextboxBind.Source = NcTestSettings;
             velocityTextboxBind.Path = new PropertyPath("StrVelocity");
-            velocityTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            velocityTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
             BindingOperations.SetBinding(velocityTB, TextBox.TextProperty, velocityTextboxBind);
 
             Binding cycleTextboxBind = new();
             cycleTextboxBind.Mode = BindingMode.TwoWay;
             cycleTextboxBind.Source = NcTestSettings;
             cycleTextboxBind.Path = new PropertyPath("StrCycles");
-            cycleTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            cycleTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
             BindingOperations.SetBinding(cycleTB, TextBox.TextProperty, cycleTextboxBind);
 
             Binding cycleDelayTextboxBind = new();
             cycleDelayTextboxBind.Mode = BindingMode.TwoWay;
             cycleDelayTextboxBind.Source = NcTestSettings;
             cycleDelayTextboxBind.Path = new PropertyPath("StrCycleDelaySeconds");
-            cycleDelayTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            cycleDelayTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
             BindingOperations.SetBinding(cycleDelayTB, TextBox.TextProperty, cycleDelayTextboxBind);
 
             Binding reversalVelTextboxBind = new()
@@ -153,7 +153,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 Mode = BindingMode.TwoWay,
                 Source = NcTestSettings,
                 Path = new PropertyPath("StrReversalVelocity"),
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
             };
             BindingOperations.SetBinding(revVelTB, TextBox.TextProperty, reversalVelTextboxBind);
 
@@ -161,56 +161,56 @@ namespace TwinCat_Motion_ADS.MVVM.View
             reversalExtraTimeTextboxBind.Mode = BindingMode.TwoWay;
             reversalExtraTimeTextboxBind.Source = NcTestSettings;
             reversalExtraTimeTextboxBind.Path = new PropertyPath("StrReversalExtraTimeSeconds");
-            reversalExtraTimeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            reversalExtraTimeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
             BindingOperations.SetBinding(revExtraTB, TextBox.TextProperty, reversalExtraTimeTextboxBind);
 
             Binding reversalSettleTimeTextboxBind = new();
             reversalSettleTimeTextboxBind.Mode = BindingMode.TwoWay;
             reversalSettleTimeTextboxBind.Source = NcTestSettings;
             reversalSettleTimeTextboxBind.Path = new PropertyPath("StrReversalSettleTimeSeconds");
-            reversalSettleTimeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            reversalSettleTimeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
             BindingOperations.SetBinding(revSettleTB, TextBox.TextProperty, reversalSettleTimeTextboxBind);
 
             Binding initialSetpointTextboxBind = new();
             initialSetpointTextboxBind.Mode = BindingMode.TwoWay;
             initialSetpointTextboxBind.Source = NcTestSettings;
             initialSetpointTextboxBind.Path = new PropertyPath("StrInitialSetpoint");
-            initialSetpointTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            initialSetpointTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
             BindingOperations.SetBinding(initSetpointTB, TextBox.TextProperty, initialSetpointTextboxBind);
 
             Binding numberOfStepsTextboxBind = new();
             numberOfStepsTextboxBind.Mode = BindingMode.TwoWay;
             numberOfStepsTextboxBind.Source = NcTestSettings;
             numberOfStepsTextboxBind.Path = new PropertyPath("StrNumberOfSteps");
-            numberOfStepsTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            numberOfStepsTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
             BindingOperations.SetBinding(NumberOfStepsTB, TextBox.TextProperty, numberOfStepsTextboxBind);
 
             Binding stepSizeTextboxBind = new();
             stepSizeTextboxBind.Mode = BindingMode.TwoWay;
             stepSizeTextboxBind.Source = NcTestSettings;
             stepSizeTextboxBind.Path = new PropertyPath("StrStepSize");
-            stepSizeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            stepSizeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
             BindingOperations.SetBinding(stepSizeTB, TextBox.TextProperty, stepSizeTextboxBind);
 
             Binding settleTimeTextboxBind = new();
             settleTimeTextboxBind.Mode = BindingMode.TwoWay;
             settleTimeTextboxBind.Source = NcTestSettings;
             settleTimeTextboxBind.Path = new PropertyPath("StrSettleTimeSeconds");
-            settleTimeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            settleTimeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
             BindingOperations.SetBinding(settleTimeTB, TextBox.TextProperty, settleTimeTextboxBind);
 
             Binding reversalDistanceTextboxBind = new();
             reversalDistanceTextboxBind.Mode = BindingMode.TwoWay;
             reversalDistanceTextboxBind.Source = NcTestSettings;
             reversalDistanceTextboxBind.Path = new PropertyPath("StrReversalDistance");
-            reversalDistanceTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            reversalDistanceTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
             BindingOperations.SetBinding(revDistanceTB, TextBox.TextProperty, reversalDistanceTextboxBind);
 
             Binding overshootDistanceTextboxBind = new();
             overshootDistanceTextboxBind.Mode = BindingMode.TwoWay;
             overshootDistanceTextboxBind.Source = NcTestSettings;
             overshootDistanceTextboxBind.Path = new PropertyPath("StrOvershootDistance");
-            overshootDistanceTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            overshootDistanceTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
             BindingOperations.SetBinding(overshootDistanceTB, TextBox.TextProperty, overshootDistanceTextboxBind);
 
 
@@ -450,6 +450,11 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
             Console.WriteLine(selectedFolder);
             
+        }
+
+        private void ncWindowGrid_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            ncWindowGrid.Focus();
         }
     }
 }

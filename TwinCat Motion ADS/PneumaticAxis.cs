@@ -97,7 +97,7 @@ namespace TwinCat_Motion_ADS
             return false;
         }
 
-        public async Task<bool> ExtendCylinderAndWait(int timeout = 0, bool ignoreLimits = false)
+        public async Task<bool> ExtendCylinderAndWait(uint timeout = 0, bool ignoreLimits = false)
         {
             CancellationTokenSource ct = new();
 
@@ -137,7 +137,7 @@ namespace TwinCat_Motion_ADS
             }
             return false;
         }
-        public async Task<bool> RetractCylinderAndWait(int timeout = 0, bool ignoreLimits = false)
+        public async Task<bool> RetractCylinderAndWait(uint timeout = 0, bool ignoreLimits = false)
         {
             CancellationTokenSource ct = new();
 
@@ -312,7 +312,7 @@ namespace TwinCat_Motion_ADS
                         }
                     }
                     
-                    await Task.Delay(ts.ReadDelayMs);
+                    await Task.Delay((int)ts.ReadDelayMs);
                     //log a record
                     recordList.Add(new PneumaticEnd2EndCSVv2((uint)i, (uint)j, "Extending", ExtendedLimit, RetractedLimit, stopwatch.Elapsed));
                     cycleMeasurements.Add(measurements);

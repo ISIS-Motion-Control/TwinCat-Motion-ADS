@@ -65,7 +65,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
                 Path = new PropertyPath("StrCycles"),
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
             };
             BindingOperations.SetBinding(cycles, TextBox.TextProperty, cycleBinding);
 
@@ -74,7 +74,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
                 Path = new PropertyPath("StrSettlingReads"),
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
             };
             BindingOperations.SetBinding(settlingReads, TextBox.TextProperty, settleReadsBinding);
 
@@ -83,7 +83,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
                 Path = new PropertyPath("StrReadDelayMs"),
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
             };
             BindingOperations.SetBinding(readDelay, TextBox.TextProperty, ReadDelayBinding);
 
@@ -92,7 +92,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
                 Path = new PropertyPath("StrDelayAfterExtend"),
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
             };
             BindingOperations.SetBinding(extendDelay, TextBox.TextProperty, extendDelayBinding);
 
@@ -101,7 +101,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
                 Path = new PropertyPath("StrDelayAfterRetract"),
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
             };
             BindingOperations.SetBinding(retractDelay, TextBox.TextProperty, retractDelayBinding);
 
@@ -110,7 +110,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
                 Path = new PropertyPath("StrExtendTimeout"),
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
             };
             BindingOperations.SetBinding(extendTimeout, TextBox.TextProperty, extendTimeoutBinding);
 
@@ -119,7 +119,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
                 Path = new PropertyPath("StrRetractTimeout"),
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
             };
             BindingOperations.SetBinding(retractTimeout, TextBox.TextProperty, retractTimeoutBinding);
         }

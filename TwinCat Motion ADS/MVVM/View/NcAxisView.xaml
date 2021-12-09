@@ -7,7 +7,7 @@
              xmlns:main="clr-namespace:TwinCat_Motion_ADS"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1000">
-    <Grid Margin="10,10,0,0">
+    <Grid x:Name="ncWindowGrid" Margin="10,10,0,0" Focusable="True" MouseDown="ncWindowGrid_MouseDown">
 
         <StackPanel>
 
