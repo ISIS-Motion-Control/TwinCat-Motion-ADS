@@ -33,14 +33,7 @@ namespace TwinCat_Motion_ADS
         private uint bEnableHandle;
         private uint bResetHandle;
 
-        private bool _valid;
-        public bool Valid
-        {
-            get { return _valid; }
-            set { _valid = value;
-                OnPropertyChanged();
-            }
-        }
+       
 
 
 

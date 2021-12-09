@@ -137,7 +137,8 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 pneumaticAxis = new PneumaticAxis(windowData.Plc);
             }
             setupBinds();
-            pneumaticAxis.startLimitRead();
+            //pneumaticAxis.startLimitRead();
+            pneumaticAxis.newLimitRead();
         }
 
         private async void extendCylinder_button_Click(object sender, RoutedEventArgs e)
