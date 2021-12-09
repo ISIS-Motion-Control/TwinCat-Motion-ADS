@@ -21,24 +21,23 @@ namespace TwinCat_Motion_ADS
             StrRetractTimeout = Properties.Settings.Default.airRetractTimeout;
         }
 
-
-
         private string _strCycles;
         public string StrCycles
         {
             get { return _strCycles; }
             set
             {
-                if(int.TryParse(value, out _cycles))
+                if (uint.TryParse(value, out _))
                 {
+                    _cycles = Convert.ToUInt32(value);
                     _strCycles = value;
                     Properties.Settings.Default.airCycles = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _cycles;
-        public int Cycles
+        private uint _cycles;
+        public uint Cycles
         {
             get { return _cycles; }
             set
@@ -56,16 +55,17 @@ namespace TwinCat_Motion_ADS
             get { return _strSettlingReads; }
             set
             {
-                if (int.TryParse(value, out _settlingReads))
+                if (uint.TryParse(value, out _))
                 {
+                    _settlingReads = Convert.ToUInt32(value);
                     _strSettlingReads = value;
                     Properties.Settings.Default.airSettlingReads = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _settlingReads;
-        public int SettlingReads
+        private uint _settlingReads;
+        public uint SettlingReads
         {
             get { return _settlingReads; }
             set
@@ -83,16 +83,17 @@ namespace TwinCat_Motion_ADS
             get { return _strReadDelayMs; }
             set
             {
-                if (int.TryParse(value, out _ReadDelayMs))
+                if (uint.TryParse(value, out _))
                 {
+                    _ReadDelayMs = Convert.ToUInt32(value);
                     _strReadDelayMs = value;
                     Properties.Settings.Default.airReadDelayMs = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _ReadDelayMs;
-        public int ReadDelayMs
+        private uint _ReadDelayMs;
+        public uint ReadDelayMs
         {
             get { return _ReadDelayMs; }
             set
@@ -110,16 +111,17 @@ namespace TwinCat_Motion_ADS
             get { return _strDelayAfterExtend; }
             set
             {
-                if (int.TryParse(value, out _DelayAfterExtend))
+                if (uint.TryParse(value, out _))
                 {
+                    _DelayAfterExtend = Convert.ToUInt32(value);
                     _strDelayAfterExtend = value;
                     Properties.Settings.Default.airDelayAfterExtend = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _DelayAfterExtend;
-        public int DelayAfterExtend
+        private uint _DelayAfterExtend;
+        public uint DelayAfterExtend
         {
             get { return _DelayAfterExtend; }
             set
@@ -137,16 +139,17 @@ namespace TwinCat_Motion_ADS
             get { return _strDelayAfterRetract; }
             set
             {
-                if (int.TryParse(value, out _DelayAfterRetract))
+                if (uint.TryParse(value, out _))
                 {
+                    _DelayAfterRetract = Convert.ToUInt32(value);
                     _strDelayAfterRetract = value;
                     Properties.Settings.Default.airDelayAfterRetract = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _DelayAfterRetract;
-        public int DelayAfterRetract
+        private uint _DelayAfterRetract;
+        public uint DelayAfterRetract
         {
             get { return _DelayAfterRetract; }
             set
@@ -164,16 +167,17 @@ namespace TwinCat_Motion_ADS
             get { return _strExtendTimeout; }
             set
             {
-                if (int.TryParse(value, out _ExtendTimeout))
+                if (uint.TryParse(value, out _))
                 {
+                    _ExtendTimeout = Convert.ToUInt32(value);
                     _strExtendTimeout = value;
                     Properties.Settings.Default.airExtendTimeout = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _ExtendTimeout;
-        public int ExtendTimeout
+        private uint _ExtendTimeout;
+        public uint ExtendTimeout
         {
             get { return _ExtendTimeout; }
             set
@@ -191,16 +195,17 @@ namespace TwinCat_Motion_ADS
             get { return _strRetractTimeout; }
             set
             {
-                if (int.TryParse(value, out _RetractTimeout))
+                if (uint.TryParse(value, out _))
                 {
+                    _RetractTimeout = Convert.ToUInt32(value);
                     _strRetractTimeout = value;
                     Properties.Settings.Default.airRetractTimeout = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _RetractTimeout;
-        public int RetractTimeout
+        private uint _RetractTimeout;
+        public uint RetractTimeout
         {
             get { return _RetractTimeout; }
             set

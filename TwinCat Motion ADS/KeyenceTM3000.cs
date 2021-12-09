@@ -14,14 +14,11 @@ namespace TwinCat_Motion_ADS
         public string Readtime { get; set; }
         public string Portname { get; set; }
         public int BaudRate { get; set; }
+
         private const int defaultTimeout = 1000;
 
         public ObservableCollection<string> SerialPortList = new();
-        /// <summary>
-        /// Constructor to initialise the KeyenceTM3000 and RS232
-        /// </summary>
-        /// <param name="portName"></param>
-        /// <param name="baudRate"></param>
+
         public KeyenceTM3000(string portName = "", int baudRate = 115200)
         {
             Portname = portName;

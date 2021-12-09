@@ -47,17 +47,15 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-
-
-
         private string _strVelocity;
         public string StrVelocity
         {
             get { return _strVelocity; }
             set 
             {
-                if(double.TryParse(value, out _velocity))
+                if(double.TryParse(value, out _))
                 {
+                    _velocity = Convert.ToDouble(value);
                     _strVelocity = value;
                     Properties.Settings.Default.velocity = value;
                     OnPropertyChanged();
@@ -82,16 +80,17 @@ namespace TwinCat_Motion_ADS
             get { return _strTimeout; }
             set
             {
-                if(int.TryParse(value, out _timeout))
+                if(uint.TryParse(value, out _))
                 {
+                    _timeout = Convert.ToUInt32(value);
                     _strTimeout = value;
                     Properties.Settings.Default.timeout = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _timeout;
-        public int Timeout
+        private uint _timeout;
+        public uint Timeout
         {
             get { return _timeout; }
             set
@@ -108,16 +107,17 @@ namespace TwinCat_Motion_ADS
             get { return _strCycles; }
             set 
             { 
-                if(int.TryParse(value, out _cycles))
+                if(uint.TryParse(value, out _))
                 {
+                    _cycles = Convert.ToUInt32(value);
                     _strCycles = value;
                     Properties.Settings.Default.cycles = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _cycles;
-        public int Cycles
+        private uint _cycles;
+        public uint Cycles
         {
             get { return _cycles; }
             set 
@@ -134,16 +134,17 @@ namespace TwinCat_Motion_ADS
             get { return _strCycleDelaySeconds; }
             set
             {
-                if (int.TryParse(value, out _cycleDelaySeconds))
+                if (uint.TryParse(value, out _))
                 {
+                    _cycleDelaySeconds = Convert.ToUInt32(value);
                     _strCycleDelaySeconds = value;
                     Properties.Settings.Default.cycleDelaySeconds = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _cycleDelaySeconds;
-        public int CycleDelaySeconds
+        private uint _cycleDelaySeconds;
+        public uint CycleDelaySeconds
         {
             get { return _cycleDelaySeconds; }
             set
@@ -160,8 +161,9 @@ namespace TwinCat_Motion_ADS
             get { return _strReversalVelocity; }
             set
             {
-                if(double.TryParse(value, out _reversalVelocity))
+                if(double.TryParse(value, out _))
                 {
+                    _reversalVelocity = Convert.ToDouble(value);
                     _strReversalVelocity = value;
                     Properties.Settings.Default.reversalVelocity = value;
                     OnPropertyChanged();
@@ -186,16 +188,17 @@ namespace TwinCat_Motion_ADS
             get { return _strReversalExtraTimeSeconds; }
             set
             {
-                if(int.TryParse(value, out _reversalExtraTimeSeconds))
+                if(uint.TryParse(value, out _))
                 {
+                    _reversalExtraTimeSeconds = Convert.ToUInt32(value);
                     _strReversalExtraTimeSeconds = value;
                     Properties.Settings.Default.reversalExtraTimeSeconds = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _reversalExtraTimeSeconds;
-        public int ReversalExtraTimeSeconds
+        private uint _reversalExtraTimeSeconds;
+        public uint ReversalExtraTimeSeconds
         {
             get { return _reversalExtraTimeSeconds; }
             set
@@ -212,16 +215,17 @@ namespace TwinCat_Motion_ADS
             get { return _strReversalSettleTimeSeconds; }
             set
             {
-                if (int.TryParse(value, out _reversalSettleTimeSeconds))
+                if (uint.TryParse(value, out _))
                 {
+                    _reversalSettleTimeSeconds = Convert.ToUInt32(value);
                     _strReversalSettleTimeSeconds = value;
                     Properties.Settings.Default.reversalSettleTimeSeconds = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _reversalSettleTimeSeconds;
-        public int ReversalSettleTimeSeconds
+        private uint _reversalSettleTimeSeconds;
+        public uint ReversalSettleTimeSeconds
         {
             get { return _reversalSettleTimeSeconds; }
             set
@@ -238,8 +242,9 @@ namespace TwinCat_Motion_ADS
             get { return _strInitialSetpoint; }
             set
             {
-                if (double.TryParse(value, out _initialSetpoint))
+                if (double.TryParse(value, out _))
                 {
+                    _initialSetpoint = Convert.ToDouble(value);
                     _strInitialSetpoint = value;
                     Properties.Settings.Default.initialSetpoint = value;
                     OnPropertyChanged();
@@ -264,16 +269,17 @@ namespace TwinCat_Motion_ADS
             get { return _strNumberOfSteps; }
             set
             {
-                if (int.TryParse(value, out _numberOfSteps))
+                if (uint.TryParse(value, out _))
                 {
+                    _numberOfSteps = Convert.ToUInt32(value);
                     _strNumberOfSteps = value;
                     Properties.Settings.Default.numberOfSteps = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _numberOfSteps;
-        public int NumberOfSteps
+        private uint _numberOfSteps;
+        public uint NumberOfSteps
         {
             get { return _numberOfSteps; }
             set
@@ -290,8 +296,9 @@ namespace TwinCat_Motion_ADS
             get { return _strStepSize; }
             set
             {
-                if (double.TryParse(value, out _stepSize))
+                if (double.TryParse(value, out _))
                 {
+                    _stepSize = Convert.ToDouble(value);
                     _strStepSize = value;
                     Properties.Settings.Default.stepSize = value;
                     OnPropertyChanged();
@@ -316,16 +323,17 @@ namespace TwinCat_Motion_ADS
             get { return _strSettleTimeSeconds; }
             set
             {
-                if (int.TryParse(value, out _settleTimeSeconds))
+                if (uint.TryParse(value, out _))
                 {
+                    _settleTimeSeconds = Convert.ToUInt32(value);
                     _strSettleTimeSeconds = value;
                     Properties.Settings.Default.settleTimeSeconds = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private int _settleTimeSeconds;
-        public int SettleTimeSeconds
+        private uint _settleTimeSeconds;
+        public uint SettleTimeSeconds
         {
             get { return _settleTimeSeconds; }
             set
@@ -342,8 +350,9 @@ namespace TwinCat_Motion_ADS
             get { return _strReversalDistance; }
             set
             {
-                if (double.TryParse(value, out _reversalDistance))
+                if (double.TryParse(value, out _))
                 {
+                    _reversalDistance = Convert.ToDouble(value);
                     _strReversalDistance = value;
                     Properties.Settings.Default.reversalDistance = value;
                     OnPropertyChanged();
@@ -368,8 +377,9 @@ namespace TwinCat_Motion_ADS
             get { return _strOvershootDistance; }
             set
             {
-                if (double.TryParse(value, out _overshootDistance))
+                if (double.TryParse(value, out _))
                 {
+                    _overshootDistance = Convert.ToDouble(value);
                     _strOvershootDistance = value;
                     Properties.Settings.Default.overshootDistance = value;
                     OnPropertyChanged();
@@ -392,79 +402,87 @@ namespace TwinCat_Motion_ADS
 
         public void ImportSettings(string ImportSettingsFile)
         {
-            //check if the input file even exists
-            if(!File.Exists(ImportSettingsFile))
-            {
-                return;
-            }
-            Console.WriteLine(ImportSettingsFile);
+            if (!File.Exists(ImportSettingsFile)) { return; }   //Check the selected file exists
+            Console.WriteLine(ImportSettingsFile);              //Print to console path of selected file
 
+            //Import velocity string
             string line = File.ReadLines(ImportSettingsFile).Skip(2).Take(1).First();
             int charStartIndex = line.IndexOf(": ") + 2;
             string valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
             StrVelocity = valStr;
 
+            //Import timeout string
             line = File.ReadLines(ImportSettingsFile).Skip(3).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
             StrTimeout = valStr;
 
+            //Import number of cycles string
             line = File.ReadLines(ImportSettingsFile).Skip(4).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
             StrCycles = valStr;
 
+            //Import delay between cycles string
             line = File.ReadLines(ImportSettingsFile).Skip(5).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
             StrCycleDelaySeconds = valStr;
 
+            //Import limit switch reversing velocity string
             line = File.ReadLines(ImportSettingsFile).Skip(6).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
             StrReversalVelocity = valStr;
 
+            //Import extra time after reversing string
             line = File.ReadLines(ImportSettingsFile).Skip(7).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
             StrReversalExtraTimeSeconds = valStr;
 
+            //Import time to let position settle string
             line = File.ReadLines(ImportSettingsFile).Skip(8).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
             StrReversalSettleTimeSeconds = valStr;
 
+            //Import initial setpoint string
             line = File.ReadLines(ImportSettingsFile).Skip(9).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
             StrInitialSetpoint = valStr;
 
+            //Import number of steps in test string
             line = File.ReadLines(ImportSettingsFile).Skip(10).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
             StrNumberOfSteps = valStr;
 
+            //Import size of steps string
             line = File.ReadLines(ImportSettingsFile).Skip(11).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
             StrStepSize = valStr;
 
+            //Import time to let position settle before taking measurement string
             line = File.ReadLines(ImportSettingsFile).Skip(12).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
             StrSettleTimeSeconds = valStr;
 
+            //Import distance to undershoot for forward moves string
             line = File.ReadLines(ImportSettingsFile).Skip(13).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
             StrReversalDistance = valStr;
 
+            //Import distance to overshoot for backward moves string
             line = File.ReadLines(ImportSettingsFile).Skip(14).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
             StrOvershootDistance = valStr;
         }
-
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
