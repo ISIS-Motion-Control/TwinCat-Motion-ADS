@@ -75,9 +75,25 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
+        private bool _valid;
+        public bool Valid
+        {
+            get { return _valid; }
+            set
+            {
+                _valid = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ITargetBlock<DateTimeOffset> CreateNeverEndingTask(
         Action<DateTimeOffset> action, CancellationToken cancellationToken, TimeSpan timeSpan)
         {
+            if(cancellationToken.IsCancellationRequested)
+            {
+                return null;
+            }
+
             // Validate parameters.
             if (action == null) throw new ArgumentNullException("action");
 
