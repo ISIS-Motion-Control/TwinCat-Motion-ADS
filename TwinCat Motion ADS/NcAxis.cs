@@ -15,7 +15,7 @@ namespace TwinCat_Motion_ADS
         const byte eMoveAbsolute = 0;
         const byte eMoveRelative = 1;
         const byte eMoveVelocity = 3;
-        const byte eHome = 10;
+        //const byte eHome = 10;
 
         //Motion PLC Handles - used for reading/writing PLC variables
         private uint eCommandHandle;
@@ -54,15 +54,14 @@ namespace TwinCat_Motion_ADS
         {
             Plc = plc;
             AxisID = axisID;
-            updateInstance(AxisID, Plc);
+            UpdateAxisInstance(AxisID, Plc);
         }
 
-        private bool ValidCommand(bool motionCheck = false) //always going to check if PLC is valid or not
+        private bool ValidCommand() //always going to check if PLC is valid or not
         {
             if(!Plc.IsStateRun())
             {
                 Console.WriteLine("Incorrect PLC configuration");
-                StopPositionRead();
                 Valid = false;
                 return false;
             }
@@ -72,7 +71,7 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public void updateInstance(uint axisID, PLC plc)
+        public void UpdateAxisInstance(uint axisID, PLC plc)
         {
             if (!ValidCommand()) return;
             try
@@ -96,9 +95,8 @@ namespace TwinCat_Motion_ADS
                 bErrorHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stStatus.bError");
                 bEnableHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stControl.bEnable");
                 bResetHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stControl.bReset");
-                StartPositionRead();
-                //StopPositionRead();
                 //StartPositionRead();
+                ReadStatuses();
                 
             }
             catch
@@ -109,31 +107,31 @@ namespace TwinCat_Motion_ADS
 
         }
 
-        private async Task setCommand(byte command)
+        private async Task SetCommand(byte command)
         {
             if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(eCommandHandle, command, CancellationToken.None);
         }
         
-        private async Task setVelocity(double velocity)
+        private async Task SetVelocity(double velocity)
         {
             if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(fVelocityHandle, velocity, CancellationToken.None);
         }
 
-        private async Task setPosition(double position)
+        private async Task SetPosition(double position)
         {
             if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(fPositionHandle, position, CancellationToken.None);
         }
 
-        private async Task execute()
+        private async Task Execute()
         {
             if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(bExecuteHandle, true, CancellationToken.None);
         }
 
-        public async Task setEnable(bool enable)
+        public async Task SetEnable(bool enable)
         {
             if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(bEnableHandle, enable, CancellationToken.None);
@@ -145,14 +143,14 @@ namespace TwinCat_Motion_ADS
             await Plc.TcAds.WriteAnyAsync(bResetHandle, true, CancellationToken.None);
         }
 
-        public async Task<bool> moveAbsolute(double position, double velocity)
+        public async Task<bool> MoveAbsolute(double position, double velocity)
         {
             if (!ValidCommand()) return false;
-            if (await read_bBusy())
+            if (AxisBusy)
             {
                 return false;   //command fails if axis already busy
             }
-            if (await read_bError())
+            if (Error)
             {
                 return false;
             }
@@ -162,9 +160,9 @@ namespace TwinCat_Motion_ADS
             }
             
 
-            var commandTask = setCommand(eMoveAbsolute);
-            var velocityTask = setVelocity(velocity);
-            var positionTask = setPosition(position);
+            var commandTask = SetCommand(eMoveAbsolute);
+            var velocityTask = SetVelocity(velocity);
+            var positionTask = SetPosition(position);
 
             //just for fun, want to implement the async list so stuff can complete at different times
             var absoluteTasks = new List<Task> { commandTask, velocityTask, positionTask };
@@ -185,33 +183,31 @@ namespace TwinCat_Motion_ADS
                 }
                 absoluteTasks.Remove(finishedTask);
             }
-            await execute();
+            await Execute();
             return true;
         }
 
-        public async Task<bool> moveAbsoluteAndWait(double position, double velocity, int timeout = 0)
+        public async Task<bool> MoveAbsoluteAndWait(double position, double velocity, int timeout = 0)
         {
             if (!ValidCommand()) return false;
-            CancellationTokenSource ct = new CancellationTokenSource();
+            CancellationTokenSource ct = new();
 
-            if (await moveAbsolute(position, velocity))
+            if (await MoveAbsolute(position, velocity))
             {
                 await Task.Delay(40);   //delay to system to allow PLC to react to move command
-                Task<bool> doneTask = waitForDone(ct.Token);
-                Task<bool> errorTask = checkForError(ct.Token);
+                Task<bool> errorTask = CheckForError(ct.Token);
+                Task<bool> doneTask = WaitForDone(ct.Token);
                 Task<bool> limitTask;
                 List<Task> waitingTask;
 
-                //Check direction of travel for monitoring limits
-                //double currentPosition = await read_AxisPosition();
                 double currentPosition = AxisPosition;
-                if(position>currentPosition)
+                if (position>currentPosition)
                 {
-                    limitTask = checkFwLimitTask(true, ct.Token);
+                    limitTask = CheckFwLimitTask(true, ct.Token);
                 }
                 else
                 {
-                    limitTask = checkBwLimitTask(true, ct.Token);
+                    limitTask = CheckBwLimitTask(true, ct.Token);
                 }
                 //Check if we need a timeout task
                 if (timeout > 0)
@@ -245,7 +241,7 @@ namespace TwinCat_Motion_ADS
                 else
                 {
                     Console.WriteLine("Timeout on moveabs");
-                    await moveStop();
+                    await MoveStop();
                     ct.Cancel();
                     return false;
                 }
@@ -254,22 +250,22 @@ namespace TwinCat_Motion_ADS
             return false;
         }
 
-        public async Task<bool> moveRelative(double position, double velocity)
+        public async Task<bool> MoveRelative(double position, double velocity)
         {
             if (!ValidCommand()) return false;
-            if (await read_bBusy())
+            if (AxisBusy)
             {
                 return false;   //command fails if axis already busy
             }
-            if (await read_bError())
+            if (Error)
             {
                 return false;
             }
             if (velocity <=0)
             { return false; }
-            var commandTask = setCommand(eMoveRelative);
-            var velocityTask = setVelocity(velocity);
-            var positionTask = setPosition(position);
+            var commandTask = SetCommand(eMoveRelative);
+            var velocityTask = SetVelocity(velocity);
+            var positionTask = SetPosition(position);
 
             //just for fun, want to implement the async list so stuff can complete at different times
             var absoluteTasks = new List<Task> { commandTask, velocityTask, positionTask };
@@ -290,31 +286,31 @@ namespace TwinCat_Motion_ADS
                 }
                 absoluteTasks.Remove(finishedTask);
             }
-            await execute();
+            await Execute();
             return true;
         }
 
-        public async Task<bool> moveRelativeAndWait(double position, double velocity, int timeout=0)
+        public async Task<bool> MoveRelativeAndWait(double position, double velocity, int timeout=0)
         {
             if (!ValidCommand()) return false;
-            CancellationTokenSource ct = new CancellationTokenSource();
+            CancellationTokenSource ct = new();
 
-            if (await moveRelative(position,velocity))
+            if (await MoveRelative(position,velocity))
             {
                 await Task.Delay(40);
-                Task<bool> doneTask = waitForDone(ct.Token);
-                Task<bool> errorTask = checkForError(ct.Token);
+                Task<bool> doneTask = WaitForDone(ct.Token);
+                Task<bool> errorTask = CheckForError(ct.Token);
                 Task<bool> limitTask;
                 List<Task> waitingTask;
                 
                 //Check direction of travel for monitoring limits
                 if (position > 0)
                 {
-                    limitTask = checkFwLimitTask(true, ct.Token);
+                    limitTask = CheckFwLimitTask(true, ct.Token);
                 }
                 else
                 {
-                    limitTask = checkBwLimitTask(true, ct.Token);
+                    limitTask = CheckBwLimitTask(true, ct.Token);
                 }
                 //Check if we need a timeout task
                 if (timeout > 0)
@@ -348,7 +344,7 @@ namespace TwinCat_Motion_ADS
                 else
                 {
                     Console.WriteLine("Timeout on moverel");
-                    await moveStop();
+                    await MoveStop();
                     ct.Cancel();
                     return false;
                 }
@@ -357,14 +353,14 @@ namespace TwinCat_Motion_ADS
             return false;
         }
 
-        public async Task<bool> moveVelocity(double velocity)
+        public async Task<bool> MoveVelocity(double velocity)
         {
             if (!ValidCommand()) return false;
-            if (await read_bBusy())
+            if (AxisBusy)
             {
                 return false;   //command fails if axis already busy
             }
-            if (await read_bError())
+            if (Error)
             {
                 return false;
             }
@@ -372,8 +368,8 @@ namespace TwinCat_Motion_ADS
             {
                 return false;
             }
-            var commandTask = setCommand(eMoveVelocity);
-            var velocityTask = setVelocity(velocity);
+            var commandTask = SetCommand(eMoveVelocity);
+            var velocityTask = SetVelocity(velocity);
             var velocityTasks = new List<Task> { commandTask, velocityTask };
             while (velocityTasks.Count > 0)
             {
@@ -389,21 +385,21 @@ namespace TwinCat_Motion_ADS
 
                 velocityTasks.Remove(finishedTask);
             }
-            await execute();
+            await Execute();
             return true;
         }
 
-        public async Task moveStop()
+        public async Task MoveStop()
         {
             if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(bStopHandle, true, CancellationToken.None);
         }
 
-        public async Task<bool> moveToHighLimit(double velocity, int timeout)
+        public async Task<bool> MoveToHighLimit(double velocity, int timeout)
         {
             if (!ValidCommand()) return false;
             //Check to see if already on the high limit
-            if (await read_bFwEnabled() == false)
+            if (AxisFwEnabled == false)
             {
                 Console.WriteLine("Already at high limit");
                 return true;
@@ -416,17 +412,17 @@ namespace TwinCat_Motion_ADS
             //"Correct" the velocity setting if required
             if (velocity <0)
             {
-                velocity = velocity * -1;
+                velocity *= -1;
             }
             //Send a move velocity command
-            if (await moveVelocity(velocity) == false)
+            if (await MoveVelocity(velocity) == false)
             {
                 Console.WriteLine("Command rejected");
                 return false;
             };
             //Start a task to check the FwEnabled bool that only returns when flag is hit (fwEnabled == false)
-            CancellationTokenSource ct = new CancellationTokenSource();
-            Task<bool> limitTask = checkFwLimitTask(true,ct.Token);
+            CancellationTokenSource ct = new();
+            Task<bool> limitTask = CheckFwLimitTask(true,ct.Token);
             List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if(timeout==0)
@@ -448,16 +444,16 @@ namespace TwinCat_Motion_ADS
             {
                 await Task.Delay(20);
                 Console.WriteLine("Timeout on move to high limit");
-                await moveStop();
+                await MoveStop();
                 return false;
             }
         }
 
-        public async Task<bool> moveToLowLimit(double velocity, int timeout)
+        public async Task<bool> MoveToLowLimit(double velocity, int timeout)
         {
             if (!ValidCommand()) return false;
             //Check to see if already on the low limit
-            if (await read_bBwEnabled() == false)
+            if (AxisBwEnabled == false)
             {
                 Console.WriteLine("Already at low limit");
                 return true;
@@ -470,17 +466,17 @@ namespace TwinCat_Motion_ADS
             //"Correct" the velocity setting if required
             if (velocity > 0)
             {
-                velocity = velocity * -1;
+                velocity *= -1;
             }
             //Send a move velocity command
-            if (await moveVelocity(velocity) == false)
+            if (await MoveVelocity(velocity) == false)
             {
                 Console.WriteLine("Command rejected");
                 return false;
             };
             //Start a task to check the BwEnabled bool that only returns when flag is hit (BwEnabled == false)
-            CancellationTokenSource ct = new CancellationTokenSource();
-            Task<bool> limitTask = checkBwLimitTask(true, ct.Token);
+            CancellationTokenSource ct = new();
+            Task<bool> limitTask = CheckBwLimitTask(true, ct.Token);
             List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task.
             if (timeout == 0)
@@ -502,7 +498,7 @@ namespace TwinCat_Motion_ADS
             {
                 await Task.Delay(20);
                 Console.WriteLine("Timeout on move to lower limit");
-                await moveStop();
+                await MoveStop();
                 return false;
             }
         }
@@ -519,7 +515,7 @@ namespace TwinCat_Motion_ADS
             //Correct the velocity setting if needed
             if (velocity < 0)
             {
-                velocity = velocity *-1;
+                velocity *= -1;
             }
             //Reject 0 velocity value
             if (velocity == 0)
@@ -528,14 +524,14 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
             //Start a reversal off the limit switch
-            if (await moveVelocity(-velocity) == false)
+            if (await MoveVelocity(-velocity) == false)
             {
                 Console.WriteLine("Reversal command rejected");
                 return false;
             }
             //Start a task to monitor when the FwEnable signal is regained
-            CancellationTokenSource ct = new CancellationTokenSource();
-            Task<bool> limitTask = checkFwLimitTask(false, ct.Token);
+            CancellationTokenSource ct = new();
+            Task<bool> limitTask = CheckFwLimitTask(false, ct.Token);
             List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if (timeout == 0)
@@ -550,26 +546,26 @@ namespace TwinCat_Motion_ADS
             if (await Task.WhenAny(waitingTask) == limitTask)
             {
                 await Task.Delay(TimeSpan.FromSeconds(extraReversalTime));
-                await moveStop();
+                await MoveStop();
                 ct.Cancel();
             }
             else
             {
                 await Task.Delay(20);
                 Console.WriteLine("Timeout on reversal");
-                await moveStop();
+                await MoveStop();
                 return false;
             }
             //Velocity move back on to high limit
-            if (await moveVelocity(velocity) == false)
+            if (await MoveVelocity(velocity) == false)
             {
                 Console.WriteLine("Approach high limit command rejected ");
                 return false;
             }
             //Restart the checkFwEnable task to find when it is hit. Run at much faster rate
             waitingTask.Clear();
-            CancellationTokenSource ct2 = new CancellationTokenSource();
-            limitTask = checkFwLimitTask(true, ct2.Token);
+            CancellationTokenSource ct2 = new();
+            limitTask = CheckFwLimitTask(true, ct2.Token);
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if (timeout == 0)
             {
@@ -590,7 +586,7 @@ namespace TwinCat_Motion_ADS
             {
                 await Task.Delay(20);
                 Console.WriteLine("Timeout on move to limit");
-                await moveStop();
+                await MoveStop();
                 return false;
             }
         }
@@ -607,7 +603,7 @@ namespace TwinCat_Motion_ADS
             //Correct the velocity setting if needed
             if (velocity > 0)
             {
-                velocity = velocity * -1;
+                velocity *= -1;
             }
             //Reject 0 velocity value
             if (velocity == 0)
@@ -616,14 +612,14 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
             //Start a reversal off the limit switch
-            if (await moveVelocity(-velocity) == false)
+            if (await MoveVelocity(-velocity) == false)
             {
                 Console.WriteLine("Reversal command rejected");
                 return false;
             }
             //Start a task to monitor when the FwEnable signal is regained
-            CancellationTokenSource ct = new CancellationTokenSource();
-            Task<bool> limitTask = checkBwLimitTask(false, ct.Token);
+            CancellationTokenSource ct = new();
+            Task<bool> limitTask = CheckBwLimitTask(false, ct.Token);
             List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if (timeout == 0)
@@ -638,26 +634,26 @@ namespace TwinCat_Motion_ADS
             if (await Task.WhenAny(waitingTask) == limitTask)
             {
                 await Task.Delay(TimeSpan.FromSeconds(extraReversalTime));
-                await moveStop();
+                await MoveStop();
                 ct.Cancel();
             }
             else
             {
                 await Task.Delay(20);
                 Console.WriteLine("Timeout on reversal");
-                await moveStop();
+                await MoveStop();
                 return false;
             }
             //Velocity move back on to low limit
-            if (await moveVelocity(velocity) == false)
+            if (await MoveVelocity(velocity) == false)
             {
                 Console.WriteLine("Approach low limit command rejected ");
                 return false;
             }
             //Restart the checkBwEnable task to find when it is hit. Run at much faster rate
             waitingTask.Clear();
-            CancellationTokenSource ct2 = new CancellationTokenSource();
-            limitTask = checkBwLimitTask(true, ct2.Token);
+            CancellationTokenSource ct2 = new();
+            limitTask = CheckBwLimitTask(true, ct2.Token);
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if (timeout == 0)
             {
@@ -678,12 +674,12 @@ namespace TwinCat_Motion_ADS
             {
                 await Task.Delay(20);
                 Console.WriteLine("Timeout on move to limit");
-                await moveStop();
+                await MoveStop();
                 return false;
             }
         }
 
-        public async Task<bool> end2endCycleTestingWithReversal(NcTestSettings testSettings, MeasurementDevices devices = null)
+        public async Task<bool> LimitToLimitTestwithReversingSequence(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
             if (!ValidCommand()) return false;
             if (testSettings.Cycles == 0)
@@ -710,13 +706,13 @@ namespace TwinCat_Motion_ADS
             SaveSettingsFile(testSettings, settingFileFullPath, "Limit to Limit Test");
 
             var stream = File.Open(csvFileFullPath, FileMode.Append);
-            StreamWriter writer = new StreamWriter(stream);
-            CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+            StreamWriter writer = new(stream);
+            CsvWriter csv = new(writer, CultureInfo.InvariantCulture);
             using (stream)
             using (writer)
             using (csv)
             {
-                csv.WriteHeader<end2endCSV>();
+                csv.WriteHeader<End2endCSV>();
                 if (devices != null)    //populate CSV headers with device names
                 {
                     foreach (var device in devices.MeasurementDeviceList)
@@ -731,28 +727,28 @@ namespace TwinCat_Motion_ADS
                 csv.NextRecord();
             }
 
-            Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
+            Stopwatch stopWatch = new(); //Create stopwatch for rough end to end timing
             testSettings.Velocity = Math.Abs(testSettings.Velocity);
             //Start low
-            if (await moveToLowLimit(-testSettings.Velocity, testSettings.Timeout) == false)
+            if (await MoveToLowLimit(-testSettings.Velocity, testSettings.Timeout) == false)
             {
                 Console.WriteLine("Failed to move to low limit for start of test");
                 return false;
             }
 
-            CancellationTokenSource ctToken = new CancellationTokenSource();
-            CancellationTokenSource ptToken = new CancellationTokenSource();
-            Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
+            CancellationTokenSource ctToken = new();
+            CancellationTokenSource ptToken = new();
+            Task<bool> cancelRequestTask = CheckCancellationRequestTask(ctToken.Token);
 
 
             //Start running test cycles
-            end2endCSV record1;
-            end2endCSV record2;
+            End2endCSV record1;
+            End2endCSV record2;
             List<string> measurementsHigh = new();
             List<string> measurementsLow = new();
             for (int i = 1; i <= testSettings.Cycles; i++)
             {
-                Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
+                Task<bool> pauseTaskRequest = CheckPauseRequestTask(ptToken.Token);
                 await pauseTaskRequest;
                 if (cancelRequestTask.IsCompleted)
                 {
@@ -768,7 +764,7 @@ namespace TwinCat_Motion_ADS
                 stopWatch.Reset();
                 stopWatch.Start();  //Clear and start the stopwatch
 
-                if (await moveToHighLimit(testSettings.Velocity, testSettings.Timeout))
+                if (await MoveToHighLimit(testSettings.Velocity, testSettings.Timeout))
                 {
                     stopWatch.Stop();
                     await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));//Allow axis to settle before reversal
@@ -793,8 +789,8 @@ namespace TwinCat_Motion_ADS
 
                         }
 
-                        double tmpAxisPosition = await read_AxisPosition();
-                        record1 = new end2endCSV(i, "Low limit to high limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition);
+                        double tmpAxisPosition = AxisPosition;
+                        record1 = new End2endCSV(i, "Low limit to high limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition);
                         Console.WriteLine("Cycle " + i + "- Low limit to high limit: " + stopWatch.ElapsedMilliseconds + "ms. High limit triggered at " + tmpAxisPosition);
                     }
                     else
@@ -817,7 +813,7 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds));
                 stopWatch.Reset();
                 stopWatch.Start();
-                if (await moveToLowLimit(-testSettings.Velocity, testSettings.Timeout))
+                if (await MoveToLowLimit(-testSettings.Velocity, testSettings.Timeout))
                 {
                     stopWatch.Stop();
                     await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));//Allow axis to settle before reversal
@@ -841,8 +837,8 @@ namespace TwinCat_Motion_ADS
                                 }
                             }
                         }
-                        double tmpAxisPosition = await read_AxisPosition();
-                        record2 = new end2endCSV(i, "High limit to low limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition);
+                        double tmpAxisPosition = AxisPosition;
+                        record2 = new End2endCSV(i, "High limit to low limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition);
 
                         Console.WriteLine("Cycle " + i + "- High limit to low limit: " + stopWatch.ElapsedMilliseconds + "ms. Low limit triggered at " + tmpAxisPosition);
                         
@@ -880,15 +876,13 @@ namespace TwinCat_Motion_ADS
                     }
                     csv.NextRecord();
                 }
-                record1 = null;
-                record2 = null;
             }
             ctToken.Cancel();
             return true;
         }
 
         //no timeout implemented
-        public async Task<bool> uniDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
+        public async Task<bool> UniDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
             if (!ValidCommand()) return false;
             if (testSettings.Cycles == 0)
@@ -911,7 +905,7 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("0 step size invalid");
                 return false;
             }
-            List<uniDirectionalAccCSV> recordList = new List<uniDirectionalAccCSV>();
+            List<UniDirectionalAccCSV> recordList = new();
 
             var currentTime = DateTime.Now;
             
@@ -925,14 +919,14 @@ namespace TwinCat_Motion_ADS
             var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
             { HasHeaderRecord = false, };
 
-            StreamWriter writer = new StreamWriter(stream);
-            CsvWriter csv = new CsvWriter(writer, config);
+            StreamWriter writer = new(stream);
+            CsvWriter csv = new(writer, config);
 
             using (stream)
             using (writer)
             using (csv)
             {
-                csv.WriteHeader<uniDirectionalAccCSV>();
+                csv.WriteHeader<UniDirectionalAccCSV>();
                 if (devices != null)    //populate CSV headers with device names
                 {
                     foreach (var device in devices.MeasurementDeviceList)
@@ -947,11 +941,11 @@ namespace TwinCat_Motion_ADS
                 csv.NextRecord();
             }
 
-            CancellationTokenSource ctToken = new CancellationTokenSource();
-            CancellationTokenSource ptToken = new CancellationTokenSource();
-            Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
+            CancellationTokenSource ctToken = new();
+            CancellationTokenSource ptToken = new();
+            Task<bool> cancelRequestTask = CheckCancellationRequestTask(ctToken.Token);
 
-            Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
+            Stopwatch stopWatch = new(); //Create stopwatch for rough end to end timing
             testSettings.Velocity = Math.Abs(testSettings.Velocity);  //Only want positive velocity
             //Create an ongoing task to monitor for a cancellation request. This will only trigger on start of each test cycle.
 
@@ -975,7 +969,7 @@ namespace TwinCat_Motion_ADS
                 cycleMeasurements.Clear();
                 Console.WriteLine("Cycle " + i);
                 //Create a task each cycle to monitor for the pause. This is done as a task as a basic "while(paused)" would block UI and not allow an unpause
-                Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
+                Task<bool> pauseTaskRequest = CheckPauseRequestTask(ptToken.Token);
                 await pauseTaskRequest;
                 if (cancelRequestTask.IsCompleted)
                 {
@@ -990,7 +984,7 @@ namespace TwinCat_Motion_ADS
                 double TargetPosition = testSettings.InitialSetpoint;
 
                 //Start test at reversal position then moving to initial setpoint          
-                if (await moveAbsoluteAndWait(reversalPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                if (await MoveAbsoluteAndWait(reversalPosition, testSettings.Velocity, testSettings.Timeout) == false)
                 {
                     Console.WriteLine("Failed to move to reversal position");
                     stopWatch.Stop();
@@ -1004,7 +998,7 @@ namespace TwinCat_Motion_ADS
                 {
                     Console.WriteLine("Step: " + j);
                     //Do the step move
-                    if (await moveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
                     {
                         Console.WriteLine("Failed to move to target position");
                         stopWatch.Stop();
@@ -1035,11 +1029,11 @@ namespace TwinCat_Motion_ADS
 
 
                     //Log the data
-                    double tmpAxisPosition = await read_AxisPosition();
-                    recordList.Add(new uniDirectionalAccCSV(i, j, "Testing", TargetPosition, tmpAxisPosition));
+                    double tmpAxisPosition = AxisPosition;
+                    recordList.Add(new UniDirectionalAccCSV(i, j, "Testing", TargetPosition, tmpAxisPosition));
                     cycleMeasurements.Add(measurements);
                     //debug line
-                    TargetPosition = TargetPosition + testSettings.StepSize;
+                    TargetPosition += testSettings.StepSize;
                 }
 
                 //Write the cycle data
@@ -1074,10 +1068,10 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> biDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
+        public async Task<bool> BiDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
             if (!ValidCommand()) return false;
-            List<uniDirectionalAccCSV> recordList = new List<uniDirectionalAccCSV>();
+            List<UniDirectionalAccCSV> recordList = new();
             var currentTime = DateTime.Now;
 
             string newTitle = string.Format(@"{0:yyMMdd} {0:HH};{0:mm};{0:ss} Axis {1}~ " + testSettings.StrTestTitle, currentTime, AxisID);
@@ -1090,8 +1084,8 @@ namespace TwinCat_Motion_ADS
             var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
             { HasHeaderRecord = false, };
 
-            StreamWriter writer = new StreamWriter(stream);
-            CsvWriter csv = new CsvWriter(writer, config);
+            StreamWriter writer = new(stream);
+            CsvWriter csv = new(writer, config);
 
             if (testSettings.Cycles == 0)
             {
@@ -1119,7 +1113,7 @@ namespace TwinCat_Motion_ADS
             using (writer)
             using (csv)
             {
-                csv.WriteHeader<uniDirectionalAccCSV>();
+                csv.WriteHeader<UniDirectionalAccCSV>();
                 if (devices != null)    //populate CSV headers with device names
                 {
                     foreach (var device in devices.MeasurementDeviceList)
@@ -1134,12 +1128,12 @@ namespace TwinCat_Motion_ADS
                 csv.NextRecord();
             }
 
-            Stopwatch stopWatch = new Stopwatch(); //Create stopwatch for rough end to end timing
+            Stopwatch stopWatch = new(); //Create stopwatch for rough end to end timing
             testSettings.Velocity = Math.Abs(testSettings.Velocity);  //Only want positive velocity
             //Create an ongoing task to monitor for a cancellation request. This will only trigger on start of each test cycle.
-            CancellationTokenSource ctToken = new CancellationTokenSource();
-            CancellationTokenSource ptToken = new CancellationTokenSource();
-            Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
+            CancellationTokenSource ctToken = new();
+            CancellationTokenSource ptToken = new();
+            Task<bool> cancelRequestTask = CheckCancellationRequestTask(ctToken.Token);
 
             double reversalPosition;
             if (testSettings.StepSize > 0)
@@ -1167,7 +1161,7 @@ namespace TwinCat_Motion_ADS
             {
                 Console.WriteLine("Cycle " + i);
                 //Create a task each cycle to monitor for the pause. This is done as a task as a basic "while(paused)" would block UI and not allow an unpause
-                Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
+                Task<bool> pauseTaskRequest = CheckPauseRequestTask(ptToken.Token);
                 await pauseTaskRequest;
                 if (cancelRequestTask.IsCompleted)
                 {
@@ -1182,7 +1176,7 @@ namespace TwinCat_Motion_ADS
                 double TargetPosition = testSettings.InitialSetpoint;
 
                 //Start test at reversal position then moving to initial setpoint          
-                if (await moveAbsoluteAndWait(reversalPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                if (await MoveAbsoluteAndWait(reversalPosition, testSettings.Velocity, testSettings.Timeout) == false)
                 {
                     Console.WriteLine("Failed to move to reversal position");
                     stopWatch.Stop();
@@ -1195,7 +1189,7 @@ namespace TwinCat_Motion_ADS
                 {
                     Console.WriteLine("Positive Move. Step: " + j);
                     //Do the step move
-                    if (await moveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
                     {
                         Console.WriteLine("Failed to move to target position");
                         stopWatch.Stop();
@@ -1222,16 +1216,16 @@ namespace TwinCat_Motion_ADS
                     }
 
                     //Log the data
-                    double tmpAxisPosition = await read_AxisPosition();
-                    recordList.Add(new uniDirectionalAccCSV(i, j, "Positive approach", TargetPosition, tmpAxisPosition));
+                    double tmpAxisPosition = AxisPosition;
+                    recordList.Add(new UniDirectionalAccCSV(i, j, "Positive approach", TargetPosition, tmpAxisPosition));
                     cycleMeasurements.Add(measurements);
                     //Update target position
 
-                    TargetPosition = TargetPosition + testSettings.StepSize;
+                    TargetPosition += testSettings.StepSize;
                 }
-                TargetPosition = TargetPosition - testSettings.StepSize;
+                TargetPosition -= testSettings.StepSize;
                 //Overshoot the final position before coming back down
-                if (await moveAbsoluteAndWait(overshootPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                if (await MoveAbsoluteAndWait(overshootPosition, testSettings.Velocity, testSettings.Timeout) == false)
                 {
                     Console.WriteLine("Failed to move to overshoot position");
                     stopWatch.Stop();
@@ -1243,7 +1237,7 @@ namespace TwinCat_Motion_ADS
                 {
                     Console.WriteLine("Negative Move. Step: " + j);
                     //Do the step move
-                    if (await moveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
+                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity, testSettings.Timeout) == false)
                     {
                         Console.WriteLine("Failed to move to target position");
                         stopWatch.Stop();
@@ -1269,12 +1263,12 @@ namespace TwinCat_Motion_ADS
 
                     }
                     //Log the data
-                    double tmpAxisPosition = await read_AxisPosition();
-                    recordList.Add(new uniDirectionalAccCSV(i, (uint)j, "Negative approach", TargetPosition, tmpAxisPosition));
+                    double tmpAxisPosition = AxisPosition;
+                    recordList.Add(new UniDirectionalAccCSV(i, (uint)j, "Negative approach", TargetPosition, tmpAxisPosition));
                     cycleMeasurements.Add(measurements);
                     //Update target position
 
-                    TargetPosition = TargetPosition - testSettings.StepSize;
+                    TargetPosition -= testSettings.StepSize;
                 }
 
                 //Write the cycle data

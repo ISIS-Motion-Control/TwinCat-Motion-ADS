@@ -21,7 +21,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
     /// </summary>
     public partial class AirAxisView : UserControl
     {
-        MainWindow windowData;
+        readonly MainWindow windowData;
         public PneumaticAxis pneumaticAxis;
         public string selectedFolder = string.Empty;
         public AirTestSettings TestSettings = new();
@@ -30,12 +30,12 @@ namespace TwinCat_Motion_ADS.MVVM.View
         {
             InitializeComponent();
             windowData = (MainWindow)Application.Current.MainWindow;
-            setupBinds();
+            SetupBinds();
         }
 
-        public void setupBinds()
+        public void SetupBinds()
         {
-            Binding pneumaticExtendedBinding = new Binding
+            Binding pneumaticExtendedBinding = new()
             {
                 Mode = BindingMode.OneWay,
                 Source = pneumaticAxis,
@@ -43,7 +43,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
             };
             BindingOperations.SetBinding(pneumaticExtended, CheckBox.IsCheckedProperty, pneumaticExtendedBinding);
-            Binding pneumaticRetractedBinding = new Binding
+            Binding pneumaticRetractedBinding = new()
             {
                 Mode = BindingMode.OneWay,
                 Source = pneumaticAxis,
@@ -51,7 +51,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
             };
             BindingOperations.SetBinding(pneumaticRetracted, CheckBox.IsCheckedProperty, pneumaticRetractedBinding);
-            Binding cylinderBinding = new Binding
+            Binding cylinderBinding = new()
             {
                 Mode = BindingMode.OneWay,
                 Source = pneumaticAxis,
@@ -60,7 +60,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             };
             BindingOperations.SetBinding(CylinderAir, CheckBox.IsCheckedProperty, cylinderBinding);
 
-            Binding cycleBinding = new Binding
+            Binding cycleBinding = new()
             {
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
@@ -69,7 +69,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             };
             BindingOperations.SetBinding(cycles, TextBox.TextProperty, cycleBinding);
 
-            Binding settleReadsBinding = new Binding
+            Binding settleReadsBinding = new()
             {
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
@@ -78,7 +78,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             };
             BindingOperations.SetBinding(settlingReads, TextBox.TextProperty, settleReadsBinding);
 
-            Binding ReadDelayBinding = new Binding
+            Binding ReadDelayBinding = new()
             {
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
@@ -87,7 +87,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             };
             BindingOperations.SetBinding(readDelay, TextBox.TextProperty, ReadDelayBinding);
 
-            Binding extendDelayBinding = new Binding
+            Binding extendDelayBinding = new()
             {
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
@@ -96,7 +96,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             };
             BindingOperations.SetBinding(extendDelay, TextBox.TextProperty, extendDelayBinding);
 
-            Binding retractDelayBinding = new Binding
+            Binding retractDelayBinding = new()
             {
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
@@ -105,7 +105,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             };
             BindingOperations.SetBinding(retractDelay, TextBox.TextProperty, retractDelayBinding);
 
-            Binding extendTimeoutBinding = new Binding
+            Binding extendTimeoutBinding = new()
             {
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
@@ -114,7 +114,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             };
             BindingOperations.SetBinding(extendTimeout, TextBox.TextProperty, extendTimeoutBinding);
 
-            Binding retractTimeoutBinding = new Binding
+            Binding retractTimeoutBinding = new()
             {
                 Mode = BindingMode.TwoWay,
                 Source = TestSettings,
@@ -125,7 +125,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
         }
 
 
-        private void initPneumatic_Click(object sender, RoutedEventArgs e)
+        private void InitialisePneumatic_Click(object sender, RoutedEventArgs e)
         {
             if (pneumaticAxis == null)
             {
@@ -136,35 +136,35 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 pneumaticAxis = null;
                 pneumaticAxis = new PneumaticAxis(windowData.Plc);
             }
-            setupBinds();
+            SetupBinds();
             //pneumaticAxis.startLimitRead();
-            pneumaticAxis.newLimitRead();
+            pneumaticAxis.ReadStatuses();
         }
 
-        private async void extendCylinder_button_Click(object sender, RoutedEventArgs e)
+        private async void ExtendCylinderButton_Click(object sender, RoutedEventArgs e)
         {
-            if (await pneumaticAxis.extendCylinderAndWait() == false)
+            if (await pneumaticAxis.ExtendCylinderAndWait() == false)
             {
                 Console.WriteLine("FAILED");
             }
         }
 
-        private async void retractCylinder_button_Click(object sender, RoutedEventArgs e)
+        private async void RetractCylinderButton_Click(object sender, RoutedEventArgs e)
         {
-            if (await pneumaticAxis.retractCylinderAndWait() == false)
+            if (await pneumaticAxis.RetractCylinderAndWait() == false)
             {
                 Console.WriteLine("FAILED");
             }
         }
 
-        private async void shutterEnd2End_button_Click(object sender, RoutedEventArgs e)
+        private async void ShutterLimitToLimitTestButton_Click(object sender, RoutedEventArgs e)
         {
            // await pneumaticAxis.End2EndTest(Convert.ToInt32(cycles.Text), Convert.ToInt32(settlingReads.Text), Convert.ToInt32(readDelay.Text), Convert.ToInt32(extendDelay.Text), Convert.ToInt32(retractDelay.Text), Convert.ToInt32(extendTimeout.Text), Convert.ToInt32(retractTimeout.Text));
             await pneumaticAxis.End2EndTest(TestSettings,windowData.MeasurementDevices);
 
         }
 
-        private void shutterTestFolderDir_button_Click(object sender, RoutedEventArgs e)
+        private void SelectTestDirectory_Click(object sender, RoutedEventArgs e)
         {
             var fbd = new VistaFolderBrowserDialog();
             selectedFolder = String.Empty;

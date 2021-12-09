@@ -26,19 +26,15 @@ namespace TwinCat_Motion_ADS
     {
         public PLC Plc;
         public string selectedFolder = string.Empty;
-        public MeasurementDevice MeasurementDevice1;
-        public MeasurementDevice MeasurementDevice2;
-        public MeasurementDevice MeasurementDevice3;
-        public MeasurementDevice MeasurementDevice4;
         public MeasurementDevices MeasurementDevices = new();
         public List<MenuItem> measurementMenuItems = new();
-        public ObservableCollection<string> DeviceTypeList = new ObservableCollection<string>()
+        public ObservableCollection<string> DeviceTypeList = new()
         {
             "",
         "DigimaticIndicator",
         "KeyenceTM3000"
         };
-        private string _amsNetID; 
+        private string _amsNetID;
         public string AmsNetID
         {
             get { return _amsNetID; }
@@ -56,7 +52,7 @@ namespace TwinCat_Motion_ADS
             InitializeComponent();
             ConsoleAllocator.ShowConsoleWindow();
             AmsNetID = Properties.Settings.Default.amsNetID;
-            setupBinds();
+            SetupBinds();
             if (!string.IsNullOrEmpty(amsNetIdTb.Text))
             {
                 Plc = new PLC(amsNetIdTb.Text, 852); //5.65.74.200.1.1
@@ -78,10 +74,10 @@ namespace TwinCat_Motion_ADS
 
                 }
             }
-            var vm = (MainViewModel)this.DataContext;            
+            //var vm = (MainViewModel)this.DataContext;     
         }
 
-        private void setupBinds()
+        private void SetupBinds()
         {
             Binding amsNetBinding = new();
             amsNetBinding.Source = this;
@@ -91,7 +87,7 @@ namespace TwinCat_Motion_ADS
             BindingOperations.SetBinding(amsNetIdTb, TextBox.TextProperty, amsNetBinding);
         }
 
-        private void connect2PlcButton_Click(object sender, RoutedEventArgs e)
+        private void ConnectToPlc_Click(object sender, RoutedEventArgs e)
         {
             Plc = new PLC(amsNetIdTb.Text, 852);
             Plc.setupPLC();
@@ -115,20 +111,13 @@ namespace TwinCat_Motion_ADS
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
-        private void MenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            TwinCat_Motion_ADS.MVVM.View.subWindow SubWindow = new();
-            SubWindow.Show();
-            
-        }
-
-        private void addNewDevice(object sender, RoutedEventArgs e)
+        private void AddNewDevice(object sender, RoutedEventArgs e)
         {
             MeasurementDevices.AddDevice("none");
-            updateMeasurementMenu();
+            UpdateMeasurementDeviceMenu();
         }
 
-        private void deviceMenuClick(object sender, RoutedEventArgs e)
+        private void DeviceMenu_Click(object sender, RoutedEventArgs e)
         {
             MenuItem mI = sender as MenuItem;
             int i = 0;
@@ -148,9 +137,9 @@ namespace TwinCat_Motion_ADS
         }
 
         //update devices menu
-        private void updateMeasurementMenu()
+        private void UpdateMeasurementDeviceMenu()
         {
-            MenuItem newMenuItem = new MenuItem();
+            MenuItem newMenuItem = new();
 
             //This binding seems to be bugged, works fine but does not update.
             Binding menuItemName = new();
@@ -161,7 +150,7 @@ namespace TwinCat_Motion_ADS
             BindingOperations.SetBinding(newMenuItem, MenuItem.HeaderProperty, menuItemName);
 
            // newMenuItem.Header = MeasurementDevices.MeasurementDeviceList[MeasurementDevices.NumberOfDevices-1].Name;
-            newMenuItem.Click += new RoutedEventHandler(deviceMenuClick);
+            newMenuItem.Click += new RoutedEventHandler(DeviceMenu_Click);
             newMenuItem.Template = (ControlTemplate)FindResource("VsMenuSub");
             MeasureDevicesMenu.Items.Add(newMenuItem);
             measurementMenuItems.Add(newMenuItem);

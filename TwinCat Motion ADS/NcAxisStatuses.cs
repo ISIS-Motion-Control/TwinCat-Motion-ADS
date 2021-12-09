@@ -18,6 +18,13 @@ namespace TwinCat_Motion_ADS
             set { _error = value; OnPropertyChanged(); }
         }
 
+        private bool _done;
+        public bool Done
+        {
+            get { return _done; }
+            set { _done = value; OnPropertyChanged(); }
+        }
+
         //Axis position (encoder)
         private double _axisPosition;
         public double AxisPosition
@@ -46,11 +53,18 @@ namespace TwinCat_Motion_ADS
             get { return _axisBwEnabled; }
             set { _axisBwEnabled = value; OnPropertyChanged(); }
         }
+        private bool _axisBusy;
+        public bool AxisBusy
+        {
+            get { return _axisBusy; }
+            set { _axisBusy = value; OnPropertyChanged(); }
+        }
 
-        private async Task<bool> checkFwLimitTask(bool limitStatus, CancellationToken wToken, int msDelay = 50)
+
+        private async Task<bool> CheckFwLimitTask(bool limitStatus, CancellationToken wToken, int msDelay = defaultReadTime)
         {
             //if limitStatus true, watch for FwEnabled flag to go false and complete the task
-            while (await read_bFwEnabled() == limitStatus)
+            while (AxisFwEnabled == limitStatus)
             {
                 if (wToken.IsCancellationRequested)
                 {
@@ -61,10 +75,10 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        private async Task<bool> checkBwLimitTask(bool limitStatus, CancellationToken wToken, int msDelay = 50)
+        private async Task<bool> CheckBwLimitTask(bool limitStatus, CancellationToken wToken, int msDelay = defaultReadTime)
         {
             //if limitStatus true, watch for BwEnabled flag to go false and complete the task
-            while (await read_bBwEnabled() == limitStatus)
+            while (AxisBwEnabled == limitStatus)
             {
                 if (wToken.IsCancellationRequested)
                 {
@@ -75,256 +89,192 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> waitForDone(CancellationToken wToken)
+        public async Task<bool> WaitForDone(CancellationToken wToken)
         {
-            bool doneStatus = await read_bDone();
+            bool doneStatus = Done;
             while (doneStatus != true)
             {
-                doneStatus = await read_bDone();
+                doneStatus = Done;
                 //Cancellation method for task otherwise task will never complete if no done signal ever received
                 if (wToken.IsCancellationRequested)
                 {
                     throw new TaskCanceledException();
                 }
+                await Task.Delay(defaultReadTime, wToken);
             }
             return true;
         }
 
-        public async Task<bool> checkForError(CancellationToken wToken)
+        public async Task<bool> CheckForError(CancellationToken wToken)
         {
-            bool errorStatus = await read_bError();
+            bool errorStatus = Error;
             while (errorStatus != true)
             {
-                errorStatus = await read_bError();
+                errorStatus = Error;
                 if (wToken.IsCancellationRequested)
                 {
                     throw new TaskCanceledException();
                 }
+                await Task.Delay(defaultReadTime, wToken);
             }
             Console.WriteLine("Axis error");
             return true;
         }
 
-        public async Task<bool> read_bDone()
+        private readonly CancellationTokenSource readToken = new();
+
+        public void ReadStatuses()
         {
-            var thisTask = Plc.TcAds.ReadAnyAsync<bool>(bDoneHandle, CancellationToken.None);
-            await thisTask;
-            if (thisTask.Status == TaskStatus.Faulted)
-            {
-                throw new Exception();
-            }
-            else
-            {
-                return thisTask.Result.Value; ;
-            }
+            Task.Run(() => ReadAllStatuses(readToken.Token));
         }
-
-        public async Task<double> read_AxisPosition()
-        {
-            if (!ValidCommand()) return -9999999;
-            
-            
-
-            var thisTask = Plc.TcAds.ReadAnyAsync<double>(fActPositionHandle, CancellationToken.None);
-            Task.WaitAny(thisTask);
-            if(thisTask == null)
-            {
-                Console.WriteLine("Shit went wrong");
-            }
-            //await thisTask;
-            if (thisTask.Status == TaskStatus.Faulted)
-            {
-                //StopPositionRead();
-                return -9999999;
-            }
-            else
-            {
-                AxisPosition = thisTask.Result.Value;
-                return thisTask.Result.Value; ;
-            }
-        }
-
-        public async Task<bool> read_bBusy()
-        {
-            try
-            {
-                var thisTask = Plc.TcAds.ReadAnyAsync<bool>(bBusyHandle, CancellationToken.None);
-                await thisTask;
-                if (thisTask.Status == TaskStatus.Faulted)
-                {
-                    throw new Exception();
-                }
-                else
-                {
-                    return thisTask.Result.Value; ;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-            
-        }
-
-        public async Task<bool> read_bEnabled()
-        {
-            try
-            {
-                var thisTask = Plc.TcAds.ReadAnyAsync<bool>(bEnabledHandle, CancellationToken.None);
-                await thisTask;
-                if (thisTask.Status == TaskStatus.Faulted)
-                {
-                    throw new Exception();
-                }
-                else
-                {
-                    AxisEnabled = thisTask.Result.Value;
-                    return thisTask.Result.Value; ;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-            
-        }
-
-        public async Task<bool> read_bFwEnabled()
-        {
-            try
-            {
-                var thisTask = Plc.TcAds.ReadAnyAsync<bool>(bFwEnabledHandle, CancellationToken.None);
-                await thisTask;
-                if (thisTask.Status == TaskStatus.Faulted)
-                {
-                    throw new Exception();
-                }
-                else
-                {
-                    AxisFwEnabled = thisTask.Result.Value;
-                    return AxisFwEnabled;
-                }
-
-                //var result = await Plc.TcAds.ReadAnyAsync<bool>(bFwEnabledHandle, CancellationToken.None);
-                //AxisFwEnabled = result.Value;
-               // return result.Value;
-            }
-            catch
-            {
-                return false;
-            }
-            
-        }
-
-        public async Task<bool> read_bBwEnabled()
-        {
-            try
-            {
-                var thisTask = Plc.TcAds.ReadAnyAsync<bool>(bBwEnabledHandle, CancellationToken.None);
-                await thisTask;
-                if (thisTask.Status == TaskStatus.Faulted)
-                {
-                    throw new Exception();
-                }
-                else
-                {
-                    AxisBwEnabled = thisTask.Result.Value;
-                    return AxisBwEnabled;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public async Task<bool> read_bError()
-        {
-            try
-            {
-                var thisTask = Plc.TcAds.ReadAnyAsync<bool>(bErrorHandle, CancellationToken.None);
-                await thisTask;
-                if (thisTask.Status == TaskStatus.Faulted)
-                {
-                    throw new Exception();
-                }
-                else
-                {
-                    Error = thisTask.Result.Value;
-                    return Error;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
         
-        ActionBlock<DateTimeOffset> taskPos;
-        ActionBlock<DateTimeOffset> taskEnabled;
-        ActionBlock<DateTimeOffset> taskFwEnabled;
-        ActionBlock<DateTimeOffset> taskBwEnabled;
-        ActionBlock<DateTimeOffset> taskError;
+        const int defaultReadTime = 10; //ms
 
-        CancellationTokenSource readToken;
-        CancellationTokenSource readToken1;
-        CancellationTokenSource readToken2;
-        CancellationTokenSource readToken3;
-        CancellationTokenSource readToken4;
-        public void StartPositionRead()
+        public async Task ReadAllStatuses(CancellationToken ct)
         {
-            try
+            while(!ct.IsCancellationRequested)
             {
-                readToken = new CancellationTokenSource();
-                readToken1 = new CancellationTokenSource();
-                readToken2 = new CancellationTokenSource();
-                readToken3 = new CancellationTokenSource();
-                readToken4 = new CancellationTokenSource();
-                taskPos = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_AxisPosition(), readToken.Token, TimeSpan.FromMilliseconds(50));
-                taskEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bEnabled(), readToken1.Token, TimeSpan.FromMilliseconds(200));
-                taskFwEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bFwEnabled(), readToken2.Token, TimeSpan.FromMilliseconds(200));
-                taskBwEnabled = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bBwEnabled(), readToken3.Token, TimeSpan.FromMilliseconds(200));
-                taskError = (ActionBlock<DateTimeOffset>)CreateNeverEndingTask(async now => await read_bError(), readToken4.Token, TimeSpan.FromMilliseconds(200));
-                taskPos.Post(DateTimeOffset.Now);
-                taskEnabled.Post(DateTimeOffset.Now);
-                taskFwEnabled.Post(DateTimeOffset.Now);
-                taskBwEnabled.Post(DateTimeOffset.Now);
-                taskError.Post(DateTimeOffset.Now);
+                if (!ValidCommand())
+                {
+                    break;
+                }
+                AxisPosition = (await Plc.TcAds.ReadAnyAsync<double>(fActPositionHandle, CancellationToken.None)).Value;
+                AxisBusy = (await Plc.TcAds.ReadAnyAsync<bool>(bBusyHandle, CancellationToken.None)).Value;
+                AxisEnabled = (await Plc.TcAds.ReadAnyAsync<bool>(bEnabledHandle, CancellationToken.None)).Value;
+                AxisFwEnabled = (await Plc.TcAds.ReadAnyAsync<bool>(bFwEnabledHandle, CancellationToken.None)).Value;
+                AxisBwEnabled = (await Plc.TcAds.ReadAnyAsync<bool>(bBwEnabledHandle, CancellationToken.None)).Value;
+                Error = (await Plc.TcAds.ReadAnyAsync<bool>(bErrorHandle, CancellationToken.None)).Value;
+                Done = (await Plc.TcAds.ReadAnyAsync<bool>(bDoneHandle, CancellationToken.None)).Value;
             }
-            catch(Exception)
-            {
-                Console.WriteLine("Lost connection to controller");
-            }
-            
+            AxisPosition = -999;
+            AxisBusy = false;
+            AxisEnabled = false;
+            AxisFwEnabled = false;
+            AxisBwEnabled = false;
+            Error = false;
+            Done = false;
+            return;
         }
-        public void StopPositionRead()
+
+        public async Task ReadAxisPositionV2(CancellationToken ct, int ts = defaultReadTime)
         {
-            if (readToken == null) return;
-            using (readToken) readToken.Cancel();
-
-            if (readToken1 == null) return;
-            using (readToken1) readToken1.Cancel();
-            if (readToken2 == null) return;
-            using (readToken2) readToken2.Cancel();
-            if (readToken3 == null) return;
-            using (readToken3) readToken3.Cancel();
-            if (readToken4 == null) return;
-            using (readToken4) readToken4.Cancel();
-
-
-            readToken = null;
-            readToken1 = null;
-            readToken2 = null;
-            readToken3 = null;
-            readToken4 = null;
-
-            taskPos = null;
-            taskEnabled = null;
-            taskFwEnabled = null;
-            taskBwEnabled = null;
-            taskError = null;
+            while (!ct.IsCancellationRequested)
+            {
+                if (!ValidCommand())
+                {
+                    AxisPosition = -999;
+                    return;
+                }
+                var result = await Plc.TcAds.ReadAnyAsync<double>(fActPositionHandle, CancellationToken.None);
+                AxisPosition = result.Value;
+                await Task.Delay(ts);
+            }
+            AxisPosition = -999;
+            return;
         }
+
+        public async Task ReadAxisBusyV2(CancellationToken ct, int ts = defaultReadTime)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                if (!ValidCommand())
+                {
+                    AxisBusy = false;
+                    return;
+                }
+                var result = await Plc.TcAds.ReadAnyAsync<bool>(bBusyHandle, CancellationToken.None);
+                AxisBusy = result.Value;
+                await Task.Delay(ts);
+            }
+            AxisBusy = false;
+            return;
+        }
+
+        public async Task ReadAxisEnabledV2(CancellationToken ct, int ts = 0)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                if(!ValidCommand())
+                {
+                    AxisEnabled = false;
+                    return;
+                }
+                var result = await Plc.TcAds.ReadAnyAsync<bool>(bEnabledHandle, CancellationToken.None);
+                AxisEnabled = result.Value;
+                await Task.Delay(ts);
+            }
+            AxisEnabled = false;
+            return;
+        }
+
+        public async Task ReadAxisFwEnabledV2(CancellationToken ct, int ts = 0)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                if (!ValidCommand())
+                {
+                    AxisFwEnabled = false;
+                    return;
+                }
+                var result = await Plc.TcAds.ReadAnyAsync<bool>(bFwEnabledHandle, CancellationToken.None);
+                AxisFwEnabled = result.Value;
+                await Task.Delay(ts);
+            }
+            AxisFwEnabled = false;
+            return;
+        }
+
+        public async Task ReadAxisBwEnabledV2(CancellationToken ct, int ts = 0)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                if (!ValidCommand())
+                {
+                    AxisBwEnabled = false;
+                    return;
+                }
+                TwinCAT.Ads.ResultValue<bool> result = await Plc.TcAds.ReadAnyAsync<bool>(bBwEnabledHandle, CancellationToken.None);
+                AxisBwEnabled = result.Value;
+                await Task.Delay(ts);
+            }
+            AxisBwEnabled = false;
+            return;
+        }
+
+        public async Task ReadAxisErrorV2(CancellationToken ct, int ts = 0)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                if (!ValidCommand())
+                {
+                    Error = true;
+                    return;
+                }
+                TwinCAT.Ads.ResultValue<bool> result = await Plc.TcAds.ReadAnyAsync<bool>(bErrorHandle, CancellationToken.None);
+                Error = result.Value;
+                await Task.Delay(ts);
+            }
+            Error = true;
+            return;
+        }
+        
+        public async Task ReadAxisDoneV2(CancellationToken ct, int ts = 0)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                if (!ValidCommand())
+                {
+                    Done = true;
+                    return;
+                }
+                TwinCAT.Ads.ResultValue<bool> result = await Plc.TcAds.ReadAnyAsync<bool>(bDoneHandle, CancellationToken.None);
+                Done = result.Value;
+                await Task.Delay(ts);
+            }
+            Done = true;
+            return;
+        }
+
 
     }
 }
