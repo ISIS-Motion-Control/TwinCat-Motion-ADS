@@ -10,6 +10,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Fonts\**" />
+    <Compile Remove="Images\**" />
+    <Compile Remove="MVVM\Model\**" />
+    <EmbeddedResource Remove="Fonts\**" />
+    <EmbeddedResource Remove="Images\**" />
+    <EmbeddedResource Remove="MVVM\Model\**" />
+    <None Remove="Fonts\**" />
+    <None Remove="Images\**" />
+    <None Remove="MVVM\Model\**" />
+    <Page Remove="Fonts\**" />
+    <Page Remove="Images\**" />
+    <Page Remove="MVVM\Model\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="babyIbex.jpg" />
     <None Remove="ibexHead.jpg" />
   </ItemGroup>
@@ -24,12 +39,6 @@
   <ItemGroup>
     <Resource Include="babyIbex.jpg" />
     <Resource Include="ibexHead.jpg" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Fonts\" />
-    <Folder Include="Images\" />
-    <Folder Include="MVVM\Model\" />
   </ItemGroup>
 
   <ItemGroup>

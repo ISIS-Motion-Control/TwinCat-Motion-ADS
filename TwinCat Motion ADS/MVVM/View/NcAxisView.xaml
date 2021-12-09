@@ -25,7 +25,7 @@
                         <Button x:Name="initAxis" 
                         Focusable="False" 
                         Content="initAxis" 
-                        Click="initAxis_Click" 
+                        Click="InitialiseAxis_Click" 
                         Width="80"
      
                         Style="{StaticResource myDefaultButton}" 
@@ -44,21 +44,21 @@
                     <Button x:Name="enableButton" 
                             Focusable="False" 
                             Content="Enable/Disable" 
-                            Click="enableButton_Click"
+                            Click="EnableButton_Click"
                             Margin="0,5,0,0"
 
                             Style="{StaticResource myDefaultButton}"/>
                     <Button x:Name="resetButton" 
                             Focusable="False" 
                             Content="Reset" 
-                            Click="resetButton_Click"
+                            Click="ResetButton_Click"
                             Margin="0,5,0,0"
 
                             Style="{StaticResource myDefaultButton}"/>
                     <Button x:Name="folderDirSelect" 
                             Focusable="False"
                             Content="Select Directory" 
-                            Click="folderDirSelect_Click"
+                            Click="SelectFolderDirectory_Click"
                             Margin="0,5,0,0"
 
                             Style="{StaticResource myDefaultButton}"/>
@@ -149,7 +149,7 @@
                             <Button x:Name="moveAbsButton" 
                             Focusable="False" 
                             Content="MoveAbs" 
-                            Click="moveAbsButton_Click"
+                            Click="MoveAbsoluteButton_Click"
                             Margin="0,10,0,0"
                                 Style="{StaticResource myDefaultButton}"/>
                             <Button x:Name="moveRelButton" 
@@ -157,41 +157,41 @@
                             Content="MoveRel" 
                             
                             Margin="0,10,0,0"
-                                Style="{StaticResource myDefaultButton}" Click="moveRelButton_Click"/>
+                                Style="{StaticResource myDefaultButton}" Click="MoveRelativeButton_Click"/>
                             <Button x:Name="moveVelButton"
                             Focusable="False"  
                             Content="MoveVel" 
                             
                             Margin="0,10,0,0"
-                                Style="{StaticResource myDefaultButton}" Click="moveVelButton_Click"/>
+                                Style="{StaticResource myDefaultButton}" Click="MoveVelocityButton_Click"/>
                             <Button x:Name="move2High" 
                             Focusable="False"
                             Content="Move2HighLimit"  
                             
                             Margin="0,10,0,0"
-                                Style="{StaticResource myDefaultButton}" Click="move2High_Click"/>
+                                Style="{StaticResource myDefaultButton}" Click="MoveToForwardLimit_Click"/>
                             <Button x:Name="move2Low" 
                             Focusable="False"
                             Content="Move2LowLimit" 
                             
                             Margin="0,10,0,0"
-                                Style="{StaticResource myDefaultButton}" Click="move2Low_Click"/>
+                                Style="{StaticResource myDefaultButton}" Click="MoveToBackwardLimit_Click"/>
                             <Button x:Name="stopMove"
                             Focusable="False"  
                             Content="Stop" 
-                            Click="stopMove_Click"
+                            Click="StopMoveButton_Click"
                             Margin="0,10,0,0"
                                 Style="{StaticResource myDefaultButton}"/>
                             <Button x:Name="highLimReversal" 
                             Focusable="False" 
                             Content="HighLimReversal" 
-                            Click="highLimReversal_Click" 
+                            Click="HighLimitSwitchReversal_Click" 
                             Margin="0,10,0,0"
                                 Style="{StaticResource myDefaultButton}"/>
                             <Button x:Name="lowLimReversal_Copy" 
                             Focusable="False" 
                             Content="LowLimReversal" 
-                            Click="lowLimReversal_Click"
+                            Click="LowLimitSwitchReversal_Click"
                             Margin="0,10,0,0"
                                 Style="{StaticResource myDefaultButton}"/>
                         </StackPanel>
@@ -203,25 +203,25 @@
                    <Button x:Name="end2endTestWithReversal" 
                                 Focusable="False" 
                                 Content="End2EndwRev Test"                            
-                                Click="end2endReversal_Click"
+                                Click="LimitToLimitTest_Click"
                                 Margin="0,10,0,0"
                                 Style="{StaticResource myBlueButton}"/>
                     <Button x:Name="uniDirecitonalTest" 
                                 Focusable="False" 
                                 Content="uniDirectional" 
-                                Click="uniDirecitonalTest_Click"
+                                Click="UniDirecitonalTest_Click"
                                 Margin="0,10,0,0"
                                 Style="{StaticResource myBlueButton}"/>
                     <Button x:Name="biDirecitonalTest" 
                                 Focusable="False" 
                                 Content="biDirectional" 
-                                Click="biDirecitonalTest_Click"
+                                Click="BiDirecitonalTest_Click"
                                 Margin="0,10,0,0"
                                 Style="{StaticResource myBlueButton}"/>
                     <Button x:Name="cancelTest" 
                                     Focusable="False" 
                                     Content="Cancel Test" 
-                                    Click="cancelTest_Click"
+                                    Click="CancelTest_Click"
                                     Margin="0,10,0,0"
                                     Style="{StaticResource myDefaultButton}"/>
                     <CheckBox x:Name="testCancelledCheck" 
@@ -234,7 +234,7 @@
                     <Button x:Name="pauseTest" 
                                     Focusable="False"
                                     Content="Pause Test" 
-                                    Click="pauseTest_Click" 
+                                    Click="PauseTest_Click" 
                                     Margin="0,5,0,0"
                                     Style="{StaticResource myDefaultButton}"/>
                     <CheckBox x:Name="testPausedCheck" 
@@ -249,7 +249,7 @@
                                     Focusable="False"
                                     Content="Import Settings" 
                                     Margin="0,5,0,0"
-                                    Style="{StaticResource myDefaultButton}" Click="testButton_Click"/>
+                                    Style="{StaticResource myDefaultButton}" Click="TestButton_Click"/>
                 </StackPanel>
                 <StackPanel x:Name="testSettings" Margin="45,0,0,0">
                     <StackPanel Orientation="Horizontal" Height="32">

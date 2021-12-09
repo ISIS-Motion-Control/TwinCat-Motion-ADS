@@ -13,9 +13,9 @@ namespace TwinCat_Motion_ADS
     public class PneumaticAxis : TestAdmin
     {
         //PLC handles
-        private uint bCylinder_Handle;
-        private uint bExtendedLimit_Handle;
-        private uint bRetractedLimit_Handle;
+        private readonly uint bCylinder_Handle;
+        private readonly uint bExtendedLimit_Handle;
+        private readonly uint bRetractedLimit_Handle;
 
 
         private bool _extendedLimit;
@@ -53,12 +53,11 @@ namespace TwinCat_Motion_ADS
 
         }
 
-        private async Task cylinderActuation(bool extend)
-        {
-            
+        private async Task CylinderActuation(bool extend)
+        {      
             await Plc.TcAds.WriteAnyAsync(bCylinder_Handle, extend, CancellationToken.None);
         }
-        public async Task<bool> extendCylinder(bool ignoreLimits = false)
+        public async Task<bool> ExtendCylinder(bool ignoreLimits = false)
         {
             if (!ValidCommand()) return false;
             
@@ -70,7 +69,7 @@ namespace TwinCat_Motion_ADS
             if (RetractedLimit == false || ignoreLimits)
             {
                 Console.WriteLine("Extending cylinder");
-                await cylinderActuation(true);
+                await CylinderActuation(true);
                 return true;
             }
             Console.WriteLine("Retracted limit not hit. Extension prohibited");
@@ -78,7 +77,7 @@ namespace TwinCat_Motion_ADS
         }
 
 
-        public async Task<bool> retractCylinder(bool ignoreLimits = false)
+        public async Task<bool> RetractCylinder(bool ignoreLimits = false)
         {
             if (!ValidCommand()) return false;
 
@@ -91,20 +90,20 @@ namespace TwinCat_Motion_ADS
             if (ExtendedLimit == false || ignoreLimits)
             {
                 Console.WriteLine("Retracting cylinder");
-                await cylinderActuation(false);
+                await CylinderActuation(false);
                 return true;
             }
             Console.WriteLine("Extended limit not hit. Retraction prohibited");
             return false;
         }
 
-        public async Task<bool> extendCylinderAndWait(int timeout = 0, bool ignoreLimits = false)
+        public async Task<bool> ExtendCylinderAndWait(int timeout = 0, bool ignoreLimits = false)
         {
-            CancellationTokenSource ct = new CancellationTokenSource();
+            CancellationTokenSource ct = new();
 
-            if (await extendCylinder(ignoreLimits))
+            if (await ExtendCylinder(ignoreLimits))
             {
-                Task<bool> LimitTask = checkExtendedLimitTask(true, ct.Token);
+                Task<bool> LimitTask = CheckExtendedLimitTask(true, ct.Token);
                 List<Task> waitingTask;
                 Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token);
 
@@ -138,13 +137,13 @@ namespace TwinCat_Motion_ADS
             }
             return false;
         }
-        public async Task<bool> retractCylinderAndWait(int timeout = 0, bool ignoreLimits = false)
+        public async Task<bool> RetractCylinderAndWait(int timeout = 0, bool ignoreLimits = false)
         {
-            CancellationTokenSource ct = new CancellationTokenSource();
+            CancellationTokenSource ct = new();
 
-            if (await retractCylinder(ignoreLimits))
+            if (await RetractCylinder(ignoreLimits))
             {
-                Task<bool> LimitTask = checkRetractedLimitTask(true, ct.Token);
+                Task<bool> LimitTask = CheckRetractedLimitTask(true, ct.Token);
                 List<Task> waitingTask;
                 Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token);
 
@@ -179,7 +178,7 @@ namespace TwinCat_Motion_ADS
             return false;
         }
 
-        private async Task<bool> checkExtendedLimitTask(bool limitStatus, CancellationToken wToken, int msDelay = 50)
+        private async Task<bool> CheckExtendedLimitTask(bool limitStatus, CancellationToken wToken, int msDelay = 50)
         {
             while (ExtendedLimit == limitStatus)
             {
@@ -192,7 +191,7 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        private async Task<bool> checkRetractedLimitTask(bool limitStatus, CancellationToken wToken, int msDelay = 50)
+        private async Task<bool> CheckRetractedLimitTask(bool limitStatus, CancellationToken wToken, int msDelay = 50)
         {
             while (RetractedLimit == limitStatus)
             {
@@ -205,148 +204,12 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-
-
-        public async Task<bool> End2EndTest(int cycles, int settlingReads, int settlingReadDelayMilliSeconds, int extend2RetractDelaySeconds, int retract2ExtendDelaySeconds, int extendTimeoutSeconds = 0, int retractTimeoutSeconds = 0, MeasurementDevice device1 = null, MeasurementDevice device2 = null, MeasurementDevice device3 = null, MeasurementDevice device4 = null)
-        {
-            Stopwatch testStopwatch = new Stopwatch();
-            testStopwatch.Start();
-            //Start the test retracted
-            if (await retractCylinderAndWait(retractTimeoutSeconds) == false)
-            {
-                Console.WriteLine("TEST STATUS: Retract init failed");
-                testStopwatch.Stop();
-                return false;
-            }
-
-            //Setup the csv file:
-            List<PneumaticEnd2EndCSV> recordList = new List<PneumaticEnd2EndCSV>();
-            var currentTime = DateTime.Now;
-            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-PneumaticAxis-end2end-settlingReads({1}) settlingReadDelay({2}) ext2retDelay({3}) re2extDelay({4}) - {5} cycles", currentTime, settlingReads, settlingReadDelayMilliSeconds, extend2RetractDelaySeconds, retract2ExtendDelaySeconds, cycles);
-
-            string fileName = @"\" + formattedTitle + ".csv";
-            var stream = File.Open(TestDirectory + fileName, FileMode.Append);
-            var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
-            { HasHeaderRecord = false, };
-
-            StreamWriter writer = new StreamWriter(stream);
-            CsvWriter csv = new CsvWriter(writer, config);
-
-            using (stream)
-            using (writer)
-            using (csv)
-            {
-                csv.WriteHeader<PneumaticEnd2EndCSV>();
-                csv.NextRecord();
-            }
-            Stopwatch stopwatch = new Stopwatch();
-            CancellationTokenSource ctToken = new CancellationTokenSource();
-            CancellationTokenSource ptToken = new CancellationTokenSource();
-            Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
-
-            for (int i = 0; i < cycles; i++)
-            {
-                Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
-                await pauseTaskRequest;
-                if (cancelRequestTask.IsCompleted)
-                {
-                    //Cancelled the test
-                    ptToken.Cancel();
-                    CancelTest = false;
-                    Console.WriteLine("Test cancelled");
-                    return false;
-                }
-
-
-                Console.WriteLine("Starting test cycle " + i);
-                stopwatch.Reset();
-
-                //Wait the allotted delay time
-                await Task.Delay(TimeSpan.FromSeconds(retract2ExtendDelaySeconds));
-                stopwatch.Start();
-                if (await extendCylinderAndWait(extendTimeoutSeconds) == false)
-                {
-                    Console.WriteLine("TEST STATUS: Extension failed");
-                    stopwatch.Stop();
-                    testStopwatch.Stop();
-                    return false;
-                }
-                stopwatch.Stop();
-                for (int j = 0; j < settlingReads; j++)
-                {
-                    //do a read of DTIs (both should be in extend position)
-                    //These will not be highly synchronised reads, very low "read rate".
-                    string measurement1 = string.Empty;
-                    string measurement2 = string.Empty;
-                    string measurement3 = string.Empty;
-                    string measurement4 = string.Empty;
-                    long measurement1Timestamp = 0;
-                    long measurement2Timestamp = 0;
-                    long measurement3Timestamp = 0;
-                    long measurement4Timestamp = 0;
-
-                    CancellationTokenSource testToken = new CancellationTokenSource();
-                    if (device1 != null)
-                    {
-                        measurement1 = await device1.GetMeasurement();
-                        measurement1Timestamp = testStopwatch.ElapsedMilliseconds;
-                    }
-                    if (device2 != null)
-                    {
-                        measurement2 = await device2.GetMeasurement();
-                        measurement2Timestamp = testStopwatch.ElapsedMilliseconds;
-                    }
-                    if (device3 != null)
-                    {
-                        measurement3 = await device3.GetMeasurement();
-                        measurement3Timestamp = testStopwatch.ElapsedMilliseconds;
-                    }
-                    if (device4 != null)
-                    {
-                        measurement4 = await device4.GetMeasurement();
-                        measurement4Timestamp = testStopwatch.ElapsedMilliseconds;
-                    }
-
-                    await Task.Delay(settlingReadDelayMilliSeconds);
-                    //log a record
-                    recordList.Add(new PneumaticEnd2EndCSV((uint)i, (uint)j, "Extending", ExtendedLimit, RetractedLimit, stopwatch.Elapsed, measurement1, measurement1Timestamp, measurement2, measurement2Timestamp, measurement3, measurement3Timestamp, measurement4, measurement4Timestamp));
-
-                }
-                //Settling reads finished
-                //User delay before retracting cylinder
-                await Task.Delay(TimeSpan.FromSeconds(extend2RetractDelaySeconds));
-                stopwatch.Reset();
-                stopwatch.Start();
-                if (await retractCylinderAndWait(retractTimeoutSeconds) == false)
-                {
-                    Console.WriteLine("TEST STATUS: Retraction failed");
-                    stopwatch.Stop();
-                    testStopwatch.Stop();
-                    return false;
-                }
-                stopwatch.Stop();
-                recordList.Add(new PneumaticEnd2EndCSV((uint)i, 0, "Retracting", ExtendedLimit, RetractedLimit, stopwatch.Elapsed, "", 0, "", 0, "", 0, "", 0));
-                //Retract finished and logged. Write to csv
-                //Write the cycle data
-                using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
-                using (writer = new StreamWriter(stream))
-                using (csv = new CsvWriter(writer, config))
-                {
-                    csv.WriteRecords(recordList);
-                }
-                recordList.Clear();
-            }
-            testStopwatch.Stop();
-            Console.WriteLine("Test complete. Time taken: " + testStopwatch.Elapsed);
-            return true;
-        }
-
         public async Task<bool> End2EndTest(AirTestSettings ts, MeasurementDevices md =null)
         {
-            Stopwatch testStopwatch = new Stopwatch();
+            Stopwatch testStopwatch = new();
             testStopwatch.Start();
             //Start the test retracted
-            if (await retractCylinderAndWait(ts.RetractTimeout) == false)
+            if (await RetractCylinderAndWait(ts.RetractTimeout) == false)
             {
                 Console.WriteLine("TEST STATUS: Retract init failed");
                 testStopwatch.Stop();
@@ -354,8 +217,8 @@ namespace TwinCat_Motion_ADS
             }
 
             //Setup the csv file:
-            List<PneumaticEnd2EndCSVv2> recordList = new List<PneumaticEnd2EndCSVv2>();
-            List<PneumaticEnd2EndCSVv2> retractRecord = new List<PneumaticEnd2EndCSVv2>();
+            List<PneumaticEnd2EndCSVv2> recordList = new();
+            List<PneumaticEnd2EndCSVv2> retractRecord = new();
             List<string> measurements = new();
             List<List<string>> cycleMeasurements = new();
             var currentTime = DateTime.Now;
@@ -366,8 +229,8 @@ namespace TwinCat_Motion_ADS
             var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
             { HasHeaderRecord = false, };
 
-            StreamWriter writer = new StreamWriter(stream);
-            CsvWriter csv = new CsvWriter(writer, config);
+            StreamWriter writer = new(stream);
+            CsvWriter csv = new(writer, config);
 
             using (stream)
             using (writer)
@@ -388,16 +251,16 @@ namespace TwinCat_Motion_ADS
                 }
                 csv.NextRecord();
             }
-            Stopwatch stopwatch = new Stopwatch();
-            CancellationTokenSource ctToken = new CancellationTokenSource();
-            CancellationTokenSource ptToken = new CancellationTokenSource();
-            Task<bool> cancelRequestTask = checkCancellationRequestTask(ctToken.Token);
+            Stopwatch stopwatch = new();
+            CancellationTokenSource ctToken = new();
+            CancellationTokenSource ptToken = new();
+            Task<bool> cancelRequestTask = CheckCancellationRequestTask(ctToken.Token);
 
             for (int i = 0; i < ts.Cycles; i++)
             {
                 measurements.Clear();
                 cycleMeasurements.Clear();
-                Task<bool> pauseTaskRequest = checkPauseRequestTask(ptToken.Token);
+                Task<bool> pauseTaskRequest = CheckPauseRequestTask(ptToken.Token);
                 await pauseTaskRequest;
                 if (cancelRequestTask.IsCompleted)
                 {
@@ -415,7 +278,7 @@ namespace TwinCat_Motion_ADS
                 //Wait the allotted delay time
                 await Task.Delay(TimeSpan.FromSeconds(ts.DelayAfterRetract));
                 stopwatch.Start();
-                if (await extendCylinderAndWait(ts.ExtendTimeout) == false)
+                if (await ExtendCylinderAndWait(ts.ExtendTimeout) == false)
                 {
                     Console.WriteLine("TEST STATUS: Extension failed");
                     stopwatch.Stop();
@@ -429,7 +292,7 @@ namespace TwinCat_Motion_ADS
                     //These will not be highly synchronised reads, very low "read rate".
 
 
-                    CancellationTokenSource testToken = new CancellationTokenSource();
+                    //CancellationTokenSource testToken = new();
                     if(md != null)
                     {
                         measurements = new();
@@ -459,7 +322,7 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(TimeSpan.FromSeconds(ts.DelayAfterExtend));
                 stopwatch.Reset();
                 stopwatch.Start();
-                if (await retractCylinderAndWait(ts.RetractTimeout) == false)
+                if (await RetractCylinderAndWait(ts.RetractTimeout) == false)
                 {
                     Console.WriteLine("TEST STATUS: Retraction failed");
                     stopwatch.Stop();
@@ -501,17 +364,15 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
+        private readonly CancellationTokenSource readToken1 = new();
 
-
-        CancellationTokenSource readToken1 = new();
-
-        public void newLimitRead()
+        public void ReadStatuses()
         {
-            Task.Run(() => read_bCylinder(readToken1.Token, TimeSpan.FromMilliseconds(20)));
-            Task.Run(() => read_ExtendedLimit(readToken1.Token, TimeSpan.FromMilliseconds(20)));
-            Task.Run(() => read_RetractedLimit(readToken1.Token, TimeSpan.FromMilliseconds(20)));
+            _ = Task.Run(() => ReadCylinder(readToken1.Token));
+            _ = Task.Run(() => ReadExtendedLimitStatus(readToken1.Token));
+            _ = Task.Run(() => ReadRetractedLimitStatus(readToken1.Token));
         }
-        public async Task read_bCylinder(CancellationToken ct, TimeSpan ts)
+        public async Task ReadCylinder(CancellationToken ct)
         {
             while(!ct.IsCancellationRequested)
             {
@@ -519,20 +380,21 @@ namespace TwinCat_Motion_ADS
                 var result = await Plc.TcAds.ReadAnyAsync<bool>(bCylinder_Handle, CancellationToken.None);
                 Cylinder = result.Value;
             }
+            Cylinder = false;
             return;
-            
         }
-        public async Task read_ExtendedLimit(CancellationToken ct, TimeSpan ts)
+        public async Task ReadExtendedLimitStatus(CancellationToken ct)
         {
             while (!ct.IsCancellationRequested)
             {
-                if (!ValidCommand()) return;
-                var result = await Plc.TcAds.ReadAnyAsync<bool>(bExtendedLimit_Handle, CancellationToken.None);
+                if (!ValidCommand()) { return; }
+                TwinCAT.Ads.ResultValue<bool> result = await Plc.TcAds.ReadAnyAsync<bool>(bExtendedLimit_Handle, CancellationToken.None);
                 ExtendedLimit = result.Value;
             }
+            ExtendedLimit = false;
             return;
         }
-        public async Task read_RetractedLimit(CancellationToken ct, TimeSpan ts)
+        public async Task ReadRetractedLimitStatus(CancellationToken ct)
         {
             while (!ct.IsCancellationRequested)
             {
@@ -540,6 +402,7 @@ namespace TwinCat_Motion_ADS
                 var result = await Plc.TcAds.ReadAnyAsync<bool>(bRetractedLimit_Handle, CancellationToken.None);
                 RetractedLimit = result.Value;
             }
+            RetractedLimit = false;
             return;
         }
 
