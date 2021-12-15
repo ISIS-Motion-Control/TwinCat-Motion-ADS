@@ -16,27 +16,27 @@
                         x:Name="initPneumatic" 
                         Content="Init. Air Axis" 
                             Margin="0,10,0,0"
-                            Style="{StaticResource myDefaultButton}" Click="initPneumatic_Click"/>
+                            Style="{StaticResource myDefaultButton}" Click="InitialisePneumatic_Click"/>
             <Button x:Name="extendCylinder_button" 
                         Focusable="False" 
                         Content="Extend cylinder"
                             Margin="0,10,0,0"
-                            Style="{StaticResource myDefaultButton}" Click="extendCylinder_button_Click"/>
+                            Style="{StaticResource myDefaultButton}" Click="ExtendCylinderButton_Click"/>
             <Button x:Name="retractCylinder_button" 
                             Focusable="False" 
                             Content="Retract cylinder" 
                             Margin="0,10,0,0"
-                            Style="{StaticResource myDefaultButton}" Click="retractCylinder_button_Click"/>
+                            Style="{StaticResource myDefaultButton}" Click="RetractCylinderButton_Click"/>
             <Button Focusable="False" 
                             x:Name="shutterEnd2End_button" 
                             Content="Shutter End 2 End" 
                             Margin="0,10,0,0"
-                            Style="{StaticResource myBlueButton}" Click="shutterEnd2End_button_Click"/>
+                            Style="{StaticResource myBlueButton}" Click="ShutterLimitToLimitTestButton_Click"/>
             <Button Focusable="False" 
                             x:Name="shutterTestFolderDir_button" 
                             Content="Sel.Dir for shutter" 
                             Margin="0,10,0,0"
-                            Style="{StaticResource myBlueButton}" Click="shutterTestFolderDir_button_Click"/>
+                            Style="{StaticResource myBlueButton}" Click="SelectTestDirectory_Click"/>
             <Button x:Name="cancelTest" 
                             Focusable="False" 
                                     Content="Cancel Test" 

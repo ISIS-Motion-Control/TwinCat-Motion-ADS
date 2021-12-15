@@ -25,6 +25,7 @@ namespace TwinCat_Motion_ADS
             SerialPort = new SerialPort();
         }
 
+        //Populate the SerialPortList
         public void UpdatePortList()
         {
             SerialPortList.Clear();
@@ -35,19 +36,20 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        //Open the local port
         public bool OpenPort()
         {
-            if (SerialPort.IsOpen)
+            if (SerialPort.IsOpen)  //If port already open and in use
             {
                 return false;
             }
-            if (string.IsNullOrEmpty(Portname))
+            if (string.IsNullOrEmpty(Portname)) //If no port name specified
             {
                 return false;
             }
             try
             {
-                SerialPort = new SerialPort(Portname, 9600);
+                SerialPort = new SerialPort(Portname, 9600);    //Create serial port instance
                 SerialPort.Open();
             }
             catch
@@ -80,27 +82,14 @@ namespace TwinCat_Motion_ADS
             return false;
         }
     
-        public string GetMeasurement(int timeoutMilliSeconds =0)
-        {
-                        //We need this to be async and non blocking with a timeout!!!
-            if (SerialPort == null) return "No port initialised";
-            if (!SerialPort.IsOpen) return "Port not open";
-            SerialPort.DiscardInBuffer(); //Clear any unread data
-            SerialPort.Write("1");
-            while (SerialPort.BytesToRead == 0) { }
-            Thread.Sleep(readDelay);
-            Measurement = SerialPort.ReadExisting();
-            return Measurement;
-        }
-
+        //Async method for getting DTI measurement
         public async Task<string> GetMeasurementAsync(int timeoutMilliSeconds = defaultTimeout)
         {
-            CancellationTokenSource ct = new CancellationTokenSource();
+            CancellationTokenSource ct = new();
             return await ReadAsync("1", ct, readDelay,timeoutMilliSeconds);
         }
 
-
-
+        //Generic write/read command to DTI. 1 is measurement, 2 is unit, 3 is readtime
         public async Task<string> ReadAsync(string cmd, CancellationTokenSource ct, int msReadDelay, int timeout = defaultTimeout)
         {
             string readValue = string.Empty;
@@ -134,6 +123,20 @@ namespace TwinCat_Motion_ADS
         }
 
 
+        //OBSOLETE Read DTI data
+        public string GetMeasurement()
+        {
+            if (SerialPort == null) return "No port initialised";
+            if (!SerialPort.IsOpen) return "Port not open";
+            SerialPort.DiscardInBuffer();   //Clear any unread data from the buffer
+            SerialPort.Write("1");          //Command to request a measurement read
+            while (SerialPort.BytesToRead == 0) { } //wait until we start reading data
+            Thread.Sleep(readDelay);
+            Measurement = SerialPort.ReadExisting();
+            return Measurement;
+        }
+
+        //OBSOLETE Read DTI units
         public string GetUnits()
         {
             SerialPort.DiscardInBuffer(); //Clear any unread data
@@ -144,6 +147,7 @@ namespace TwinCat_Motion_ADS
             return Units;
         }
 
+        //OBSOLETE Read DTI readtime
         public string GetReadTime()
         {
             SerialPort.DiscardInBuffer();

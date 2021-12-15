@@ -97,7 +97,7 @@
     <Window.DataContext>
         <viewModel:MainViewModel/>
     </Window.DataContext>
-    <Border CornerRadius="10" Background="#FF9FC1C9">
+    <Border CornerRadius="10" Background="#FF9FC1C9" Focusable="True">
         
     
     <Grid x:Name="mainWindowGrid" Focusable="True">
@@ -108,13 +108,13 @@
         <Grid.RowDefinitions>
                 <RowDefinition Height="30"/>
                 <RowDefinition Height="30"/>
-            <RowDefinition Height="150"/>
+            <RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
             <Menu IsMainMenu="True" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
                   HorizontalAlignment="Left" Height="30" Background="{x:Null}">
                 <MenuItem x:Name="MeasureDevicesMenu" Header="Measurement Devices" Height="30" Template="{StaticResource VsOnline}">
-                    <MenuItem Header="Add new device..." Click="addNewDevice" Template="{StaticResource VsMenuSub}"/>
+                    <MenuItem Header="Add new device..." Click="AddNewDevice" Template="{StaticResource VsMenuSub}"/>
                 </MenuItem>
             </Menu>
             <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
@@ -145,7 +145,7 @@
                 <Button x:Name="connect2PlcButton" 
                             Focusable="False" 
                             Content="Connect to PLC" 
-                            Click="connect2PlcButton_Click" 
+                            Click="ConnectToPlc_Click" 
                             Height="20"
                             VerticalAlignment="Top"
                             Margin="10,5,0,0"
@@ -166,9 +166,9 @@
 
 
 
-        <StackPanel x:Name="StackPanel___MainWindow" Orientation="Horizontal" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" Grid.RowSpan="2">
+        <StackPanel x:Name="StackPanel___MainWindow" Orientation="Vertical" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" Grid.RowSpan="2" Focusable="True">
                 <ContentControl Content="{Binding CurrentView}" d:IsHidden="True"/>
-                
+               
             </StackPanel>
 
         </Grid>

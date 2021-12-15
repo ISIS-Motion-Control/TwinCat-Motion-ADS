@@ -10,6 +10,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Fonts\**" />
+    <Compile Remove="Images\**" />
+    <Compile Remove="MVVM\Model\**" />
+    <EmbeddedResource Remove="Fonts\**" />
+    <EmbeddedResource Remove="Images\**" />
+    <EmbeddedResource Remove="MVVM\Model\**" />
+    <None Remove="Fonts\**" />
+    <None Remove="Images\**" />
+    <None Remove="MVVM\Model\**" />
+    <Page Remove="Fonts\**" />
+    <Page Remove="Images\**" />
+    <Page Remove="MVVM\Model\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="babyIbex.jpg" />
     <None Remove="ibexHead.jpg" />
   </ItemGroup>
@@ -18,18 +33,13 @@
     <PackageReference Include="Beckhoff.TwinCAT.Ads" Version="5.0.458" />
     <PackageReference Include="CsvHelper" Version="27.1.1" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="3.1.0" />
+    <PackageReference Include="Simple.Wpf.Terminal" Version="2.3.33" />
     <PackageReference Include="System.IO.Ports" Version="5.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="babyIbex.jpg" />
     <Resource Include="ibexHead.jpg" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Fonts\" />
-    <Folder Include="Images\" />
-    <Folder Include="MVVM\Model\" />
   </ItemGroup>
 
   <ItemGroup>

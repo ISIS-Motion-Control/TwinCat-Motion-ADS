@@ -83,7 +83,6 @@ namespace TwinCat_Motion_ADS
         }
 
         private int _plcMeasurementChannels;
-
         public int PlcMeasurementChannels
         {
             get { return _plcMeasurementChannels; }
@@ -101,8 +100,6 @@ namespace TwinCat_Motion_ADS
             set { _name = value; }
         }
 
-
-        //Return a string of the device type
         public string DeviceTypeString
         {
             get
@@ -125,6 +122,7 @@ namespace TwinCat_Motion_ADS
                 }
             }
         }
+        
         public string BaudRate
         {
             get
@@ -142,34 +140,7 @@ namespace TwinCat_Motion_ADS
                     return "";
                 }
             }
-            set
-            {
-                if (DeviceType == DeviceType.DigimaticIndicator)
-                {
-                    if (!dti.CheckConnected())
-                    {
-                        dti.BaudRate = Convert.ToInt32(value);
-                        OnPropertyChanged();
-                    }
-                }
-
-                
-            }
         }
-
-        public void UpdateBaudRate(string bRate)
-        {
-            if (DeviceType == DeviceType.DigimaticIndicator)
-            {
-                if (!Connected) dti.BaudRate = Convert.ToInt32(bRate);
-            }
-            if (DeviceType == DeviceType.KeyenceTm3000)
-            {
-                if (!Connected) keyence.BaudRate = Convert.ToInt32(bRate);
-            }
-        }
-
-        //public bool Connected { get; private set; }
 
         private bool _connected;
         public bool Connected
@@ -183,9 +154,12 @@ namespace TwinCat_Motion_ADS
 
         public MeasurementDevice(string deviceType)
         {
-            beckhoffPlc = new("", 851);
+            //plc specific startup
+            beckhoffPlc = new("", 851); //need to create a separate PLC instance for the measurement device to attach to
             beckhoff = new(beckhoffPlc);
+
             Connected = false;
+
             if(deviceType == "DigimaticIndicator")
             {
                 DeviceType = DeviceType.DigimaticIndicator;
@@ -205,6 +179,26 @@ namespace TwinCat_Motion_ADS
             Name = "*NEW DEVICE*";
         }
 
+        /// <summary>
+        /// Update the baud rate of RS232 devices
+        /// </summary>
+        /// <param name="bRate"></param>
+        public void UpdateBaudRate(string bRate)
+        {
+            if (DeviceType == DeviceType.DigimaticIndicator)
+            {
+                if (!Connected) dti.BaudRate = Convert.ToInt32(bRate);
+            }
+            if (DeviceType == DeviceType.KeyenceTm3000)
+            {
+                if (!Connected) keyence.BaudRate = Convert.ToInt32(bRate);
+            }
+        }
+
+        /// <summary>
+        /// Change the measurement device type
+        /// </summary>
+        /// <param name="deviceType"></param>
         public void changeDeviceType(string deviceType)
         {
             if (Connected) return;  //Don't change device type if connected to something
@@ -240,8 +234,6 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-
-
         /// <summary>
         /// Connect to selected measurement device type
         /// </summary>
@@ -250,19 +242,19 @@ namespace TwinCat_Motion_ADS
         {
             if (Connected)
             {
-                Console.WriteLine("Already connected");
+                Console.WriteLine("Already connected to a device");
                 return false;
             }
             switch (DeviceType)
             {
                 case DeviceType.DigimaticIndicator:
-                        dti.Portname = PortName;
+                    dti.Portname = PortName;
                     if(dti.OpenPort())
                     {
                         Connected = true;
                     }
                     return Connected;
-                    
+                
                 case DeviceType.KeyenceTm3000:
                     keyence.Portname = PortName;                   
                     if(keyence.OpenPort())
@@ -270,18 +262,17 @@ namespace TwinCat_Motion_ADS
                         Connected = true;
                     }
                     return Connected;
-
+                
                 case DeviceType.Beckhoff:
                     if(beckhoffPlc.Connect())
                     {
                         if(beckhoffPlc.IsStateRun())
                         {
-
                             Connected = true;
                         }
                     }
                     return Connected;
-
+                
                 default:
                     break;
             }
@@ -289,6 +280,10 @@ namespace TwinCat_Motion_ADS
             return false;
         }
 
+        /// <summary>
+        /// Disconnect from the current device
+        /// </summary>
+        /// <returns></returns>
         public bool DisconnectFromDevice()
         {
             if (!Connected)
@@ -299,13 +294,13 @@ namespace TwinCat_Motion_ADS
             switch (DeviceType)
             {
                 case DeviceType.DigimaticIndicator:                   
-                    if(dti.ClosePort())
+                    if(dti.ClosePort())                         //Try to close the port
                     {
                         Console.WriteLine("Port closed");
                         Connected = false;
                         return true;
                     }
-                    else if (dti.CheckConnected())
+                    else if (dti.CheckConnected())              //If we failed to close, is the DTI connected
                     {
                         Console.WriteLine("Failed to close");
                         return false;
@@ -373,12 +368,12 @@ namespace TwinCat_Motion_ADS
 
                 case DeviceType.KeyenceTm3000:
                     List<string> measures = await keyence.GetAllMeasures();
-                    //Keyence returns a string list which must be converted to single string
-                    var retstr = String.Join(",", measures);
+                    var retstr = String.Join(",", measures);    //Keyence returns a string list so we can convert to a single CSV string
                     return retstr;
 
                 case DeviceType.Beckhoff:
                     return await beckhoff.ReadChannels();
+                
                 default:
                     break;
             }
@@ -391,13 +386,6 @@ namespace TwinCat_Motion_ADS
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
-
-        public bool ConnectToPlcChannels()
-        {
-            return false;
-        }
-
-
     }
 
 

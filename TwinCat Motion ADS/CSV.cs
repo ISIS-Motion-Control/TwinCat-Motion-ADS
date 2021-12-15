@@ -3,7 +3,7 @@ using CsvHelper.Configuration.Attributes;
 
 namespace TwinCat_Motion_ADS
 {
-    public class end2endReversalCSV
+    public class End2endReversalCSV
     {
         [Name("Cycle")]
         public int Cycle { get; set; }
@@ -22,7 +22,7 @@ namespace TwinCat_Motion_ADS
         [Name("Device4Measurement")]
         public string Device4Measurement { get; set; }
 
-        public end2endReversalCSV(int cycle, string status, long elapsedTime, double limitPosition, string device1Measurement = "", string device2Measurement = "", string device3Measurement = "", string device4Measurement = "")
+        public End2endReversalCSV(int cycle, string status, long elapsedTime, double limitPosition, string device1Measurement = "", string device2Measurement = "", string device3Measurement = "", string device4Measurement = "")
         {
             Cycle = cycle;
             Status = status;
@@ -34,7 +34,7 @@ namespace TwinCat_Motion_ADS
             Device4Measurement = device4Measurement;
         }
     }
-    public class end2endCSV
+    public class End2endCSV
     {
         [Name("Cycle")]
         public int Cycle { get; set; }
@@ -46,7 +46,7 @@ namespace TwinCat_Motion_ADS
         public double LimitPosition { get; set; }
 
 
-        public end2endCSV(int cycle, string status, long elapsedTime, double limitPosition)
+        public End2endCSV(int cycle, string status, long elapsedTime, double limitPosition)
         {
             Cycle = cycle;
             Status = status;
@@ -55,7 +55,7 @@ namespace TwinCat_Motion_ADS
         }
     }
 
-    public class uniDirectionalAccuracyCSV
+    public class UniDirectionalAccuracyCSV
     {
         [Name("Cycle")]
         public uint Cycle { get; set; }
@@ -76,7 +76,7 @@ namespace TwinCat_Motion_ADS
         [Name("Device4Measurement")]
         public string Device4Measurement { get; set; }
 
-        public uniDirectionalAccuracyCSV(uint cycle, uint step, string status, double targetPosition, double encoderPosition, string device1Measurement = "", string device2Measurement = "", string device3Measurement = "", string device4Measurement = "")
+        public UniDirectionalAccuracyCSV(uint cycle, uint step, string status, double targetPosition, double encoderPosition, string device1Measurement = "", string device2Measurement = "", string device3Measurement = "", string device4Measurement = "")
         {
             Cycle = cycle;
             Step = step;
@@ -89,7 +89,7 @@ namespace TwinCat_Motion_ADS
             Device4Measurement = device4Measurement;
         }
     }
-    public class uniDirectionalAccCSV
+    public class UniDirectionalAccCSV
     {
         [Name("Cycle")]
         public uint Cycle { get; set; }
@@ -102,13 +102,40 @@ namespace TwinCat_Motion_ADS
         [Name("EncoderPosition")]
         public double EncoderPosition { get; set; }
 
-        public uniDirectionalAccCSV(uint cycle, uint step, string status, double targetPosition, double encoderPosition)
+        public UniDirectionalAccCSV(uint cycle, uint step, string status, double targetPosition, double encoderPosition)
         {
             Cycle = cycle;
             Step = step;
             Status = status;
             TargetPosition = targetPosition;
             EncoderPosition = encoderPosition;
+        }
+    }
+
+    public class PneumaticEnd2EndCSVv2
+    {
+        [Name("Cycle")]
+        public uint Cycle { get; set; }
+        [Name("SettlingRead")]
+        public uint SettlingRead { get; set; }
+        [Name("Status")]
+        public string Status { get; set; }
+        [Name("ExtendLimit")]
+        public bool ExtendLimit { get; set; }
+        [Name("RetractLimit")]
+        public bool RetractLimit { get; set; }
+        [Name("ElapsedTime")]
+        public TimeSpan ElapsedTime { get; set; }
+
+
+        public PneumaticEnd2EndCSVv2(uint cycle, uint settlingRead, string status, bool extendLimit, bool retractLimit, TimeSpan elapsedTime)
+        {
+            Cycle = cycle;
+            SettlingRead = settlingRead;
+            Status = status;
+            ExtendLimit = extendLimit;
+            RetractLimit = retractLimit;
+            ElapsedTime = elapsedTime;
         }
     }
 
