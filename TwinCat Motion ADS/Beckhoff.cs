@@ -12,13 +12,13 @@ namespace TwinCat_Motion_ADS
 {
     public class Beckhoff : INotifyPropertyChanged
     {
-        private PLC _plc;
-        public PLC Plc
-        {
-            get { return _plc; }
-            set { _plc = value; }
-        }
+        public PLC Plc { get; set; }
+        /*
+         * Notes: Should probably make this a little more neat/scalable than it currently is.
+         * Also need to implement some additional handles and methods for sensors.
+         */
 
+        //Handle variables for address locations
         private uint Dig1Handle;
         private uint Dig2Handle;
         private uint Dig3Handle;
@@ -32,6 +32,8 @@ namespace TwinCat_Motion_ADS
         private uint Pt3Handle;
         private uint Pt4Handle;
 
+
+        //Connection bools are binded to measurement device window
         private bool _dig1Connection;
         public bool Dig1Connection
         {
@@ -161,7 +163,7 @@ namespace TwinCat_Motion_ADS
         }
 
         //Read Channel Methods
-        public async Task<string> ReadDig1()    //NEED A TIMEOUT ON THIS TASK!!!
+        public async Task<string> ReadDig1()
         {
             try
             {
@@ -261,7 +263,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var result = await Plc.TcAds.ReadAnyAsync<double>(Pt1Handle, CancellationToken.None);
+                var result = await Plc.TcAds.ReadAnyAsync<short>(Pt1Handle, CancellationToken.None);
                 return result.Value.ToString();
             }
             catch
@@ -308,9 +310,9 @@ namespace TwinCat_Motion_ADS
         
         public async Task<string> ReadChannels()
         {
-            List<string> measures = new List<string>();
+            List<string> measures = new ();
 
-            //go through channels
+            //Incredibly manual approach to run through channels
             if(Dig1Connection)
             {
                 measures.Add(await ReadDig1());
@@ -360,20 +362,16 @@ namespace TwinCat_Motion_ADS
                 measures.Add(await ReadPt4());
             }
 
-            var retStr = String.Join(",", measures);
-
+            string retStr = string.Join(",", measures); //Combine all measurements as single CSV string
             return retStr;
         }
-        
-        
-        
-        
+
         //Handle creation and checks
         public async Task<bool> CreateHandleDig1()
         {
             try
             {
-                var resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput1",CancellationToken.None);
+                ResultHandle resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput1",CancellationToken.None);
                 Dig1Handle = resultHandle.Handle;
                 return true;
             }
@@ -386,7 +384,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput2", CancellationToken.None);
+                ResultHandle resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput2", CancellationToken.None);
                 Dig2Handle = resultHandle.Handle;
                 return true;
             }
@@ -399,7 +397,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput3", CancellationToken.None);
+                ResultHandle resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput3", CancellationToken.None);
                 Dig3Handle = resultHandle.Handle;
                 return true;
             }
@@ -412,7 +410,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput4", CancellationToken.None);
+                ResultHandle resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput4", CancellationToken.None);
                 Dig4Handle = resultHandle.Handle;
                 return true;
             }
@@ -425,7 +423,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput5", CancellationToken.None);
+                ResultHandle resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput5", CancellationToken.None);
                 Dig5Handle = resultHandle.Handle;
                 return true;
             }
@@ -438,7 +436,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput6", CancellationToken.None);
+                ResultHandle resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput6", CancellationToken.None);
                 Dig6Handle = resultHandle.Handle;
                 return true;
             }
@@ -451,7 +449,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput7", CancellationToken.None);
+                ResultHandle resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput7", CancellationToken.None);
                 Dig7Handle = resultHandle.Handle;
                 return true;
             }
@@ -464,7 +462,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput8", CancellationToken.None);
+                ResultHandle resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.DigInput8", CancellationToken.None);
                 Dig8Handle = resultHandle.Handle;
                 return true;
             }
@@ -478,7 +476,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.Pt1", CancellationToken.None);
+                ResultHandle resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.Pt1", CancellationToken.None);
                 Pt1Handle = resultHandle.Handle;
                 return true;
             }
@@ -491,7 +489,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.Pt2", CancellationToken.None);
+                ResultHandle resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.Pt2", CancellationToken.None);
                 Pt2Handle = resultHandle.Handle;
                 return true;
             }
@@ -504,7 +502,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.Pt3", CancellationToken.None);
+                ResultHandle resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.Pt3", CancellationToken.None);
                 Pt3Handle = resultHandle.Handle;
                 return true;
             }
@@ -517,7 +515,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.Pt4", CancellationToken.None);
+                ResultHandle resultHandle = await Plc.TcAds.CreateVariableHandleAsync("SENSORS.Pt4", CancellationToken.None);
                 Pt4Handle = resultHandle.Handle;
                 return true;
             }

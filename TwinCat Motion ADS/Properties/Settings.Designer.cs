@@ -202,5 +202,101 @@ namespace TwinCat_Motion_ADS.Properties {
                 this["measurementDevices"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("New Test")]
+        public string testTitle {
+            get {
+                return ((string)(this["testTitle"]));
+            }
+            set {
+                this["testTitle"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public string airCycles {
+            get {
+                return ((string)(this["airCycles"]));
+            }
+            set {
+                this["airCycles"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public string airSettlingReads {
+            get {
+                return ((string)(this["airSettlingReads"]));
+            }
+            set {
+                this["airSettlingReads"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public string airReadDelayMs {
+            get {
+                return ((string)(this["airReadDelayMs"]));
+            }
+            set {
+                this["airReadDelayMs"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public string airDelayAfterExtend {
+            get {
+                return ((string)(this["airDelayAfterExtend"]));
+            }
+            set {
+                this["airDelayAfterExtend"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public string airDelayAfterRetract {
+            get {
+                return ((string)(this["airDelayAfterRetract"]));
+            }
+            set {
+                this["airDelayAfterRetract"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public string airExtendTimeout {
+            get {
+                return ((string)(this["airExtendTimeout"]));
+            }
+            set {
+                this["airExtendTimeout"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public string airRetractTimeout {
+            get {
+                return ((string)(this["airRetractTimeout"]));
+            }
+            set {
+                this["airRetractTimeout"] = value;
+            }
+        }
     }
 }

@@ -14,14 +14,11 @@ namespace TwinCat_Motion_ADS
         public string Readtime { get; set; }
         public string Portname { get; set; }
         public int BaudRate { get; set; }
+
         private const int defaultTimeout = 1000;
 
         public ObservableCollection<string> SerialPortList = new();
-        /// <summary>
-        /// Constructor to initialise the KeyenceTM3000 and RS232
-        /// </summary>
-        /// <param name="portName"></param>
-        /// <param name="baudRate"></param>
+
         public KeyenceTM3000(string portName = "", int baudRate = 115200)
         {
             Portname = portName;
@@ -136,7 +133,7 @@ namespace TwinCat_Motion_ADS
             for (int i = 1; i < 17; i++)
             {
                 var str = await GetMeasureAsync(i);
-                if(str[1]!='F' && str[1]!='X')  //Check the 2nd char of returned string, F is when no data present and X is unused channel
+                if(str[1]!='X')  //Check the 2nd char of returned string, F is when no data present and X is unused channel
                 {
                     measurements.Add(str);  //If valid data add to the list
                 }
