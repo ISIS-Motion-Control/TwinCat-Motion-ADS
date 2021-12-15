@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TwinCat_Motion_ADS.Core;
-using Simple.Wpf.Terminal;
 namespace TwinCat_Motion_ADS.MVVM.ViewModel
 {
     class MainViewModel : ObservableObject
