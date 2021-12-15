@@ -27,11 +27,17 @@ namespace TwinCat_Motion_ADS.MVVM.View
             "",
         "DigimaticIndicator",
         "KeyenceTM3000",
-        "Beckhoff"
+        "Beckhoff",
+        "MotionChannel",
+        "Timestamp"
         };
         public ObservableCollection<string> BaudRateList = new ObservableCollection<string>()
         {
             "9600", "19200","38400","57600","115200"
+        };
+        public ObservableCollection<string> VariableTypeList = new ObservableCollection<string>()
+        {
+            "string","double","short","bool"
         };
         MeasurementDevice MDevice;
         public measurementDeviceWindow(int deviceIndex, MeasurementDevice mDevice)
@@ -190,7 +196,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
                 TextBox netID = new();
                 setupTextBox(ref netID, "x.x.x.x");
-                //comPort.DropDownClosed += new EventHandler(portSelect_DropDownClosed);    //NEED TO ADD AN EVENT HANDLER TO UPDATE AMSNETID
 
                 Binding amsBind = new();
                 amsBind.Mode = BindingMode.TwoWay;
@@ -437,6 +442,135 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
 
             }
+            else if(MDevice.DeviceTypeString=="MotionChannel")
+            {
+                //VARIABLE TYPE
+                StackPanel setting1 = new();
+                setting1.Orientation = Orientation.Horizontal;
+                setting1.Margin = new Thickness(5, 5, 0, 0);
+                deviceSettings.Children.Add(setting1);
+               
+                TextBlock setting1Text = new();
+                setupTextBlock(ref setting1Text, "Variable Type");
+                ComboBox variableType = new();
+                setupComboBox(ref variableType, "variableType", VariableTypeList);
+                variableType.DropDownClosed += new EventHandler(variableType_DropDownClosed);
+
+                Binding varTypeBind = new();
+                varTypeBind.Mode = BindingMode.OneWay;
+                varTypeBind.Source = MDevice.motionChannel;
+                varTypeBind.Path = new PropertyPath("VariableType");
+                varTypeBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+                BindingOperations.SetBinding(variableType, ComboBox.SelectedItemProperty, varTypeBind);
+
+                setting1.Children.Add(setting1Text);
+                setting1.Children.Add(variableType);
+
+                //VARIABLE STRING
+                StackPanel setting2 = new();
+                setting2.Orientation = Orientation.Horizontal;
+                setting2.Margin = new Thickness(5, 5, 0, 0);
+                deviceSettings.Children.Add(setting2);
+
+                TextBlock setting2Text = new();
+                setupTextBlock(ref setting2Text, "Access Path");
+                TextBox accessPath = new();
+                setupTextBox(ref accessPath, "");
+                accessPath.Width = 250;
+
+                Binding accessBind = new();
+                accessBind.Mode = BindingMode.TwoWay;
+                accessBind.Source = MDevice.motionChannel;
+                accessBind.Path = new PropertyPath("VariableString");
+                accessBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+                BindingOperations.SetBinding(accessPath, TextBox.TextProperty, accessBind);
+
+                setting2.Children.Add(setting2Text);
+                setting2.Children.Add(accessPath);
+
+
+                //BUTTTTTTTONS
+                //Create button stack panel
+                StackPanel buttons = new();
+                buttons.Orientation = Orientation.Horizontal;
+                buttons.HorizontalAlignment = HorizontalAlignment.Center;
+                deviceSettings.Children.Add(buttons);
+
+                Button connectButton = new();
+                setupButton(ref connectButton, "Connect");
+                connectButton.Click += new RoutedEventHandler(ConnectToDevice);
+
+                Button disconnectButton = new();
+                setupButton(ref disconnectButton, "Disconnect");
+                disconnectButton.Click += new RoutedEventHandler(DisconnectFromDevice);
+
+                Button testReadButton = new();
+                setupButton(ref testReadButton, "Test read");
+                testReadButton.Click += new RoutedEventHandler(TestRead);
+
+                buttons.Children.Add(connectButton);
+                buttons.Children.Add(disconnectButton);
+                buttons.Children.Add(testReadButton);
+                
+                //Connect status
+                StackPanel status = new();
+                status.Orientation = Orientation.Horizontal;
+                status.HorizontalAlignment = HorizontalAlignment.Right;
+                deviceSettings.Children.Add(status);
+
+                CheckBox connected = new();
+                connected.IsEnabled = false;
+                connected.Content = "Connection status";
+                Binding connectBind = new();
+                connectBind.Mode = BindingMode.OneWay;
+                connectBind.Source = MDevice;
+                connectBind.Path = new PropertyPath("Connected");
+                connectBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+                BindingOperations.SetBinding(connected, CheckBox.IsCheckedProperty, connectBind);
+                status.Children.Add(connected);
+            }
+            else if(MDevice.DeviceTypeString=="Timestamp")
+            {
+                //BUTTTTTTTONS
+                //Create button stack panel
+                StackPanel buttons = new();
+                buttons.Orientation = Orientation.Horizontal;
+                buttons.HorizontalAlignment = HorizontalAlignment.Center;
+                deviceSettings.Children.Add(buttons);
+
+                Button connectButton = new();
+                setupButton(ref connectButton, "Connect");
+                connectButton.Click += new RoutedEventHandler(ConnectToDevice);
+
+                Button disconnectButton = new();
+                setupButton(ref disconnectButton, "Disconnect");
+                disconnectButton.Click += new RoutedEventHandler(DisconnectFromDevice);
+
+                Button testReadButton = new();
+                setupButton(ref testReadButton, "Test read");
+                testReadButton.Click += new RoutedEventHandler(TestRead);
+
+                buttons.Children.Add(connectButton);
+                buttons.Children.Add(disconnectButton);
+                buttons.Children.Add(testReadButton);
+
+                //Connect status
+                StackPanel status = new();
+                status.Orientation = Orientation.Horizontal;
+                status.HorizontalAlignment = HorizontalAlignment.Right;
+                deviceSettings.Children.Add(status);
+
+                CheckBox connected = new();
+                connected.IsEnabled = false;
+                connected.Content = "Connection status";
+                Binding connectBind = new();
+                connectBind.Mode = BindingMode.OneWay;
+                connectBind.Source = MDevice;
+                connectBind.Path = new PropertyPath("Connected");
+                connectBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+                BindingOperations.SetBinding(connected, CheckBox.IsCheckedProperty, connectBind);
+                status.Children.Add(connected);
+            }
         }
         private async void SetupHandle(object sender, EventArgs e)
         {
@@ -592,6 +726,12 @@ namespace TwinCat_Motion_ADS.MVVM.View
             var baud = sender as ComboBox;
             MDevice.UpdateBaudRate((string)baud.SelectedItem);
             baud.SelectedItem = MDevice.BaudRate;
+        }
+        private void variableType_DropDownClosed(object sender,EventArgs e)
+        {
+            var combo = sender as ComboBox;
+            MDevice.motionChannel.VariableType = (string)combo.SelectedItem;
+            combo.SelectedItem = MDevice.motionChannel.VariableType;
         }
 
         

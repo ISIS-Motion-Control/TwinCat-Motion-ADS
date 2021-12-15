@@ -15,7 +15,6 @@ using System.Diagnostics;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
-using Simple.Wpf.Terminal;
 
 namespace TwinCat_Motion_ADS
 {
@@ -25,7 +24,6 @@ namespace TwinCat_Motion_ADS
     /// </summary>
     public partial class MainWindow : Window
     {
-        Terminal terminal = new();
         public PLC Plc;
         public string selectedFolder = string.Empty;
         public MeasurementDevices MeasurementDevices = new();
