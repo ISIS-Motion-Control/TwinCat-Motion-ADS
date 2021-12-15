@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TwinCat_Motion_ADS.Core;
-
+using Simple.Wpf.Terminal;
 namespace TwinCat_Motion_ADS.MVVM.ViewModel
 {
     class MainViewModel : ObservableObject
     {
-
+        
         public RelayCommand NcAxisCommand { get; set; }
         public RelayCommand AirAxisCommand { get; set; }
 
@@ -27,8 +27,11 @@ namespace TwinCat_Motion_ADS.MVVM.ViewModel
         }
 
 
+        
+
         public MainViewModel()
         {
+
             AirAxisVm = new AirAxisViewModel();
             NcAxisVm = new NcAxisViewModel();
             CurrentView = NcAxisVm;

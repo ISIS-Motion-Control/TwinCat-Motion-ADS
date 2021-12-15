@@ -263,7 +263,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var result = await Plc.TcAds.ReadAnyAsync<double>(Pt1Handle, CancellationToken.None);
+                var result = await Plc.TcAds.ReadAnyAsync<short>(Pt1Handle, CancellationToken.None);
                 return result.Value.ToString();
             }
             catch

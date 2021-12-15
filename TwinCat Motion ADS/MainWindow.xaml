@@ -166,9 +166,9 @@
 
 
 
-        <StackPanel x:Name="StackPanel___MainWindow" Orientation="Horizontal" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" Grid.RowSpan="2" Focusable="True">
+        <StackPanel x:Name="StackPanel___MainWindow" Orientation="Vertical" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" Grid.RowSpan="2" Focusable="True">
                 <ContentControl Content="{Binding CurrentView}" d:IsHidden="True"/>
-                
+               
             </StackPanel>
 
         </Grid>
