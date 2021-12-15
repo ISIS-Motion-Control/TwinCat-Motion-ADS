@@ -21,6 +21,8 @@ namespace TwinCat_Motion_ADS.MVVM.View
     /// </summary>
     public partial class measurementDeviceWindow : Window
     {
+        public List<Tuple<string, int>> ChannelList = new();   //Channel list will be used to store what channels we want to access and their name
+
         int DeviceIndex;
         public ObservableCollection<string> DeviceTypeList = new ObservableCollection<string>()
         {
@@ -64,6 +66,10 @@ namespace TwinCat_Motion_ADS.MVVM.View
             deviceTypeBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             BindingOperations.SetBinding(DeviceType, ComboBox.SelectedValueProperty, deviceTypeBind);
 
+            foreach (Tuple<string, int> channel in MDevice.ChannelList)
+            {
+                ChannelList.Add(channel);
+            }
             updateWindow();
         }
 
@@ -226,6 +232,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 dig1Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 BindingOperations.SetBinding(dig1CB, CheckBox.IsCheckedProperty, dig1Bind);
                 dig1CB.Checked += new RoutedEventHandler(SetupHandle);
+                dig1CB.Unchecked += new RoutedEventHandler(SetupHandle);
                 dig1CB.IsEnabled = false;
 
                 //Digital input 2
@@ -238,6 +245,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 dig2Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 BindingOperations.SetBinding(dig2CB, CheckBox.IsCheckedProperty, dig2Bind);
                 dig2CB.Checked += new RoutedEventHandler(SetupHandle);
+                dig2CB.Unchecked += new RoutedEventHandler(SetupHandle);
                 dig2CB.IsEnabled = false;
 
                 //Digital input 3
@@ -250,6 +258,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 dig3Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 BindingOperations.SetBinding(dig3CB, CheckBox.IsCheckedProperty, dig3Bind);
                 dig3CB.Checked += new RoutedEventHandler(SetupHandle);
+                dig3CB.Unchecked += new RoutedEventHandler(SetupHandle);
                 dig3CB.IsEnabled = false;
 
                 //Digital input 4
@@ -262,6 +271,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 dig4Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 BindingOperations.SetBinding(dig4CB, CheckBox.IsCheckedProperty, dig4Bind);
                 dig4CB.Checked += new RoutedEventHandler(SetupHandle);
+                dig4CB.Unchecked += new RoutedEventHandler(SetupHandle);
                 dig4CB.IsEnabled = false;
 
                 //Digital input 5
@@ -274,6 +284,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 dig5Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 BindingOperations.SetBinding(dig5CB, CheckBox.IsCheckedProperty, dig5Bind);
                 dig5CB.Checked += new RoutedEventHandler(SetupHandle);
+                dig5CB.Unchecked += new RoutedEventHandler(SetupHandle);
                 dig5CB.IsEnabled = false;
 
                 //Digital input 6
@@ -286,6 +297,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 dig6Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 BindingOperations.SetBinding(dig6CB, CheckBox.IsCheckedProperty, dig6Bind);
                 dig6CB.Checked += new RoutedEventHandler(SetupHandle);
+                dig6CB.Unchecked += new RoutedEventHandler(SetupHandle);
                 dig6CB.IsEnabled = false;
 
                 //Digital input 7
@@ -298,6 +310,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 dig7Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 BindingOperations.SetBinding(dig7CB, CheckBox.IsCheckedProperty, dig7Bind);
                 dig7CB.Checked += new RoutedEventHandler(SetupHandle);
+                dig7CB.Unchecked += new RoutedEventHandler(SetupHandle);
                 dig7CB.IsEnabled = false;
 
                 //Digital input 8
@@ -310,6 +323,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 dig8Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 BindingOperations.SetBinding(dig8CB, CheckBox.IsCheckedProperty, dig8Bind);
                 dig8CB.Checked += new RoutedEventHandler(SetupHandle);
+                dig8CB.Unchecked += new RoutedEventHandler(SetupHandle);
                 dig8CB.IsEnabled = false;
 
                 col1.Children.Add(dig1CB);
@@ -325,6 +339,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
                 StackPanel col2 = new();
                 col2.Orientation = Orientation.Vertical;
+                col2.Margin = new Thickness(5, 0, 0, 0);
 
                 //PT100 - 1
                 CheckBox pt1CB = new();
@@ -336,6 +351,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 pt1Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 BindingOperations.SetBinding(pt1CB, CheckBox.IsCheckedProperty, pt1Bind);
                 pt1CB.Checked += new RoutedEventHandler(SetupHandle);
+                pt1CB.Unchecked += new RoutedEventHandler(SetupHandle);
                 pt1CB.IsEnabled = false;
 
                 //PT100 - 2
@@ -348,6 +364,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 pt2Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 BindingOperations.SetBinding(pt2CB, CheckBox.IsCheckedProperty, pt2Bind);
                 pt2CB.Checked += new RoutedEventHandler(SetupHandle);
+                pt2CB.Unchecked += new RoutedEventHandler(SetupHandle);
                 pt2CB.IsEnabled = false;
 
                 //PT100 - 3
@@ -360,6 +377,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 pt3Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 BindingOperations.SetBinding(pt3CB, CheckBox.IsCheckedProperty, pt3Bind);
                 pt3CB.Checked += new RoutedEventHandler(SetupHandle);
+                pt3CB.Unchecked += new RoutedEventHandler(SetupHandle);
                 pt3CB.IsEnabled = false;
 
                 //PT100 - 4
@@ -372,6 +390,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 pt4Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 BindingOperations.SetBinding(pt4CB, CheckBox.IsCheckedProperty, pt4Bind);
                 pt4CB.Checked += new RoutedEventHandler(SetupHandle);
+                pt4CB.Unchecked += new RoutedEventHandler(SetupHandle);
                 pt4CB.IsEnabled = false;
 
 
@@ -404,6 +423,24 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 buttons.Children.Add(disconnectButton);
                 buttons.Children.Add(testReadButton);
 
+                StackPanel extraButtons = new();
+                extraButtons.Orientation = Orientation.Horizontal;
+                extraButtons.HorizontalAlignment = HorizontalAlignment.Center;
+                deviceSettings.Children.Add(extraButtons);
+
+                Button updateChannelButton = new();
+                setupButton(ref updateChannelButton, "Update Channel");
+                updateChannelButton.Click += new RoutedEventHandler(UpdateChannels);
+                Button checkChannelsButton = new();
+                setupButton(ref checkChannelsButton, "Check Channels");
+                checkChannelsButton.Click += new RoutedEventHandler(CheckChannels);
+
+                
+                extraButtons.Children.Add(updateChannelButton);
+                extraButtons.Children.Add(checkChannelsButton);
+                
+
+
                 StackPanel status = new();
                 status.Orientation = Orientation.Horizontal;
                 status.HorizontalAlignment = HorizontalAlignment.Right;
@@ -412,12 +449,27 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 CheckBox connected = new();
                 connected.IsEnabled = false;
                 connected.Content = "Connection status";
+                connected.Margin = new Thickness(15, 0, 0, 0);
                 Binding connectBind = new();
                 connectBind.Mode = BindingMode.OneWay;
                 connectBind.Source = MDevice;
                 connectBind.Path = new PropertyPath("Connected");
                 connectBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
                 BindingOperations.SetBinding(connected, CheckBox.IsCheckedProperty, connectBind);
+
+                TextBlock numChannels = new();
+                setupTextBlock(ref numChannels, "Channels:");
+                TextBlock numberOfChannels = new();
+                setupTextBlock(ref numberOfChannels, "0");
+                numberOfChannels.Width = 20;
+                Binding chBind = new();
+                chBind.Mode = BindingMode.OneWay;
+                chBind.Source = MDevice;
+                chBind.Path = new PropertyPath("NumberOfChannels");
+                chBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+                BindingOperations.SetBinding(numberOfChannels, TextBlock.TextProperty, chBind);
+                status.Children.Add(numChannels);
+                status.Children.Add(numberOfChannels);
 
                 //NEED DELETE DEVICE BUTTON
                 Binding cbEnableBind = new();
@@ -575,63 +627,84 @@ namespace TwinCat_Motion_ADS.MVVM.View
         private async void SetupHandle(object sender, EventArgs e)
         {
             var item = sender as CheckBox;
+            Tuple<string, int> tmp = ("Test", 0).ToTuple();
+            if ((string)item.Content == "DInput Ch1")
+            {
+                await MDevice.beckhoff.CreateHandleDig1();
+                tmp = ("DInput Ch1", 1).ToTuple();                
+            }
+            else if ((string)item.Content == "DInput Ch2")
+            {
+                await MDevice.beckhoff.CreateHandleDig2();
+                tmp = ("DInput Ch2", 2).ToTuple();
+            }
+            else if ((string)item.Content == "DInput Ch3")
+            {
+                await MDevice.beckhoff.CreateHandleDig3();
+                tmp = ("DInput Ch3", 3).ToTuple();
+            }
+            else if ((string)item.Content == "DInput Ch4")
+            {
+                await MDevice.beckhoff.CreateHandleDig4();
+                tmp = ("DInput Ch4", 4).ToTuple();
+            }
+            else if ((string)item.Content == "DInput Ch5")
+            {
+                await MDevice.beckhoff.CreateHandleDig5();
+                tmp = ("DInput Ch5", 5).ToTuple();
+            }
+            else if ((string)item.Content == "DInput Ch6")
+            {
+                await MDevice.beckhoff.CreateHandleDig6();
+                tmp = ("DInput Ch6", 6).ToTuple();
+            }
+            else if ((string)item.Content == "DInput Ch7")
+            {
+                await MDevice.beckhoff.CreateHandleDig7();
+                tmp = ("DInput Ch7", 7).ToTuple();
+            }
+            else if ((string)item.Content == "DInput Ch8")
+            {
+                await MDevice.beckhoff.CreateHandleDig8();
+                tmp = ("DInput Ch8", 8).ToTuple();
+            }
+            else if ((string)item.Content == "PT100 Ch1")
+            {
+                await MDevice.beckhoff.CreateHandlePt1();
+                tmp = ("PT100 Ch1", 9).ToTuple();
+            }
+            else if ((string)item.Content == "PT100 Ch2")
+            {
+                await MDevice.beckhoff.CreateHandlePt2();
+                tmp = ("PT100 Ch2", 10).ToTuple();
+            }
+            else if ((string)item.Content == "PT100 Ch3")
+            {
+                await MDevice.beckhoff.CreateHandlePt3();
+                tmp = ("PT100 Ch3", 11).ToTuple();
+            }
+            else if ((string)item.Content == "PT100 Ch4")
+            {
+                await MDevice.beckhoff.CreateHandlePt4();
+                tmp = ("PT100 Ch4", 12).ToTuple();
+            }
+
             if ((bool)item.IsChecked)
             {
-                if ((string)item.Content == "DInput Ch1")
-                {
-                    await MDevice.beckhoff.CreateHandleDig1();
-                }
-                else if ((string)item.Content == "DInput Ch2")
-                {
-                    await MDevice.beckhoff.CreateHandleDig2();
-                }
-                else if ((string)item.Content == "DInput Ch3")
-                {
-                    await MDevice.beckhoff.CreateHandleDig3();
-                }
-                else if ((string)item.Content == "DInput Ch4")
-                {
-                    await MDevice.beckhoff.CreateHandleDig4();
-                }
-                else if ((string)item.Content == "DInput Ch5")
-                {
-                    await MDevice.beckhoff.CreateHandleDig5();
-                }
-                else if ((string)item.Content == "DInput Ch6")
-                {
-                    await MDevice.beckhoff.CreateHandleDig6();
-                }
-                else if ((string)item.Content == "DInput Ch7")
-                {
-                    await MDevice.beckhoff.CreateHandleDig7();
-                }
-                else if ((string)item.Content == "DInput Ch8")
-                {
-                    await MDevice.beckhoff.CreateHandleDig8();
-                }
-                else if ((string)item.Content == "PT100 Ch1")
-                {
-                    await MDevice.beckhoff.CreateHandlePt1();
-                }
-                else if ((string)item.Content == "PT100 Ch2")
-                {
-                    await MDevice.beckhoff.CreateHandlePt2();
-                }
-                else if ((string)item.Content == "PT100 Ch3")
-                {
-                    await MDevice.beckhoff.CreateHandlePt3();
-                }
-                else if ((string)item.Content == "PT100 Ch4")
-                {
-                    await MDevice.beckhoff.CreateHandlePt4();
-                }
-
-
+                ChannelList.Add(tmp);
+            }
+            else
+            {
+                ChannelList.Remove(tmp);
             }
         }
 
 
-
+        public void UpdateChannels(object sender, EventArgs e)
+        {
+            MDevice.UpdateChannelList(ChannelList);
+        }
+        
         public async void TestRead(object sender, EventArgs e)
         {
             if(!MDevice.Connected)
@@ -641,9 +714,19 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
             else
             {
-                Console.WriteLine( await MDevice.GetMeasurement());                
+                //Console.WriteLine( await MDevice.GetMeasurement());
+                foreach(var channel in MDevice.ChannelList)
+                {
+                    var measurement = await MDevice.GetChannelMeasurement(channel.Item2);
+                    Console.WriteLine(channel.Item1 + ":" + measurement);
+                }
             }
+        }
 
+        public void CheckChannels(object sender, EventArgs e)
+        {
+            MDevice.ChannelList.ForEach(i => Console.WriteLine(i.Item1 + ":" + i.Item2));
+            Console.WriteLine("");//write a new line
         }
         
         public void ConnectToDevice(object sender, EventArgs e)

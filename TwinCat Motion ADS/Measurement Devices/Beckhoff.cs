@@ -308,6 +308,26 @@ namespace TwinCat_Motion_ADS
             }
         }
         
+        public async Task<string> ReadChannel(int channel)
+        {
+            if (channel == 1) return await ReadDig1();
+            if (channel == 2) return await ReadDig2();
+            if (channel == 3) return await ReadDig3();
+            if (channel == 4) return await ReadDig4();
+            if (channel == 5) return await ReadDig5();
+            if (channel == 6) return await ReadDig6();
+            if (channel == 7) return await ReadDig7();
+            if (channel == 8) return await ReadDig8();
+            if (channel == 9) return await ReadPt1();
+            if (channel == 10) return await ReadPt2();
+            if (channel == 11) return await ReadPt3();
+            if (channel == 12) return await ReadPt4();
+
+            return "No valid channel";
+
+        }
+
+
         public async Task<string> ReadChannels()
         {
             List<string> measures = new ();
