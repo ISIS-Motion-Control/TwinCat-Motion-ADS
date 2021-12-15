@@ -85,16 +85,18 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        private int _plcMeasurementChannels;
-        public int PlcMeasurementChannels
+        private int _NumberOfChannels;
+        public int NumberOfChannels
         {
-            get { return _plcMeasurementChannels; }
+            get { return _NumberOfChannels; }
             set 
-            { 
-                _plcMeasurementChannels = value;
+            {
+                _NumberOfChannels = value;
                 OnPropertyChanged();
             }
         }
+        public List<Tuple<string,int>> ChannelList = new();   //Channel list will be used to store what channels we want to access and their name
+
 
         private string _name;
         public string Name
@@ -170,35 +172,10 @@ namespace TwinCat_Motion_ADS
             motionChannel.Plc = windowData.Plc;
 
             //plc specific startup
-            beckhoffPlc = new("", 851); //need to create a separate PLC instance for the measurement device to attach to
+            beckhoffPlc = new("", 852); //need to create a separate PLC instance for the measurement device to attach to
             beckhoff = new(beckhoffPlc);
-            
+            NumberOfChannels = 0;
             Connected = false;
-
-            if (deviceType == "DigimaticIndicator")
-            {
-                DeviceType = DeviceType.DigimaticIndicator;
-            }
-            else if (deviceType == "KeyenceTM3000")
-            {
-                DeviceType = DeviceType.KeyenceTm3000;
-            }
-            else if (deviceType == "Beckhoff")
-            {
-                DeviceType = DeviceType.Beckhoff;
-            }
-            else if (deviceType == "MotionChannel")
-            {
-                DeviceType = DeviceType.MotionChannel;
-            }
-            else if (deviceType == "Timestamp")
-            {
-                DeviceType = DeviceType.Timestamp;
-            }
-            else
-            {
-                DeviceType = DeviceType.NoneSelected;
-            }
             Name = "*NEW DEVICE*";
         }
 
@@ -250,6 +227,7 @@ namespace TwinCat_Motion_ADS
             {
                 DeviceType = DeviceType.NoneSelected;
             }
+            ChannelList.Clear();
         }
 
         /// <summary>
@@ -447,6 +425,74 @@ namespace TwinCat_Motion_ADS
             }
             Console.WriteLine("No compatible device type selected");
             return string.Empty;
+        }
+
+
+        public async Task<string> GetChannelMeasurement(int channelNumber = 0)
+        {
+            if(!Connected)
+            {
+                return "No device connected";
+            }
+            if(NumberOfChannels==0)
+            {
+                return "No channels on device";
+            }
+            switch (DeviceType)
+            {
+                case DeviceType.DigimaticIndicator:
+                    return await dti.GetMeasurementAsync();
+
+                case DeviceType.Beckhoff:
+                    return await beckhoff.ReadChannel(channelNumber);
+                default:
+                    break;
+            }
+
+
+
+            return "Fail";
+        }
+
+        public void UpdateChannelList(List<Tuple<string, int>> channels = null)
+        {
+            //Don't do anything if not connected
+            if (!Connected) return;
+            
+            ChannelList.Clear();
+            NumberOfChannels = 0;
+
+            switch (DeviceType)
+            {
+                case DeviceType.DigimaticIndicator:                  
+                    Tuple<string, int> t1 = (Name, 1).ToTuple();
+                    ChannelList.Add(t1);
+                    NumberOfChannels = ChannelList.Count;
+                    break;
+
+                case DeviceType.Beckhoff:
+                    foreach(Tuple<string,int> channel in channels)
+                    {
+                        ChannelList.Add(channel);
+                    }
+                    NumberOfChannels = ChannelList.Count;
+                    ChannelList = ChannelList.OrderBy(i => i.Item2).ToList();
+                    break;
+                default:    
+                    break;
+            }
+        }
+
+        public void AddToChannelList(Tuple<string,int> ch)
+        {
+            ChannelList.Add(ch);
+            NumberOfChannels = ChannelList.Count;
+        }
+
+        public void RemoveFromChannelList(Tuple<string,int> ch)
+        {
+            ChannelList.Remove(ch);
+            NumberOfChannels = ChannelList.Count;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
