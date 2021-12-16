@@ -21,7 +21,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
     /// </summary>
     public partial class measurementDeviceWindow : Window
     {
-        public List<Tuple<string, int>> ChannelList = new();   //Channel list will be used to store what channels we want to access and their name
 
         int DeviceIndex;
         public ObservableCollection<string> DeviceTypeList = new ObservableCollection<string>()
@@ -45,11 +44,12 @@ namespace TwinCat_Motion_ADS.MVVM.View
         public measurementDeviceWindow(int deviceIndex, MeasurementDevice mDevice)
         {
             
-            InitializeComponent();
-            
+            InitializeComponent();          
             DeviceIndex = deviceIndex;
             MDevice = mDevice;
-            //Setup device name bind
+
+
+            //Create the Name field for the measurement device
             Binding deviceNameBind = new();
             deviceNameBind.Mode = BindingMode.TwoWay;
             deviceNameBind.Source = MDevice;
@@ -57,8 +57,8 @@ namespace TwinCat_Motion_ADS.MVVM.View
             deviceNameBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             BindingOperations.SetBinding(deviceName, TextBox.TextProperty, deviceNameBind);
 
+            //Create the device type drop down list
             DeviceType.ItemsSource = DeviceTypeList;
-
             Binding deviceTypeBind = new();
             deviceTypeBind.Mode = BindingMode.OneWay;
             deviceTypeBind.Source = MDevice;
@@ -66,10 +66,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             deviceTypeBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             BindingOperations.SetBinding(DeviceType, ComboBox.SelectedValueProperty, deviceTypeBind);
 
-            foreach (Tuple<string, int> channel in MDevice.ChannelList)
-            {
-                ChannelList.Add(channel);
-            }
+            //Setup the local copy of the channel list based on selected device (because we're creating a new instance each time we open the window which is bad but I need to implement a fix)            
             updateWindow();
         }
 
@@ -90,103 +87,290 @@ namespace TwinCat_Motion_ADS.MVVM.View
         private void updateWindow()
         {
             deviceSettings.Children.Clear();
-            if(MDevice.DeviceTypeString== "DigimaticIndicator" || MDevice.DeviceTypeString == "KeyenceTM3000")
+
+            //BUTTTTTTTONS
+            //Create button stack panel
+            StackPanel buttons = new();
+            buttons.Orientation = Orientation.Horizontal;
+            buttons.HorizontalAlignment = HorizontalAlignment.Center;
+            
+
+            Button connectButton = new();
+            setupButton(ref connectButton, "Connect");
+            connectButton.Click += new RoutedEventHandler(ConnectToDevice);
+
+            Button disconnectButton = new();
+            setupButton(ref disconnectButton, "Disconnect");
+            disconnectButton.Click += new RoutedEventHandler(DisconnectFromDevice);
+
+            Button testReadButton = new();
+            setupButton(ref testReadButton, "Test read");
+            testReadButton.Click += new RoutedEventHandler(TestRead);
+
+            buttons.Children.Add(connectButton);
+            buttons.Children.Add(disconnectButton);
+            buttons.Children.Add(testReadButton);
+
+            StackPanel extraButtons = new();
+            extraButtons.Orientation = Orientation.Horizontal;
+            extraButtons.HorizontalAlignment = HorizontalAlignment.Center;
+            
+
+            Button updateChannelButton = new();
+            setupButton(ref updateChannelButton, "Update Channel");
+            updateChannelButton.Click += new RoutedEventHandler(UpdateChannels);
+            Button checkChannelsButton = new();
+            setupButton(ref checkChannelsButton, "Check Channels");
+            checkChannelsButton.Click += new RoutedEventHandler(CheckChannels);
+
+
+            extraButtons.Children.Add(updateChannelButton);
+            extraButtons.Children.Add(checkChannelsButton);
+
+            StackPanel status = new();
+            status.Orientation = Orientation.Horizontal;
+            status.HorizontalAlignment = HorizontalAlignment.Right;
+            
+
+            CheckBox connected = new();
+            connected.IsEnabled = false;
+            connected.Content = "Connection status";
+            connected.Margin = new Thickness(15, 0, 0, 5);
+            Binding connectBind = new();
+            connectBind.Mode = BindingMode.OneWay;
+            connectBind.Source = MDevice;
+            connectBind.Path = new PropertyPath("Connected");
+            connectBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(connected, CheckBox.IsCheckedProperty, connectBind);
+
+            TextBlock numChannels = new();
+            setupTextBlock(ref numChannels, "Channels:");
+            TextBlock numberOfChannels = new();
+            setupTextBlock(ref numberOfChannels, "0");
+            numberOfChannels.Width = 20;
+            Binding chBind = new();
+            chBind.Mode = BindingMode.OneWay;
+            chBind.Source = MDevice;
+            chBind.Path = new PropertyPath("NumberOfChannels");
+            chBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(numberOfChannels, TextBlock.TextProperty, chBind);
+            
+            status.Children.Add(numChannels);
+            status.Children.Add(numberOfChannels);
+            status.Children.Add(connected);
+
+            if (MDevice.DeviceTypeString== "DigimaticIndicator" || MDevice.DeviceTypeString == "KeyenceTM3000")
             {
-                //Create stack panel for 1st setting
-                StackPanel setting1 = new();
-                setting1.Orientation = Orientation.Horizontal;
-                setting1.Margin = new Thickness(5,5,0,0);
-                deviceSettings.Children.Add(setting1);
-
-                //Setting text
-                TextBlock setting1Text = new();
-                setupTextBlock(ref setting1Text, "Com Port:");
-
-                ComboBox comPort = new();
-                MDevice.UpdatePortList();
-                setupComboBox(ref comPort, "comPort", MDevice.SerialPortList);
-                comPort.DropDownClosed += new EventHandler(portSelect_DropDownClosed);
-
-                Binding comPortBind = new();
-                comPortBind.Mode = BindingMode.OneWay;
-                comPortBind.Source = MDevice;
-                comPortBind.Path = new PropertyPath("PortName");
-                comPortBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(comPort, ComboBox.SelectedValueProperty, comPortBind);
-
-                Button updatePortsButton = new();
-                updatePortsButton.Content = "Refresh";
-                updatePortsButton.Margin = new Thickness(15, 0, 0, 0);
-                updatePortsButton.Width = 100;
-                updatePortsButton.Click += new RoutedEventHandler(refreshPorts_Click);
-
-                setting1.Children.Add(setting1Text);
-                setting1.Children.Add(comPort);
-                setting1.Children.Add(updatePortsButton);
-
-                //Create stack panel for 2nd setting
-                StackPanel setting2 = new();
-                setting2.Orientation = Orientation.Horizontal;
-                setting2.Margin = new Thickness(5, 5, 0, 0);
-                deviceSettings.Children.Add(setting2);
-
-                TextBlock setting2Text = new();
-                setupTextBlock(ref setting2Text, "Baud Rate:");
-                ComboBox baudRate = new();
-                setupComboBox(ref baudRate, "baudRate", BaudRateList);
-                baudRate.DropDownClosed += new EventHandler(baudSelect_DropDownClosed);
-                Binding baudRateBind = new();
-                baudRateBind.Mode = BindingMode.OneWay;
-                baudRateBind.Source = MDevice;
-                baudRateBind.Path = new PropertyPath("BaudRate");
-                baudRateBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(baudRate, ComboBox.SelectedValueProperty, baudRateBind);
-                baudRate.SelectedItem = MDevice.BaudRate;
-                setting2.Children.Add(setting2Text);
-                setting2.Children.Add(baudRate);
+                CommonRs232Window();
+                if(MDevice.DeviceTypeString=="KeyenceTM3000")
+                {
+                    StackPanel allChannels = new();
+                    StackPanel col1Channels = new();
+                    StackPanel col2Channels = new();
+                    allChannels.Orientation = Orientation.Horizontal;
+                    col1Channels.Orientation = Orientation.Vertical;
+                    col2Channels.Orientation = Orientation.Vertical;
+                    col2Channels.Margin = new Thickness(10, 0, 0, 0);
+                    allChannels.Margin = new Thickness(5, 5, 0, 0);
+                    deviceSettings.Children.Add(allChannels);
+                    allChannels.Children.Add(col1Channels);
+                    allChannels.Children.Add(col2Channels);
 
 
-                //Create button stack panel
-                StackPanel buttons = new();
-                buttons.Orientation = Orientation.Horizontal;
-                buttons.HorizontalAlignment = HorizontalAlignment.Center;
-                deviceSettings.Children.Add(buttons);
+                    //Channel 1
+                    StackPanel keyenceCh1 = new();
+                    keyenceCh1.Orientation = Orientation.Horizontal;
+                    TextBox ch1Name = new();
+                    setupTextBox(ref ch1Name, "*Ch1*", 100);
+                    TextboxBinding(ch1Name, MDevice.keyence, "Ch1Name");
+                    CheckBox Ch1 = new();
+                    CheckBoxBinding("Ch1",Ch1, MDevice.keyence, "Ch1Connected");
+                    keyenceCh1.Children.Add(ch1Name);
+                    keyenceCh1.Children.Add(Ch1);
 
-                Button connectButton = new();
-                setupButton(ref connectButton, "Connect");
-                connectButton.Click += new RoutedEventHandler(ConnectToDevice);
-
-                Button disconnectButton = new();
-                setupButton(ref disconnectButton, "Disconnect");
-                disconnectButton.Click += new RoutedEventHandler(DisconnectFromDevice);
-
-                Button testReadButton = new();
-                setupButton(ref testReadButton, "Test read");
-                testReadButton.Click += new RoutedEventHandler(TestRead);
-
-                buttons.Children.Add(connectButton);
-                buttons.Children.Add(disconnectButton);
-                buttons.Children.Add(testReadButton);
-
-                StackPanel status = new();
-                status.Orientation = Orientation.Horizontal;
-                status.HorizontalAlignment = HorizontalAlignment.Right;
-                deviceSettings.Children.Add(status);
-
-                CheckBox connected = new();
-                connected.IsEnabled = false;
-                connected.Content = "Connection status";
-                Binding connectBind = new();
-                connectBind.Mode = BindingMode.OneWay;
-                connectBind.Source = MDevice;
-                connectBind.Path = new PropertyPath("Connected");
-                connectBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(connected, CheckBox.IsCheckedProperty, connectBind);
-
-                //NEED DELETE DEVICE BUTTON
+                    //Channel 2
+                    StackPanel keyenceCh2 = new();
+                    keyenceCh2.Orientation = Orientation.Horizontal;
+                    TextBox ch2Name = new();
+                    setupTextBox(ref ch2Name, "*Ch2*",100);
+                    TextboxBinding(ch2Name, MDevice.keyence, "Ch2Name");
+                    CheckBox Ch2 = new();
+                    CheckBoxBinding("Ch2", Ch2, MDevice.keyence, "Ch2Connected");
+                    keyenceCh2.Children.Add(ch2Name);
+                    keyenceCh2.Children.Add(Ch2);
                     
-                status.Children.Add(connected);
+                    //Channel 3
+                    StackPanel keyenceCh3 = new();
+                    keyenceCh3.Orientation = Orientation.Horizontal;
+                    TextBox ch3Name = new();
+                    setupTextBox(ref ch3Name, "*Ch3*", 100);
+                    TextboxBinding(ch3Name, MDevice.keyence, "Ch3Name");
+                    CheckBox Ch3 = new();
+                    CheckBoxBinding("Ch3", Ch3, MDevice.keyence, "Ch3Connected");
+                    keyenceCh3.Children.Add(ch3Name);
+                    keyenceCh3.Children.Add(Ch3);
 
+                    //Channel 4
+                    StackPanel keyenceCh4 = new();
+                    keyenceCh4.Orientation = Orientation.Horizontal;
+                    TextBox ch4Name = new();
+                    setupTextBox(ref ch4Name, "*Ch4*", 100);
+                    TextboxBinding(ch4Name, MDevice.keyence, "Ch4Name");
+                    CheckBox Ch4 = new();
+                    CheckBoxBinding("Ch4", Ch4, MDevice.keyence, "Ch4Connected");
+                    keyenceCh4.Children.Add(ch4Name);
+                    keyenceCh4.Children.Add(Ch4);
+
+                    //Channel 5
+                    StackPanel keyenceCh5 = new();
+                    keyenceCh5.Orientation = Orientation.Horizontal;
+                    TextBox ch5Name = new();
+                    setupTextBox(ref ch5Name, "*Ch5*", 100);
+                    TextboxBinding(ch5Name, MDevice.keyence, "Ch5Name");
+                    CheckBox Ch5 = new();
+                    CheckBoxBinding("Ch5", Ch5, MDevice.keyence, "Ch5Connected");
+                    keyenceCh5.Children.Add(ch5Name);
+                    keyenceCh5.Children.Add(Ch5);
+
+                    //Channel 6
+                    StackPanel keyenceCh6 = new();
+                    keyenceCh6.Orientation = Orientation.Horizontal;
+                    TextBox ch6Name = new();
+                    setupTextBox(ref ch6Name, "*Ch6*", 100);
+                    TextboxBinding(ch6Name, MDevice.keyence, "Ch6Name");
+                    CheckBox Ch6 = new();
+                    CheckBoxBinding("Ch6", Ch6, MDevice.keyence, "Ch6Connected");
+                    keyenceCh6.Children.Add(ch6Name);
+                    keyenceCh6.Children.Add(Ch6);
+
+                    //Channel 7
+                    StackPanel keyenceCh7 = new();
+                    keyenceCh7.Orientation = Orientation.Horizontal;
+                    TextBox ch7Name = new();
+                    setupTextBox(ref ch7Name, "*Ch7*", 100);
+                    TextboxBinding(ch7Name, MDevice.keyence, "Ch7Name");
+                    CheckBox Ch7 = new();
+                    CheckBoxBinding("Ch7", Ch7, MDevice.keyence, "Ch7Connected");
+                    keyenceCh7.Children.Add(ch7Name);
+                    keyenceCh7.Children.Add(Ch7);
+
+                    //Channel 8
+                    StackPanel keyenceCh8 = new();
+                    keyenceCh8.Orientation = Orientation.Horizontal;
+                    TextBox ch8Name = new();
+                    setupTextBox(ref ch8Name, "*Ch8*", 100);
+                    TextboxBinding(ch8Name, MDevice.keyence, "Ch8Name");
+                    CheckBox Ch8 = new();
+                    CheckBoxBinding("Ch8", Ch8, MDevice.keyence, "Ch8Connected");
+                    keyenceCh8.Children.Add(ch8Name);
+                    keyenceCh8.Children.Add(Ch8);
+
+                    //Channel 9
+                    StackPanel keyenceCh9 = new();
+                    keyenceCh9.Orientation = Orientation.Horizontal;
+                    TextBox ch9Name = new();
+                    setupTextBox(ref ch9Name, "*Ch9*", 100);
+                    TextboxBinding(ch9Name, MDevice.keyence, "Ch9Name");
+                    CheckBox Ch9 = new();
+                    CheckBoxBinding("Ch9", Ch9, MDevice.keyence, "Ch9Connected");
+                    keyenceCh9.Children.Add(ch9Name);
+                    keyenceCh9.Children.Add(Ch9);
+
+                    //Channel 10
+                    StackPanel keyenceCh10 = new();
+                    keyenceCh10.Orientation = Orientation.Horizontal;
+                    TextBox ch10Name = new();
+                    setupTextBox(ref ch10Name, "*Ch10*", 100);
+                    TextboxBinding(ch10Name, MDevice.keyence, "Ch10Name");
+                    CheckBox Ch10 = new();
+                    CheckBoxBinding("Ch10", Ch10, MDevice.keyence, "Ch10Connected");
+                    keyenceCh10.Children.Add(ch10Name);
+                    keyenceCh10.Children.Add(Ch10);
+
+                    //Channel 11
+                    StackPanel keyenceCh11 = new();
+                    keyenceCh11.Orientation = Orientation.Horizontal;
+                    TextBox ch11Name = new();
+                    setupTextBox(ref ch11Name, "*Ch11*", 100);
+                    TextboxBinding(ch11Name, MDevice.keyence, "Ch11Name");
+                    CheckBox Ch11 = new();
+                    CheckBoxBinding("Ch11", Ch11, MDevice.keyence, "Ch11Connected");
+                    keyenceCh11.Children.Add(ch11Name);
+                    keyenceCh11.Children.Add(Ch11);
+
+                    //Channel 12
+                    StackPanel keyenceCh12 = new();
+                    keyenceCh12.Orientation = Orientation.Horizontal;
+                    TextBox ch12Name = new();
+                    setupTextBox(ref ch12Name, "*Ch12*", 100);
+                    TextboxBinding(ch12Name, MDevice.keyence, "Ch12Name");
+                    CheckBox Ch12 = new();
+                    CheckBoxBinding("Ch12", Ch12, MDevice.keyence, "Ch12Connected");
+                    keyenceCh12.Children.Add(ch12Name);
+                    keyenceCh12.Children.Add(Ch12);
+
+                    //Channel 13
+                    StackPanel keyenceCh13 = new();
+                    keyenceCh13.Orientation = Orientation.Horizontal;
+                    TextBox ch13Name = new();
+                    setupTextBox(ref ch13Name, "*Ch13*", 100);
+                    TextboxBinding(ch13Name, MDevice.keyence, "Ch13Name");
+                    CheckBox Ch13 = new();
+                    CheckBoxBinding("Ch13", Ch13, MDevice.keyence, "Ch13Connected");
+                    keyenceCh13.Children.Add(ch13Name);
+                    keyenceCh13.Children.Add(Ch13);
+
+                    //Channel 14
+                    StackPanel keyenceCh14 = new();
+                    keyenceCh14.Orientation = Orientation.Horizontal;
+                    TextBox ch14Name = new();
+                    setupTextBox(ref ch14Name, "*Ch14*", 100);
+                    TextboxBinding(ch14Name, MDevice.keyence, "Ch14Name");
+                    CheckBox Ch14 = new();
+                    CheckBoxBinding("Ch14", Ch14, MDevice.keyence, "Ch14Connected");
+                    keyenceCh14.Children.Add(ch14Name);
+                    keyenceCh14.Children.Add(Ch14);
+
+                    //Channel 15
+                    StackPanel keyenceCh15 = new();
+                    keyenceCh15.Orientation = Orientation.Horizontal;
+                    TextBox ch15Name = new();
+                    setupTextBox(ref ch15Name, "*Ch15*", 100);
+                    TextboxBinding(ch15Name, MDevice.keyence, "Ch15Name");
+                    CheckBox Ch15 = new();
+                    CheckBoxBinding("Ch15", Ch15, MDevice.keyence, "Ch15Connected");
+                    keyenceCh15.Children.Add(ch15Name);
+                    keyenceCh15.Children.Add(Ch15);
+
+                    //Channel 16
+                    StackPanel keyenceCh16 = new();
+                    keyenceCh16.Orientation = Orientation.Horizontal;
+                    TextBox ch16Name = new();
+                    setupTextBox(ref ch16Name, "*Ch16*", 100);
+                    TextboxBinding(ch16Name, MDevice.keyence, "Ch16Name");
+                    CheckBox Ch16 = new();
+                    CheckBoxBinding("Ch16", Ch16, MDevice.keyence, "Ch16Connected");
+                    keyenceCh16.Children.Add(ch16Name);
+                    keyenceCh16.Children.Add(Ch16);
+
+                    col1Channels.Children.Add(keyenceCh1);
+                    col1Channels.Children.Add(keyenceCh2);
+                    col1Channels.Children.Add(keyenceCh3);
+                    col1Channels.Children.Add(keyenceCh4);
+                    col1Channels.Children.Add(keyenceCh5);
+                    col1Channels.Children.Add(keyenceCh6);
+                    col1Channels.Children.Add(keyenceCh7);
+                    col1Channels.Children.Add(keyenceCh8);
+                    col2Channels.Children.Add(keyenceCh9);
+                    col2Channels.Children.Add(keyenceCh10);
+                    col2Channels.Children.Add(keyenceCh11);
+                    col2Channels.Children.Add(keyenceCh12);
+                    col2Channels.Children.Add(keyenceCh13);
+                    col2Channels.Children.Add(keyenceCh14);
+                    col2Channels.Children.Add(keyenceCh15);
+                    col2Channels.Children.Add(keyenceCh16);
+
+                }
             }
             else if (MDevice.DeviceTypeString=="Beckhoff")
             {
@@ -400,77 +584,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 col2.Children.Add(pt4CB);
                 channels.Children.Add(col2);
 
-                //BUTTTTTTTONS
-                //Create button stack panel
-                StackPanel buttons = new();
-                buttons.Orientation = Orientation.Horizontal;
-                buttons.HorizontalAlignment = HorizontalAlignment.Center;
-                deviceSettings.Children.Add(buttons);
-
-                Button connectButton = new();
-                setupButton(ref connectButton, "Connect");
-                connectButton.Click += new RoutedEventHandler(ConnectToDevice);
-
-                Button disconnectButton = new();
-                setupButton(ref disconnectButton, "Disconnect");
-                disconnectButton.Click += new RoutedEventHandler(DisconnectFromDevice);
-
-                Button testReadButton = new();
-                setupButton(ref testReadButton, "Test read");
-                testReadButton.Click += new RoutedEventHandler(TestRead);
-
-                buttons.Children.Add(connectButton);
-                buttons.Children.Add(disconnectButton);
-                buttons.Children.Add(testReadButton);
-
-                StackPanel extraButtons = new();
-                extraButtons.Orientation = Orientation.Horizontal;
-                extraButtons.HorizontalAlignment = HorizontalAlignment.Center;
-                deviceSettings.Children.Add(extraButtons);
-
-                Button updateChannelButton = new();
-                setupButton(ref updateChannelButton, "Update Channel");
-                updateChannelButton.Click += new RoutedEventHandler(UpdateChannels);
-                Button checkChannelsButton = new();
-                setupButton(ref checkChannelsButton, "Check Channels");
-                checkChannelsButton.Click += new RoutedEventHandler(CheckChannels);
-
                 
-                extraButtons.Children.Add(updateChannelButton);
-                extraButtons.Children.Add(checkChannelsButton);
-                
-
-
-                StackPanel status = new();
-                status.Orientation = Orientation.Horizontal;
-                status.HorizontalAlignment = HorizontalAlignment.Right;
-                deviceSettings.Children.Add(status);
-
-                CheckBox connected = new();
-                connected.IsEnabled = false;
-                connected.Content = "Connection status";
-                connected.Margin = new Thickness(15, 0, 0, 0);
-                Binding connectBind = new();
-                connectBind.Mode = BindingMode.OneWay;
-                connectBind.Source = MDevice;
-                connectBind.Path = new PropertyPath("Connected");
-                connectBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(connected, CheckBox.IsCheckedProperty, connectBind);
-
-                TextBlock numChannels = new();
-                setupTextBlock(ref numChannels, "Channels:");
-                TextBlock numberOfChannels = new();
-                setupTextBlock(ref numberOfChannels, "0");
-                numberOfChannels.Width = 20;
-                Binding chBind = new();
-                chBind.Mode = BindingMode.OneWay;
-                chBind.Source = MDevice;
-                chBind.Path = new PropertyPath("NumberOfChannels");
-                chBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(numberOfChannels, TextBlock.TextProperty, chBind);
-                status.Children.Add(numChannels);
-                status.Children.Add(numberOfChannels);
-
                 //NEED DELETE DEVICE BUTTON
                 Binding cbEnableBind = new();
                 cbEnableBind.Mode = BindingMode.OneWay;
@@ -489,9 +603,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 BindingOperations.SetBinding(pt2CB, CheckBox.IsEnabledProperty, cbEnableBind);
                 BindingOperations.SetBinding(pt3CB, CheckBox.IsEnabledProperty, cbEnableBind);
                 BindingOperations.SetBinding(pt4CB, CheckBox.IsEnabledProperty, cbEnableBind);
-
-                status.Children.Add(connected);
-
 
             }
             else if(MDevice.DeviceTypeString=="MotionChannel")
@@ -539,170 +650,101 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
                 setting2.Children.Add(setting2Text);
                 setting2.Children.Add(accessPath);
-
-
-                //BUTTTTTTTONS
-                //Create button stack panel
-                StackPanel buttons = new();
-                buttons.Orientation = Orientation.Horizontal;
-                buttons.HorizontalAlignment = HorizontalAlignment.Center;
-                deviceSettings.Children.Add(buttons);
-
-                Button connectButton = new();
-                setupButton(ref connectButton, "Connect");
-                connectButton.Click += new RoutedEventHandler(ConnectToDevice);
-
-                Button disconnectButton = new();
-                setupButton(ref disconnectButton, "Disconnect");
-                disconnectButton.Click += new RoutedEventHandler(DisconnectFromDevice);
-
-                Button testReadButton = new();
-                setupButton(ref testReadButton, "Test read");
-                testReadButton.Click += new RoutedEventHandler(TestRead);
-
-                buttons.Children.Add(connectButton);
-                buttons.Children.Add(disconnectButton);
-                buttons.Children.Add(testReadButton);
-                
-                //Connect status
-                StackPanel status = new();
-                status.Orientation = Orientation.Horizontal;
-                status.HorizontalAlignment = HorizontalAlignment.Right;
-                deviceSettings.Children.Add(status);
-
-                CheckBox connected = new();
-                connected.IsEnabled = false;
-                connected.Content = "Connection status";
-                Binding connectBind = new();
-                connectBind.Mode = BindingMode.OneWay;
-                connectBind.Source = MDevice;
-                connectBind.Path = new PropertyPath("Connected");
-                connectBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(connected, CheckBox.IsCheckedProperty, connectBind);
-                status.Children.Add(connected);
             }
             else if(MDevice.DeviceTypeString=="Timestamp")
             {
-                //BUTTTTTTTONS
-                //Create button stack panel
-                StackPanel buttons = new();
-                buttons.Orientation = Orientation.Horizontal;
-                buttons.HorizontalAlignment = HorizontalAlignment.Center;
-                deviceSettings.Children.Add(buttons);
-
-                Button connectButton = new();
-                setupButton(ref connectButton, "Connect");
-                connectButton.Click += new RoutedEventHandler(ConnectToDevice);
-
-                Button disconnectButton = new();
-                setupButton(ref disconnectButton, "Disconnect");
-                disconnectButton.Click += new RoutedEventHandler(DisconnectFromDevice);
-
-                Button testReadButton = new();
-                setupButton(ref testReadButton, "Test read");
-                testReadButton.Click += new RoutedEventHandler(TestRead);
-
-                buttons.Children.Add(connectButton);
-                buttons.Children.Add(disconnectButton);
-                buttons.Children.Add(testReadButton);
-
-                //Connect status
-                StackPanel status = new();
-                status.Orientation = Orientation.Horizontal;
-                status.HorizontalAlignment = HorizontalAlignment.Right;
-                deviceSettings.Children.Add(status);
-
-                CheckBox connected = new();
-                connected.IsEnabled = false;
-                connected.Content = "Connection status";
-                Binding connectBind = new();
-                connectBind.Mode = BindingMode.OneWay;
-                connectBind.Source = MDevice;
-                connectBind.Path = new PropertyPath("Connected");
-                connectBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(connected, CheckBox.IsCheckedProperty, connectBind);
-                status.Children.Add(connected);
+                //Don't need anything for a timestamp!
             }
+
+            deviceSettings.Children.Add(buttons);
+            deviceSettings.Children.Add(extraButtons);
+            deviceSettings.Children.Add(status);
+
         }
+
+        private void CheckBoxBinding(string content, DependencyObject item, object source, string pp)
+        {
+            ((CheckBox)item).Content = content;
+            Binding checkBoxBind = new();
+            checkBoxBind.Mode = BindingMode.TwoWay;
+            checkBoxBind.Source = source;
+            checkBoxBind.Path = new PropertyPath(pp);
+            checkBoxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(item, CheckBox.IsCheckedProperty, checkBoxBind);  
+        }
+        private void TextboxBinding(DependencyObject item, object source, string pp)
+        {
+            Binding TextboxBind = new();
+            TextboxBind.Mode = BindingMode.TwoWay;
+            TextboxBind.Source = source;
+            TextboxBind.Path = new PropertyPath(pp);
+            TextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(item, TextBox.TextProperty, TextboxBind);
+        }
+
         private async void SetupHandle(object sender, EventArgs e)
         {
-            var item = sender as CheckBox;
-            Tuple<string, int> tmp = ("Test", 0).ToTuple();
-            if ((string)item.Content == "DInput Ch1")
-            {
-                await MDevice.beckhoff.CreateHandleDig1();
-                tmp = ("DInput Ch1", 1).ToTuple();                
-            }
-            else if ((string)item.Content == "DInput Ch2")
-            {
-                await MDevice.beckhoff.CreateHandleDig2();
-                tmp = ("DInput Ch2", 2).ToTuple();
-            }
-            else if ((string)item.Content == "DInput Ch3")
-            {
-                await MDevice.beckhoff.CreateHandleDig3();
-                tmp = ("DInput Ch3", 3).ToTuple();
-            }
-            else if ((string)item.Content == "DInput Ch4")
-            {
-                await MDevice.beckhoff.CreateHandleDig4();
-                tmp = ("DInput Ch4", 4).ToTuple();
-            }
-            else if ((string)item.Content == "DInput Ch5")
-            {
-                await MDevice.beckhoff.CreateHandleDig5();
-                tmp = ("DInput Ch5", 5).ToTuple();
-            }
-            else if ((string)item.Content == "DInput Ch6")
-            {
-                await MDevice.beckhoff.CreateHandleDig6();
-                tmp = ("DInput Ch6", 6).ToTuple();
-            }
-            else if ((string)item.Content == "DInput Ch7")
-            {
-                await MDevice.beckhoff.CreateHandleDig7();
-                tmp = ("DInput Ch7", 7).ToTuple();
-            }
-            else if ((string)item.Content == "DInput Ch8")
-            {
-                await MDevice.beckhoff.CreateHandleDig8();
-                tmp = ("DInput Ch8", 8).ToTuple();
-            }
-            else if ((string)item.Content == "PT100 Ch1")
-            {
-                await MDevice.beckhoff.CreateHandlePt1();
-                tmp = ("PT100 Ch1", 9).ToTuple();
-            }
-            else if ((string)item.Content == "PT100 Ch2")
-            {
-                await MDevice.beckhoff.CreateHandlePt2();
-                tmp = ("PT100 Ch2", 10).ToTuple();
-            }
-            else if ((string)item.Content == "PT100 Ch3")
-            {
-                await MDevice.beckhoff.CreateHandlePt3();
-                tmp = ("PT100 Ch3", 11).ToTuple();
-            }
-            else if ((string)item.Content == "PT100 Ch4")
-            {
-                await MDevice.beckhoff.CreateHandlePt4();
-                tmp = ("PT100 Ch4", 12).ToTuple();
-            }
-
-            if ((bool)item.IsChecked)
-            {
-                ChannelList.Add(tmp);
-            }
-            else
-            {
-                ChannelList.Remove(tmp);
-            }
         }
 
+        public void CommonRs232Window()
+        {
+            //Create stack panel for 1st setting
+            StackPanel setting1 = new();
+            setting1.Orientation = Orientation.Horizontal;
+            setting1.Margin = new Thickness(5, 5, 0, 0);
+            deviceSettings.Children.Add(setting1);
+
+            //Setting text
+            TextBlock setting1Text = new();
+            setupTextBlock(ref setting1Text, "Com Port:");
+
+            ComboBox comPort = new();
+            MDevice.UpdatePortList();
+            setupComboBox(ref comPort, "comPort", MDevice.SerialPortList);
+            comPort.DropDownClosed += new EventHandler(portSelect_DropDownClosed);
+
+            Binding comPortBind = new();
+            comPortBind.Mode = BindingMode.OneWay;
+            comPortBind.Source = MDevice;
+            comPortBind.Path = new PropertyPath("PortName");
+            comPortBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(comPort, ComboBox.SelectedValueProperty, comPortBind);
+
+            Button updatePortsButton = new();
+            updatePortsButton.Content = "Refresh";
+            updatePortsButton.Margin = new Thickness(15, 0, 0, 0);
+            updatePortsButton.Width = 100;
+            updatePortsButton.Click += new RoutedEventHandler(refreshPorts_Click);
+
+            setting1.Children.Add(setting1Text);
+            setting1.Children.Add(comPort);
+            setting1.Children.Add(updatePortsButton);
+
+            //Create stack panel for 2nd setting
+            StackPanel setting2 = new();
+            setting2.Orientation = Orientation.Horizontal;
+            setting2.Margin = new Thickness(5, 5, 0, 0);
+            deviceSettings.Children.Add(setting2);
+
+            TextBlock setting2Text = new();
+            setupTextBlock(ref setting2Text, "Baud Rate:");
+            ComboBox baudRate = new();
+            setupComboBox(ref baudRate, "baudRate", BaudRateList);
+            baudRate.DropDownClosed += new EventHandler(baudSelect_DropDownClosed);
+            Binding baudRateBind = new();
+            baudRateBind.Mode = BindingMode.OneWay;
+            baudRateBind.Source = MDevice;
+            baudRateBind.Path = new PropertyPath("BaudRate");
+            baudRateBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(baudRate, ComboBox.SelectedValueProperty, baudRateBind);
+            baudRate.SelectedItem = MDevice.BaudRate;
+            setting2.Children.Add(setting2Text);
+            setting2.Children.Add(baudRate);
+        }
 
         public void UpdateChannels(object sender, EventArgs e)
         {
-            MDevice.UpdateChannelList(ChannelList);
+            MDevice.UpdateChannelList();
         }
         
         public async void TestRead(object sender, EventArgs e)
@@ -714,11 +756,10 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
             else
             {
-                //Console.WriteLine( await MDevice.GetMeasurement());
                 foreach(var channel in MDevice.ChannelList)
                 {
                     var measurement = await MDevice.GetChannelMeasurement(channel.Item2);
-                    Console.WriteLine(channel.Item1 + ":" + measurement);
+                    Console.WriteLine(channel.Item1 + ": " + measurement);
                 }
             }
         }
@@ -744,6 +785,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 Console.WriteLine("Failed to connect");
             }
         }
+        
         public void DisconnectFromDevice(object sender, EventArgs e)
         {
             if (!MDevice.Connected)
@@ -760,6 +802,9 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
         }
 
+
+
+
         public void setupButton(ref Button but, string butText)
         {
             but.Content = butText;
@@ -767,7 +812,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
             but.Margin = new Thickness(5);
             but.Height = 20;
         }
-
 
         public void setupTextBlock(ref TextBlock tb, string tbText)
         {
@@ -778,11 +822,11 @@ namespace TwinCat_Motion_ADS.MVVM.View
             tb.Text = tbText;
         }
 
-        public void setupTextBox(ref TextBox tb, string tbText)
+        public void setupTextBox(ref TextBox tb, string tbText, double wd = 150)
         {
             tb.HorizontalAlignment = HorizontalAlignment.Right;
             tb.TextAlignment = TextAlignment.Center;
-            tb.Width = 150;
+            tb.Width = wd;
             tb.VerticalAlignment = VerticalAlignment.Center;
             tb.Text = tbText;
             tb.Margin = new Thickness(10, 0, 0, 0);
@@ -804,20 +848,20 @@ namespace TwinCat_Motion_ADS.MVVM.View
             MDevice.PortName = (string)combo.SelectedItem;
             combo.SelectedItem = MDevice.PortName;
         }
+       
         private void baudSelect_DropDownClosed(object sender, EventArgs e)
         {
             var baud = sender as ComboBox;
             MDevice.UpdateBaudRate((string)baud.SelectedItem);
             baud.SelectedItem = MDevice.BaudRate;
         }
+        
         private void variableType_DropDownClosed(object sender,EventArgs e)
         {
             var combo = sender as ComboBox;
             MDevice.motionChannel.VariableType = (string)combo.SelectedItem;
             combo.SelectedItem = MDevice.motionChannel.VariableType;
         }
-
-        
 
         private void refreshPorts_Click(object sender, EventArgs e)
         {
