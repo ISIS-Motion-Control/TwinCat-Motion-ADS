@@ -311,6 +311,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         private async void LimitToLimitTest_Click(object sender, RoutedEventArgs e)
         {
+            windowData.mainWindowGrid.Focus();
             if (testAxis == null)
             {
                 Console.WriteLine("No axis initialised");
@@ -323,7 +324,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
-            //if (await testAxis.end2endCycleTestingWithReversal(NcTestSettings, windowData.MeasurementDevice1,windowData.MeasurementDevice2,windowData.MeasurementDevice3,windowData.MeasurementDevice4))
             if (await testAxis.LimitToLimitTestwithReversingSequence(NcTestSettings, windowData.MeasurementDevices))
             {
                 Console.WriteLine("Test Complete");
@@ -337,6 +337,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         private async void UniDirecitonalTest_Click(object sender, RoutedEventArgs e)
         {
+            windowData.mainWindowGrid.Focus();
             if (testAxis == null)
             {
                 Console.WriteLine("No axis initialised");
@@ -352,9 +353,8 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
             //if (await testAxis.uniDirectionalAccuracyTest(NcTestSettings,windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
             if (await testAxis.UniDirectionalAccuracyTest(NcTestSettings, windowData.MeasurementDevices))
-
             {
-                //
+                
             }
             else
             {
@@ -364,6 +364,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         private async void BiDirecitonalTest_Click(object sender, RoutedEventArgs e)
         {
+            windowData.mainWindowGrid.Focus();
             if (testAxis == null)
             {
                 Console.WriteLine("No axis initialised");
