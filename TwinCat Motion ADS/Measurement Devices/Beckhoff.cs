@@ -156,6 +156,7 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        public List<Tuple<string, int>> ChannelList = new();
 
         public Beckhoff(PLC plc)
         {
@@ -308,6 +309,26 @@ namespace TwinCat_Motion_ADS
             }
         }
         
+        public async Task<string> ReadChannel(int channel)
+        {
+            if (channel == 1) return await ReadDig1();
+            if (channel == 2) return await ReadDig2();
+            if (channel == 3) return await ReadDig3();
+            if (channel == 4) return await ReadDig4();
+            if (channel == 5) return await ReadDig5();
+            if (channel == 6) return await ReadDig6();
+            if (channel == 7) return await ReadDig7();
+            if (channel == 8) return await ReadDig8();
+            if (channel == 9) return await ReadPt1();
+            if (channel == 10) return await ReadPt2();
+            if (channel == 11) return await ReadPt3();
+            if (channel == 12) return await ReadPt4();
+
+            return "No valid channel";
+
+        }
+
+
         public async Task<string> ReadChannels()
         {
             List<string> measures = new ();
@@ -367,6 +388,31 @@ namespace TwinCat_Motion_ADS
         }
 
         //Handle creation and checks
+
+        public async Task<bool> CreateHandles()
+        {
+            try
+            {
+                await CreateHandleDig1();
+                await CreateHandleDig2();
+                await CreateHandleDig3();
+                await CreateHandleDig4();
+                await CreateHandleDig5();
+                await CreateHandleDig6();
+                await CreateHandleDig7();
+                await CreateHandleDig8();
+                await CreateHandlePt1();
+                await CreateHandlePt2();
+                await CreateHandlePt3();
+                await CreateHandlePt4();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public async Task<bool> CreateHandleDig1()
         {
             try
@@ -525,6 +571,72 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        public void UpdateChannelList()
+        {
+            ChannelList.Clear();
+            Tuple<string, int> tmp;
+            if(Dig1Connection)
+            {
+                tmp = ("Dig1", 1).ToTuple();
+                ChannelList.Add(tmp);
+            }
+            if (Dig2Connection)
+            {
+                tmp = ("Dig2", 2).ToTuple();
+                ChannelList.Add(tmp);
+            }
+            if (Dig3Connection)
+            {
+                tmp = ("Dig3", 3).ToTuple();
+                ChannelList.Add(tmp);
+            }
+            if (Dig4Connection)
+            {
+                tmp = ("Dig4", 4).ToTuple();
+                ChannelList.Add(tmp);
+            }
+            if (Dig5Connection)
+            {
+                tmp = ("Dig5", 5).ToTuple();
+                ChannelList.Add(tmp);
+            }
+            if (Dig6Connection)
+            {
+                tmp = ("Dig6", 6).ToTuple();
+                ChannelList.Add(tmp);
+            }
+            if (Dig7Connection)
+            {
+                tmp = ("Dig7", 7).ToTuple();
+                ChannelList.Add(tmp);
+            }
+            if (Dig8Connection)
+            {
+                tmp = ("Dig8", 8).ToTuple();
+                ChannelList.Add(tmp);
+            }
+            if (Pt1Connection)
+            {
+                tmp = ("Pt1", 9).ToTuple();
+                ChannelList.Add(tmp);
+            }
+            if (Pt2Connection)
+            {
+                tmp = ("Pt2", 10).ToTuple();
+                ChannelList.Add(tmp);
+            }
+            if (Pt3Connection)
+            {
+                tmp = ("Pt3", 11).ToTuple();
+                ChannelList.Add(tmp);
+            }
+            if (Pt4Connection)
+            {
+                tmp = ("Pt4", 12).ToTuple();
+                ChannelList.Add(tmp);
+            }
+
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)

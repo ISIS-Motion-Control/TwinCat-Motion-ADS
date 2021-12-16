@@ -44,7 +44,7 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
-                Console.WriteLine("Invalid AMS NET ID FORMAT");
+                //Console.WriteLine("Invalid AMS NET ID FORMAT");
             }
                 
         }
