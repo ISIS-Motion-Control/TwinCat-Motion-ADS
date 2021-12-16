@@ -46,24 +46,8 @@ namespace TwinCat_Motion_ADS.MVVM.View
             InitializeComponent();          
             DeviceIndex = deviceIndex;
             MDevice = mDevice;
-
-
-            //Create the Name field for the measurement device
-            Binding deviceNameBind = new();
-            deviceNameBind.Mode = BindingMode.TwoWay;
-            deviceNameBind.Source = MDevice;
-            deviceNameBind.Path = new PropertyPath("Name");
-            deviceNameBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(deviceName, TextBox.TextProperty, deviceNameBind);
-
-            //Create the device type drop down list
-            DeviceType.ItemsSource = DeviceTypeList;
-            Binding deviceTypeBind = new();
-            deviceTypeBind.Mode = BindingMode.OneWay;
-            deviceTypeBind.Source = MDevice;
-            deviceTypeBind.Path = new PropertyPath("DeviceTypeString");
-            deviceTypeBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(DeviceType, ComboBox.SelectedValueProperty, deviceTypeBind);
+            XamlUIClass.TextboxBinding(deviceName, MDevice,"Name");
+            XamlUIClass.ComboBoxBinding(DeviceTypeList,DeviceType, MDevice, "DeviceTypeString");
 
             //Setup the local copy of the channel list based on selected device (because we're creating a new instance each time we open the window which is bad but I need to implement a fix)            
             updateWindow();
@@ -87,74 +71,63 @@ namespace TwinCat_Motion_ADS.MVVM.View
         {
             deviceSettings.Children.Clear();
             //Create button stack panel
-            StackPanel buttons = new();
-            buttons.Orientation = Orientation.Horizontal;
-            buttons.HorizontalAlignment = HorizontalAlignment.Center;
+            StackPanel buttonsStackPanel = new();
+            buttonsStackPanel.Orientation = Orientation.Horizontal;
+            buttonsStackPanel.HorizontalAlignment = HorizontalAlignment.Center;
             
-
+            //Create buttons
             Button connectButton = new();
-            setupButton(ref connectButton, "Connect");
-            connectButton.Click += new RoutedEventHandler(ConnectToDevice);
-
             Button disconnectButton = new();
-            setupButton(ref disconnectButton, "Disconnect");
-            disconnectButton.Click += new RoutedEventHandler(DisconnectFromDevice);
-
             Button testReadButton = new();
-            setupButton(ref testReadButton, "Test read");
+            //Setup buttons
+            XamlUIClass.SetupButton(ref connectButton, "Connect");
+            XamlUIClass.SetupButton(ref disconnectButton, "Disconnect");
+            XamlUIClass.SetupButton(ref testReadButton, "Test read");
+            //Setup event handlers
+            connectButton.Click += new RoutedEventHandler(ConnectToDevice);
+            disconnectButton.Click += new RoutedEventHandler(DisconnectFromDevice);
             testReadButton.Click += new RoutedEventHandler(TestRead);
+            //Add buttons to stackpanel
+            buttonsStackPanel.Children.Add(connectButton);
+            buttonsStackPanel.Children.Add(disconnectButton);
+            buttonsStackPanel.Children.Add(testReadButton);
 
-            buttons.Children.Add(connectButton);
-            buttons.Children.Add(disconnectButton);
-            buttons.Children.Add(testReadButton);
-
-            StackPanel extraButtons = new();
-            extraButtons.Orientation = Orientation.Horizontal;
-            extraButtons.HorizontalAlignment = HorizontalAlignment.Center;
-            
-
+            //Create extra buttons stack panel
+            StackPanel extraButtonsStackPanel = new();
+            extraButtonsStackPanel.Orientation = Orientation.Horizontal;
+            extraButtonsStackPanel.HorizontalAlignment = HorizontalAlignment.Center;
+            //Create buttons
             Button updateChannelButton = new();
-            setupButton(ref updateChannelButton, "Update Channel");
-            updateChannelButton.Click += new RoutedEventHandler(UpdateChannels);
             Button checkChannelsButton = new();
-            setupButton(ref checkChannelsButton, "Check Channels");
+            //Setup buttons
+            XamlUIClass.SetupButton(ref updateChannelButton, "Update Channel");
+            XamlUIClass.SetupButton(ref checkChannelsButton, "Check Channels");
+            //Setup event handlers
+            updateChannelButton.Click += new RoutedEventHandler(UpdateChannels);
             checkChannelsButton.Click += new RoutedEventHandler(CheckChannels);
+            //Add buttons to stack panel
+            extraButtonsStackPanel.Children.Add(updateChannelButton);
+            extraButtonsStackPanel.Children.Add(checkChannelsButton);
 
-
-            extraButtons.Children.Add(updateChannelButton);
-            extraButtons.Children.Add(checkChannelsButton);
-
-            StackPanel status = new();
-            status.Orientation = Orientation.Horizontal;
-            status.HorizontalAlignment = HorizontalAlignment.Right;
-            
-
+            //Create connection status stack panel
+            StackPanel statusStackPanel = new();
+            statusStackPanel.Orientation = Orientation.Horizontal;
+            statusStackPanel.HorizontalAlignment = HorizontalAlignment.Right;
+            //Connection status feedback checkbox
             CheckBox connected = new();
             connected.IsEnabled = false;
-            connected.Content = "Connection status";
             connected.Margin = new Thickness(15, 0, 0, 5);
-            Binding connectBind = new();
-            connectBind.Mode = BindingMode.OneWay;
-            connectBind.Source = MDevice;
-            connectBind.Path = new PropertyPath("Connected");
-            connectBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(connected, CheckBox.IsCheckedProperty, connectBind);
-
+            XamlUIClass.CheckBoxBinding("Connection status", connected, MDevice, "Connected", BindingMode.OneWay);
+            //Create feedback for number of channels currently connected
             TextBlock numChannels = new();
-            setupTextBlock(ref numChannels, "Channels:");
             TextBlock numberOfChannels = new();
-            setupTextBlock(ref numberOfChannels, "0");
-            numberOfChannels.Width = 20;
-            Binding chBind = new();
-            chBind.Mode = BindingMode.OneWay;
-            chBind.Source = MDevice;
-            chBind.Path = new PropertyPath("NumberOfChannels");
-            chBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(numberOfChannels, TextBlock.TextProperty, chBind);
-            
-            status.Children.Add(numChannels);
-            status.Children.Add(numberOfChannels);
-            status.Children.Add(connected);
+            XamlUIClass.SetupTextBlock(ref numChannels, "Channels:");
+            XamlUIClass.SetupTextBlock(ref numberOfChannels, "Channels:",20);
+            XamlUIClass.TextBlockBinding(numberOfChannels, MDevice, "NumberOfChannels", "D");
+            //Add statuses to stack panel
+            statusStackPanel.Children.Add(numChannels);
+            statusStackPanel.Children.Add(numberOfChannels);
+            statusStackPanel.Children.Add(connected);
 
             if (MDevice.DeviceTypeString== "DigimaticIndicator" || MDevice.DeviceTypeString == "KeyenceTM3000")
             {
@@ -525,9 +498,9 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 //Don't need anything for a timestamp!
             }
 
-            deviceSettings.Children.Add(buttons);
-            deviceSettings.Children.Add(extraButtons);
-            deviceSettings.Children.Add(status);
+            deviceSettings.Children.Add(buttonsStackPanel);
+            deviceSettings.Children.Add(extraButtonsStackPanel);
+            deviceSettings.Children.Add(statusStackPanel);
 
         }
 

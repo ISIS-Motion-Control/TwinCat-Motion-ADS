@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+
 namespace TwinCat_Motion_ADS.MVVM.View
 {
     /// <summary>
@@ -49,206 +50,35 @@ namespace TwinCat_Motion_ADS.MVVM.View
         
         public void SetupBinds()
         {
-            Binding axisPositionBind = new();
-            axisPositionBind.Mode = BindingMode.TwoWay;
-            axisPositionBind.Source = testAxis;
-            axisPositionBind.Path = new PropertyPath("AxisPosition");
-            axisPositionBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            axisPositionBind.StringFormat = "F3";
-            BindingOperations.SetBinding(axisPositionRB, TextBlock.TextProperty, axisPositionBind);
-            
-            Binding axisEnabledBind = new();
-            axisEnabledBind.Mode = BindingMode.OneWay;
-            axisEnabledBind.Source = testAxis;
-            axisEnabledBind.Path = new PropertyPath("AxisEnabled");
-            axisEnabledBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(enabledCheck, CheckBox.IsCheckedProperty, axisEnabledBind);
-
-            Binding axisFwEnabledBind = new();
-            axisFwEnabledBind.Mode = BindingMode.OneWay;
-            axisFwEnabledBind.Source = testAxis;
-            axisFwEnabledBind.Path = new PropertyPath("AxisFwEnabled");
-            axisFwEnabledBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(fwEnabledCheck, CheckBox.IsCheckedProperty, axisFwEnabledBind);
-
-            Binding axisBwEnabledBind = new();
-            axisBwEnabledBind.Mode = BindingMode.OneWay;
-            axisBwEnabledBind.Source = testAxis;
-            axisBwEnabledBind.Path = new PropertyPath("AxisBwEnabled");
-            axisBwEnabledBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(bwEnabledCheck, CheckBox.IsCheckedProperty, axisBwEnabledBind);
-
-            Binding errorBind = new();
-            errorBind.Mode = BindingMode.OneWay;
-            errorBind.Source = testAxis;
-            errorBind.Path = new PropertyPath("Error");
-            errorBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(errorCheck, CheckBox.IsCheckedProperty, errorBind);
-
-            Binding validBind = new();
-            validBind.Mode = BindingMode.OneWay;
-            validBind.Source = testAxis;
-            validBind.Path = new PropertyPath("Valid");
-            validBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(validAxis, CheckBox.IsCheckedProperty, validBind);
-
-            Binding axisNumBind = new();
-            axisNumBind.Mode = BindingMode.OneWay;
-            axisNumBind.Source = testAxis;
-            axisNumBind.Path = new PropertyPath("AxisID");
-            axisNumBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(currentAxis, TextBlock.TextProperty, axisNumBind);
-
-            Binding testCancelledBind = new();
-            testCancelledBind.Mode = BindingMode.OneWay;
-            testCancelledBind.Source = testAxis;
-            testCancelledBind.Path = new PropertyPath("CancelTest");
-            testCancelledBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(testCancelledCheck, CheckBox.IsCheckedProperty, testCancelledBind);
-
-            Binding testPausedBind = new();
-            testPausedBind.Mode = BindingMode.OneWay;
-            testPausedBind.Source = testAxis;
-            testPausedBind.Path = new PropertyPath("PauseTest");
-            testPausedBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(testPausedCheck, CheckBox.IsCheckedProperty, testPausedBind);
-
-            Binding timeoutTextboxBind = new();
-            timeoutTextboxBind.Mode = BindingMode.TwoWay;
-            timeoutTextboxBind.Source = NcTestSettings;
-            timeoutTextboxBind.Path = new PropertyPath("StrTimeout");
-            timeoutTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(timeoutTB, TextBox.TextProperty, timeoutTextboxBind);
-
-            Binding testTitleTextboxBind = new();
-            testTitleTextboxBind.Mode = BindingMode.TwoWay;
-            testTitleTextboxBind.Source = NcTestSettings;
-            testTitleTextboxBind.Path = new PropertyPath("StrTestTitle");
-            testTitleTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(testTitleTB, TextBox.TextProperty, testTitleTextboxBind);
-            
-            Binding velocityTextboxBind = new();
-            velocityTextboxBind.Mode = BindingMode.TwoWay;
-            velocityTextboxBind.Source = NcTestSettings;
-            velocityTextboxBind.Path = new PropertyPath("StrVelocity");
-            velocityTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(velocityTB, TextBox.TextProperty, velocityTextboxBind);
-
-            Binding cycleTextboxBind = new();
-            cycleTextboxBind.Mode = BindingMode.TwoWay;
-            cycleTextboxBind.Source = NcTestSettings;
-            cycleTextboxBind.Path = new PropertyPath("StrCycles");
-            cycleTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(cycleTB, TextBox.TextProperty, cycleTextboxBind);
-
-            Binding cycleDelayTextboxBind = new();
-            cycleDelayTextboxBind.Mode = BindingMode.TwoWay;
-            cycleDelayTextboxBind.Source = NcTestSettings;
-            cycleDelayTextboxBind.Path = new PropertyPath("StrCycleDelaySeconds");
-            cycleDelayTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(cycleDelayTB, TextBox.TextProperty, cycleDelayTextboxBind);
-
-            Binding reversalVelTextboxBind = new()
-            {
-                Mode = BindingMode.TwoWay,
-                Source = NcTestSettings,
-                Path = new PropertyPath("StrReversalVelocity"),
-                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
-            };
-            BindingOperations.SetBinding(revVelTB, TextBox.TextProperty, reversalVelTextboxBind);
-
-            Binding reversalExtraTimeTextboxBind = new();
-            reversalExtraTimeTextboxBind.Mode = BindingMode.TwoWay;
-            reversalExtraTimeTextboxBind.Source = NcTestSettings;
-            reversalExtraTimeTextboxBind.Path = new PropertyPath("StrReversalExtraTimeSeconds");
-            reversalExtraTimeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(revExtraTB, TextBox.TextProperty, reversalExtraTimeTextboxBind);
-
-            Binding reversalSettleTimeTextboxBind = new();
-            reversalSettleTimeTextboxBind.Mode = BindingMode.TwoWay;
-            reversalSettleTimeTextboxBind.Source = NcTestSettings;
-            reversalSettleTimeTextboxBind.Path = new PropertyPath("StrReversalSettleTimeSeconds");
-            reversalSettleTimeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(revSettleTB, TextBox.TextProperty, reversalSettleTimeTextboxBind);
-
-            Binding initialSetpointTextboxBind = new();
-            initialSetpointTextboxBind.Mode = BindingMode.TwoWay;
-            initialSetpointTextboxBind.Source = NcTestSettings;
-            initialSetpointTextboxBind.Path = new PropertyPath("StrInitialSetpoint");
-            initialSetpointTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(initSetpointTB, TextBox.TextProperty, initialSetpointTextboxBind);
-
-            Binding numberOfStepsTextboxBind = new();
-            numberOfStepsTextboxBind.Mode = BindingMode.TwoWay;
-            numberOfStepsTextboxBind.Source = NcTestSettings;
-            numberOfStepsTextboxBind.Path = new PropertyPath("StrNumberOfSteps");
-            numberOfStepsTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(NumberOfStepsTB, TextBox.TextProperty, numberOfStepsTextboxBind);
-
-            Binding stepSizeTextboxBind = new();
-            stepSizeTextboxBind.Mode = BindingMode.TwoWay;
-            stepSizeTextboxBind.Source = NcTestSettings;
-            stepSizeTextboxBind.Path = new PropertyPath("StrStepSize");
-            stepSizeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(stepSizeTB, TextBox.TextProperty, stepSizeTextboxBind);
-
-            Binding settleTimeTextboxBind = new();
-            settleTimeTextboxBind.Mode = BindingMode.TwoWay;
-            settleTimeTextboxBind.Source = NcTestSettings;
-            settleTimeTextboxBind.Path = new PropertyPath("StrSettleTimeSeconds");
-            settleTimeTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(settleTimeTB, TextBox.TextProperty, settleTimeTextboxBind);
-
-            Binding reversalDistanceTextboxBind = new();
-            reversalDistanceTextboxBind.Mode = BindingMode.TwoWay;
-            reversalDistanceTextboxBind.Source = NcTestSettings;
-            reversalDistanceTextboxBind.Path = new PropertyPath("StrReversalDistance");
-            reversalDistanceTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(revDistanceTB, TextBox.TextProperty, reversalDistanceTextboxBind);
-
-            Binding overshootDistanceTextboxBind = new();
-            overshootDistanceTextboxBind.Mode = BindingMode.TwoWay;
-            overshootDistanceTextboxBind.Source = NcTestSettings;
-            overshootDistanceTextboxBind.Path = new PropertyPath("StrOvershootDistance");
-            overshootDistanceTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(overshootDistanceTB, TextBox.TextProperty, overshootDistanceTextboxBind);
-
-
+            //Binds all the UI elemets to properties in the NC Axis
+            XamlUIClass.TextBlockBinding(axisPositionRB, testAxis, "AxisPosition");
+            XamlUIClass.CheckBoxBinding((string)enabledCheck.Content, enabledCheck, testAxis, "AxisEnabled", BindingMode.OneWay);
+            XamlUIClass.CheckBoxBinding((string)fwEnabledCheck.Content, fwEnabledCheck, testAxis, "AxisFwEnabled", BindingMode.OneWay);
+            XamlUIClass.CheckBoxBinding((string)bwEnabledCheck.Content, bwEnabledCheck, testAxis, "AxisBwEnabled", BindingMode.OneWay);
+            XamlUIClass.CheckBoxBinding((string)errorCheck.Content, errorCheck, testAxis, "Error", BindingMode.OneWay);
+            XamlUIClass.CheckBoxBinding((string)validAxis.Content, validAxis, testAxis, "Valid", BindingMode.OneWay);
+            XamlUIClass.TextBlockBinding(currentAxis, testAxis, "AxisID","D");
+            XamlUIClass.CheckBoxBinding((string)testCancelledCheck.Content, testCancelledCheck, testAxis, "CancelTest", BindingMode.OneWay);
+            XamlUIClass.CheckBoxBinding((string)testPausedCheck.Content, testPausedCheck, testAxis, "PauseTest", BindingMode.OneWay);
+            XamlUIClass.TextboxBinding(timeoutTB, NcTestSettings, "StrTimeout",UpdateSourceTrigger.LostFocus);
+            XamlUIClass.TextboxBinding(testTitleTB, NcTestSettings, "StrTestTitle", UpdateSourceTrigger.LostFocus);
+            XamlUIClass.TextboxBinding(velocityTB, NcTestSettings, "StrVelocity", UpdateSourceTrigger.LostFocus);
+            XamlUIClass.TextboxBinding(cycleTB, NcTestSettings, "StrCycles", UpdateSourceTrigger.LostFocus);
+            XamlUIClass.TextboxBinding(cycleDelayTB, NcTestSettings, "StrCycleDelaySeconds", UpdateSourceTrigger.LostFocus);
+            XamlUIClass.TextboxBinding(revVelTB, NcTestSettings, "StrReversalVelocity", UpdateSourceTrigger.LostFocus);
+            XamlUIClass.TextboxBinding(revExtraTB, NcTestSettings, "StrReversalExtraTimeSeconds", UpdateSourceTrigger.LostFocus);
+            XamlUIClass.TextboxBinding(revSettleTB, NcTestSettings, "StrReversalSettleTimeSeconds", UpdateSourceTrigger.LostFocus);
+            XamlUIClass.TextboxBinding(initSetpointTB, NcTestSettings, "StrInitialSetpoint", UpdateSourceTrigger.LostFocus);
+            XamlUIClass.TextboxBinding(NumberOfStepsTB, NcTestSettings, "StrNumberOfSteps", UpdateSourceTrigger.LostFocus);
+            XamlUIClass.TextboxBinding(stepSizeTB, NcTestSettings, "StrStepSize", UpdateSourceTrigger.LostFocus);
+            XamlUIClass.TextboxBinding(settleTimeTB, NcTestSettings, "StrSettleTimeSeconds", UpdateSourceTrigger.LostFocus);
+            XamlUIClass.TextboxBinding(revDistanceTB, NcTestSettings, "StrReversalDistance", UpdateSourceTrigger.LostFocus);
+            XamlUIClass.TextboxBinding(overshootDistanceTB, NcTestSettings, "StrOvershootDistance", UpdateSourceTrigger.LostFocus);
         }
 
-        private async void MoveAbsoluteButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (testAxis == null)
-            {
-                Console.WriteLine("No axis initialised");
-                return;
-            }
-            double posCommanded = Convert.ToDouble(positionText.Text);
-            await testAxis.MoveAbsoluteAndWait(posCommanded, Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
-        }
+        
 
-        private async void EnableButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (testAxis!= null)
-            {
-                await testAxis.SetEnable(!testAxis.AxisEnabled);
-            }
-            else
-            {
-                Console.WriteLine("No axis initialised");
-            }
-            
-        }
 
-        private async void ResetButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (testAxis == null)
-            {
-                Console.WriteLine("No axis initialised");
-                return;
-            }
-            await testAxis.Reset();
-        }
 
         private void SelectFolderDirectory_Click(object sender, RoutedEventArgs e)
         {
@@ -267,47 +97,69 @@ namespace TwinCat_Motion_ADS.MVVM.View
             testAxis.TestDirectory = selectedFolder;
         }
 
-        private async void MoveRelativeButton_Click(object sender, RoutedEventArgs e)
+        //Generic method for handling commands to the axis
+        private async void AxisCommand_Click(object sender, RoutedEventArgs e)
         {
             if (testAxis == null)
             {
                 Console.WriteLine("No axis initialised");
                 return;
             }
-            double posCommanded = Convert.ToDouble(positionText.Text);
-            await testAxis.MoveRelativeAndWait(posCommanded, Convert.ToDouble(velocityTB.Text));
-        }
 
-        private async void MoveVelocityButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (testAxis == null)
+            //Enable or Disable axis
+            if(sender as Button == enableButton)
             {
-                Console.WriteLine("No axis initialised");
-                return;
+                await testAxis.SetEnable(!testAxis.AxisEnabled);
             }
-            await testAxis.MoveVelocity(Convert.ToDouble(velocityTB.Text));
-        }
-
-        private async void MoveToForwardLimit_Click(object sender, RoutedEventArgs e)
-        {
-            if (testAxis == null)
+            //Reset axis
+            else if(sender as Button == resetButton)
             {
-                Console.WriteLine("No axis initialised");
-                return;
+                await testAxis.Reset();
             }
-            await testAxis.MoveToHighLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
-        }
-
-        private async void MoveToBackwardLimit_Click(object sender, RoutedEventArgs e)
-        {
-            if (testAxis == null)
+            else if(sender as Button == moveAbsButton)
             {
-                Console.WriteLine("No axis initialised");
-                return;
+                double posCommanded = Convert.ToDouble(positionText.Text);
+                await testAxis.MoveAbsoluteAndWait(posCommanded, Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
             }
-            await testAxis.MoveToLowLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
+            //Move relative
+            else if(sender as Button == moveRelButton)
+            {
+                double posCommanded = Convert.ToDouble(positionText.Text);
+                await testAxis.MoveRelativeAndWait(posCommanded, Convert.ToDouble(velocityTB.Text));
+            }
+            //Move velocity
+            else if(sender as Button == moveVelButton)
+            {
+                await testAxis.MoveVelocity(Convert.ToDouble(velocityTB.Text));
+            }
+            //Move to forward limit
+            else if(sender as Button == move2High)
+            {
+                await testAxis.MoveToHighLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
+            }
+            //Move to backward limit
+            else if(sender as Button == move2Low)
+            {
+                await testAxis.MoveToLowLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
+            }
+            //Stop axis
+            else if(sender as Button == stopMove)
+            {
+                await testAxis.MoveStop();
+            }
+            //Forward limit reversal
+            else if(sender as Button == highLimReversal)
+            {
+                await testAxis.HighLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtraTB.Text), Convert.ToInt32(revSettleTB.Text));
+                Console.WriteLine(testAxis.AxisPosition);
+            }
+            //Backward limit reversal
+            else if(sender as Button == lowLimReversal)
+            {
+                await testAxis.LowLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtraTB.Text), Convert.ToInt32(revSettleTB.Text));
+                Console.WriteLine(testAxis.AxisPosition);
+            }
         }
-
 
         private async void LimitToLimitTest_Click(object sender, RoutedEventArgs e)
         {
@@ -407,37 +259,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             testAxis.PauseTest = !testAxis.PauseTest;
         }
 
-        private async void StopMoveButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (testAxis == null)
-            {
-                Console.WriteLine("No axis initialised");
-                return;
-            }
-            await testAxis.MoveStop();
-        }
-
-        private async void HighLimitSwitchReversal_Click(object sender, RoutedEventArgs e)
-        {
-            if (testAxis == null)
-            {
-                Console.WriteLine("No axis initialised");
-                return;
-            }
-            await testAxis.HighLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtraTB.Text),Convert.ToInt32(revSettleTB.Text));
-            Console.WriteLine(testAxis.AxisPosition);
-        }
-
-        private async void LowLimitSwitchReversal_Click(object sender, RoutedEventArgs e)
-        {
-            if (testAxis == null)
-            {
-                Console.WriteLine("No axis initialised");
-                return;
-            }
-            await testAxis.LowLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtraTB.Text), Convert.ToInt32(revSettleTB.Text));
-            Console.WriteLine(testAxis.AxisPosition);
-        }
+        
 
         private void TestButton_Click(object sender, RoutedEventArgs e)
         {
