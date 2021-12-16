@@ -3,37 +3,6 @@ using CsvHelper.Configuration.Attributes;
 
 namespace TwinCat_Motion_ADS
 {
-    public class End2endReversalCSV
-    {
-        [Name("Cycle")]
-        public int Cycle { get; set; }
-        [Name("Status")]
-        public string Status { get; set; }
-        [Name("ElapsedTime")]
-        public long ElapsedTime { get; set; }
-        [Name("LimitPosition")]
-        public double LimitPosition { get; set; }
-        [Name("Device1Measurement")]
-        public string Device1Measurement { get; set; }
-        [Name("Device2Measurement")]
-        public string Device2Measurement { get; set; }
-        [Name("Device3Measurement")]
-        public string Device3Measurement { get; set; }
-        [Name("Device4Measurement")]
-        public string Device4Measurement { get; set; }
-
-        public End2endReversalCSV(int cycle, string status, long elapsedTime, double limitPosition, string device1Measurement = "", string device2Measurement = "", string device3Measurement = "", string device4Measurement = "")
-        {
-            Cycle = cycle;
-            Status = status;
-            ElapsedTime = elapsedTime;
-            LimitPosition = limitPosition;
-            Device1Measurement = device1Measurement;
-            Device2Measurement = device2Measurement;
-            Device3Measurement = device3Measurement;
-            Device4Measurement = device4Measurement;
-        }
-    }
     public class End2endCSV
     {
         [Name("Cycle")]
@@ -45,7 +14,6 @@ namespace TwinCat_Motion_ADS
         [Name("LimitPosition")]
         public double LimitPosition { get; set; }
 
-
         public End2endCSV(int cycle, string status, long elapsedTime, double limitPosition)
         {
             Cycle = cycle;
@@ -55,40 +23,6 @@ namespace TwinCat_Motion_ADS
         }
     }
 
-    public class UniDirectionalAccuracyCSV
-    {
-        [Name("Cycle")]
-        public uint Cycle { get; set; }
-        [Name("Step")]
-        public uint Step { get; set; }
-        [Name("Status")]
-        public string Status { get; set; }
-        [Name("TargetPosition")]
-        public double TargetPosition { get; set; }
-        [Name("EncoderPosition")]
-        public double EncoderPosition { get; set; }
-        [Name("Device1Measurement")]
-        public string Device1Measurement { get; set; }
-        [Name("Device2Measurement")]
-        public string Device2Measurement { get; set; }
-        [Name("Device3Measurement")]
-        public string Device3Measurement { get; set; }
-        [Name("Device4Measurement")]
-        public string Device4Measurement { get; set; }
-
-        public UniDirectionalAccuracyCSV(uint cycle, uint step, string status, double targetPosition, double encoderPosition, string device1Measurement = "", string device2Measurement = "", string device3Measurement = "", string device4Measurement = "")
-        {
-            Cycle = cycle;
-            Step = step;
-            Status = status;
-            TargetPosition = targetPosition;
-            EncoderPosition = encoderPosition;
-            Device1Measurement = device1Measurement;
-            Device2Measurement = device2Measurement;
-            Device3Measurement = device3Measurement;
-            Device4Measurement = device4Measurement;
-        }
-    }
     public class UniDirectionalAccCSV
     {
         [Name("Cycle")]
@@ -103,6 +37,29 @@ namespace TwinCat_Motion_ADS
         public double EncoderPosition { get; set; }
 
         public UniDirectionalAccCSV(uint cycle, uint step, string status, double targetPosition, double encoderPosition)
+        {
+            Cycle = cycle;
+            Step = step;
+            Status = status;
+            TargetPosition = targetPosition;
+            EncoderPosition = encoderPosition;
+        }
+    }
+
+    public class StandardCSVData
+    {
+        [Name("Cycle")]
+        public uint Cycle { get; set; }
+        [Name("Step")]
+        public uint Step { get; set; }
+        [Name("Status")]
+        public string Status { get; set; }
+        [Name("TargetPosition")]
+        public double TargetPosition { get; set; }
+        [Name("EncoderPosition")]
+        public double EncoderPosition { get; set; }
+
+        public StandardCSVData(uint cycle, uint step, string status, double targetPosition, double encoderPosition)
         {
             Cycle = cycle;
             Step = step;

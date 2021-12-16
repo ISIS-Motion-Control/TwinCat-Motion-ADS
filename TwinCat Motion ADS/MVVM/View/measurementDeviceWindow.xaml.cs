@@ -21,7 +21,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
     /// </summary>
     public partial class measurementDeviceWindow : Window
     {
-
         int DeviceIndex;
         public ObservableCollection<string> DeviceTypeList = new ObservableCollection<string>()
         {
@@ -87,8 +86,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
         private void updateWindow()
         {
             deviceSettings.Children.Clear();
-
-            //BUTTTTTTTONS
             //Create button stack panel
             StackPanel buttons = new();
             buttons.Orientation = Orientation.Horizontal;
@@ -408,107 +405,37 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
                 //Digital input 1
                 CheckBox dig1CB = new();
-                dig1CB.Content = "DInput Ch1";
-                Binding dig1Bind = new();
-                dig1Bind.Mode = BindingMode.TwoWay;
-                dig1Bind.Source = MDevice.beckhoff;
-                dig1Bind.Path = new PropertyPath("Dig1Connection");
-                dig1Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(dig1CB, CheckBox.IsCheckedProperty, dig1Bind);
-                dig1CB.Checked += new RoutedEventHandler(SetupHandle);
-                dig1CB.Unchecked += new RoutedEventHandler(SetupHandle);
-                dig1CB.IsEnabled = false;
+                CheckBoxBinding("DInput Ch1", dig1CB, MDevice.beckhoff, "Dig1Connection");
 
                 //Digital input 2
                 CheckBox dig2CB = new();
-                dig2CB.Content = "DInput Ch2";
-                Binding dig2Bind = new();
-                dig2Bind.Mode = BindingMode.TwoWay;
-                dig2Bind.Source = MDevice.beckhoff;
-                dig2Bind.Path = new PropertyPath("Dig2Connection");
-                dig2Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(dig2CB, CheckBox.IsCheckedProperty, dig2Bind);
-                dig2CB.Checked += new RoutedEventHandler(SetupHandle);
-                dig2CB.Unchecked += new RoutedEventHandler(SetupHandle);
-                dig2CB.IsEnabled = false;
+                CheckBoxBinding("DInput Ch2", dig2CB, MDevice.beckhoff, "Dig2Connection");
 
                 //Digital input 3
                 CheckBox dig3CB = new();
-                dig3CB.Content = "DInput Ch3";
-                Binding dig3Bind = new();
-                dig3Bind.Mode = BindingMode.TwoWay;
-                dig3Bind.Source = MDevice.beckhoff;
-                dig3Bind.Path = new PropertyPath("Dig3Connection");
-                dig3Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(dig3CB, CheckBox.IsCheckedProperty, dig3Bind);
-                dig3CB.Checked += new RoutedEventHandler(SetupHandle);
-                dig3CB.Unchecked += new RoutedEventHandler(SetupHandle);
-                dig3CB.IsEnabled = false;
+                CheckBoxBinding("DInput Ch3", dig3CB, MDevice.beckhoff, "Dig3Connection");
 
                 //Digital input 4
                 CheckBox dig4CB = new();
-                dig4CB.Content = "DInput Ch4";
-                Binding dig4Bind = new();
-                dig4Bind.Mode = BindingMode.TwoWay;
-                dig4Bind.Source = MDevice.beckhoff;
-                dig4Bind.Path = new PropertyPath("Dig4Connection");
-                dig4Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(dig4CB, CheckBox.IsCheckedProperty, dig4Bind);
-                dig4CB.Checked += new RoutedEventHandler(SetupHandle);
-                dig4CB.Unchecked += new RoutedEventHandler(SetupHandle);
-                dig4CB.IsEnabled = false;
+                CheckBoxBinding("DInput Ch4", dig4CB, MDevice.beckhoff, "Dig4Connection");
+
 
                 //Digital input 5
                 CheckBox dig5CB = new();
-                dig5CB.Content = "DInput Ch5";
-                Binding dig5Bind = new();
-                dig5Bind.Mode = BindingMode.TwoWay;
-                dig5Bind.Source = MDevice.beckhoff;
-                dig5Bind.Path = new PropertyPath("Dig5Connection");
-                dig5Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(dig5CB, CheckBox.IsCheckedProperty, dig5Bind);
-                dig5CB.Checked += new RoutedEventHandler(SetupHandle);
-                dig5CB.Unchecked += new RoutedEventHandler(SetupHandle);
-                dig5CB.IsEnabled = false;
+                CheckBoxBinding("DInput Ch5", dig5CB, MDevice.beckhoff, "Dig5Connection");
 
                 //Digital input 6
                 CheckBox dig6CB = new();
-                dig6CB.Content = "DInput Ch6";
-                Binding dig6Bind = new();
-                dig6Bind.Mode = BindingMode.TwoWay;
-                dig6Bind.Source = MDevice.beckhoff;
-                dig6Bind.Path = new PropertyPath("Dig6Connection");
-                dig6Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(dig6CB, CheckBox.IsCheckedProperty, dig6Bind);
-                dig6CB.Checked += new RoutedEventHandler(SetupHandle);
-                dig6CB.Unchecked += new RoutedEventHandler(SetupHandle);
-                dig6CB.IsEnabled = false;
+                CheckBoxBinding("DInput Ch6", dig6CB, MDevice.beckhoff, "Dig6Connection");
 
                 //Digital input 7
                 CheckBox dig7CB = new();
-                dig7CB.Content = "DInput Ch7";
-                Binding dig7Bind = new();
-                dig7Bind.Mode = BindingMode.TwoWay;
-                dig7Bind.Source = MDevice.beckhoff;
-                dig7Bind.Path = new PropertyPath("Dig7Connection");
-                dig7Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(dig7CB, CheckBox.IsCheckedProperty, dig7Bind);
-                dig7CB.Checked += new RoutedEventHandler(SetupHandle);
-                dig7CB.Unchecked += new RoutedEventHandler(SetupHandle);
-                dig7CB.IsEnabled = false;
+                CheckBoxBinding("DInput Ch7", dig7CB, MDevice.beckhoff, "Dig7Connection");
 
                 //Digital input 8
                 CheckBox dig8CB = new();
-                dig8CB.Content = "DInput Ch8";
-                Binding dig8Bind = new();
-                dig8Bind.Mode = BindingMode.TwoWay;
-                dig8Bind.Source = MDevice.beckhoff;
-                dig8Bind.Path = new PropertyPath("Dig8Connection");
-                dig8Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(dig8CB, CheckBox.IsCheckedProperty, dig8Bind);
-                dig8CB.Checked += new RoutedEventHandler(SetupHandle);
-                dig8CB.Unchecked += new RoutedEventHandler(SetupHandle);
-                dig8CB.IsEnabled = false;
+                CheckBoxBinding("DInput Ch8", dig8CB, MDevice.beckhoff, "Dig8Connection");
+
 
                 col1.Children.Add(dig1CB);
                 col1.Children.Add(dig2CB);
@@ -520,89 +447,31 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 col1.Children.Add(dig8CB);
                 channels.Children.Add(col1);
 
-
                 StackPanel col2 = new();
                 col2.Orientation = Orientation.Vertical;
                 col2.Margin = new Thickness(5, 0, 0, 0);
 
                 //PT100 - 1
                 CheckBox pt1CB = new();
-                pt1CB.Content = "PT100 Ch1";
-                Binding pt1Bind = new();
-                pt1Bind.Mode = BindingMode.TwoWay;
-                pt1Bind.Source = MDevice.beckhoff;
-                pt1Bind.Path = new PropertyPath("Pt1Connection");
-                pt1Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(pt1CB, CheckBox.IsCheckedProperty, pt1Bind);
-                pt1CB.Checked += new RoutedEventHandler(SetupHandle);
-                pt1CB.Unchecked += new RoutedEventHandler(SetupHandle);
-                pt1CB.IsEnabled = false;
+                CheckBoxBinding("PT100 Ch1", pt1CB, MDevice.beckhoff, "Pt1Connection");
 
                 //PT100 - 2
                 CheckBox pt2CB = new();
-                pt2CB.Content = "PT100 Ch2";
-                Binding pt2Bind = new();
-                pt2Bind.Mode = BindingMode.TwoWay;
-                pt2Bind.Source = MDevice.beckhoff;
-                pt2Bind.Path = new PropertyPath("Pt2Connection");
-                pt2Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(pt2CB, CheckBox.IsCheckedProperty, pt2Bind);
-                pt2CB.Checked += new RoutedEventHandler(SetupHandle);
-                pt2CB.Unchecked += new RoutedEventHandler(SetupHandle);
-                pt2CB.IsEnabled = false;
+                CheckBoxBinding("PT100 Ch2", pt2CB, MDevice.beckhoff, "Pt2Connection");
 
                 //PT100 - 3
                 CheckBox pt3CB = new();
-                pt3CB.Content = "PT100 Ch3";
-                Binding pt3Bind = new();
-                pt3Bind.Mode = BindingMode.TwoWay;
-                pt3Bind.Source = MDevice.beckhoff;
-                pt3Bind.Path = new PropertyPath("Pt3Connection");
-                pt3Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(pt3CB, CheckBox.IsCheckedProperty, pt3Bind);
-                pt3CB.Checked += new RoutedEventHandler(SetupHandle);
-                pt3CB.Unchecked += new RoutedEventHandler(SetupHandle);
-                pt3CB.IsEnabled = false;
+                CheckBoxBinding("PT100 Ch3", pt3CB, MDevice.beckhoff, "Pt3Connection");
 
                 //PT100 - 4
                 CheckBox pt4CB = new();
-                pt4CB.Content = "PT100 Ch4";
-                Binding pt4Bind = new();
-                pt4Bind.Mode = BindingMode.TwoWay;
-                pt4Bind.Source = MDevice.beckhoff;
-                pt4Bind.Path = new PropertyPath("Pt4Connection");
-                pt4Bind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(pt4CB, CheckBox.IsCheckedProperty, pt4Bind);
-                pt4CB.Checked += new RoutedEventHandler(SetupHandle);
-                pt4CB.Unchecked += new RoutedEventHandler(SetupHandle);
-                pt4CB.IsEnabled = false;
-
+                CheckBoxBinding("PT100 Ch4", pt4CB, MDevice.beckhoff, "Pt4Connection");
 
                 col2.Children.Add(pt1CB);
                 col2.Children.Add(pt2CB);
                 col2.Children.Add(pt3CB);
                 col2.Children.Add(pt4CB);
                 channels.Children.Add(col2);
-
-                
-                //NEED DELETE DEVICE BUTTON
-                Binding cbEnableBind = new();
-                cbEnableBind.Mode = BindingMode.OneWay;
-                cbEnableBind.Source = connected;
-                cbEnableBind.Path = new PropertyPath("IsChecked");
-                cbEnableBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(dig1CB, CheckBox.IsEnabledProperty, cbEnableBind);
-                BindingOperations.SetBinding(dig2CB, CheckBox.IsEnabledProperty, cbEnableBind);
-                BindingOperations.SetBinding(dig3CB, CheckBox.IsEnabledProperty, cbEnableBind);
-                BindingOperations.SetBinding(dig4CB, CheckBox.IsEnabledProperty, cbEnableBind);
-                BindingOperations.SetBinding(dig5CB, CheckBox.IsEnabledProperty, cbEnableBind);
-                BindingOperations.SetBinding(dig6CB, CheckBox.IsEnabledProperty, cbEnableBind);
-                BindingOperations.SetBinding(dig7CB, CheckBox.IsEnabledProperty, cbEnableBind);
-                BindingOperations.SetBinding(dig8CB, CheckBox.IsEnabledProperty, cbEnableBind);
-                BindingOperations.SetBinding(pt1CB, CheckBox.IsEnabledProperty, cbEnableBind);
-                BindingOperations.SetBinding(pt2CB, CheckBox.IsEnabledProperty, cbEnableBind);
-                BindingOperations.SetBinding(pt3CB, CheckBox.IsEnabledProperty, cbEnableBind);
-                BindingOperations.SetBinding(pt4CB, CheckBox.IsEnabledProperty, cbEnableBind);
 
             }
             else if(MDevice.DeviceTypeString=="MotionChannel")
@@ -680,10 +549,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
             TextboxBind.Path = new PropertyPath(pp);
             TextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             BindingOperations.SetBinding(item, TextBox.TextProperty, TextboxBind);
-        }
-
-        private async void SetupHandle(object sender, EventArgs e)
-        {
         }
 
         public void CommonRs232Window()
