@@ -13,15 +13,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
     public partial class measurementDeviceWindow : Window
     {
         int DeviceIndex;
-        public ObservableCollection<string> DeviceTypeList = new ObservableCollection<string>()
-        {
-            "",
-        "DigimaticIndicator",
-        "KeyenceTM3000",
-        "Beckhoff",
-        "MotionChannel",
-        "Timestamp"
-        };
+        public ObservableCollection<string> DeviceTypeList;
         public ObservableCollection<string> BaudRateList = new ObservableCollection<string>()
         {
             "9600", "19200","38400","57600","115200"
@@ -40,6 +32,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
         /// <param name="mDevice"></param>
         public measurementDeviceWindow(int deviceIndex, MeasurementDevice mDevice)
         {
+            DeviceTypeList = mDevice.DeviceTypeList;
             InitializeComponent();
             DeviceIndex = deviceIndex;
             MDevice = mDevice;
