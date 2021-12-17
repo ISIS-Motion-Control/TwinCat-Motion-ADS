@@ -229,55 +229,43 @@ namespace TwinCat_Motion_ADS.MVVM.View
         public void CommonRs232Window()
         {
             //Create stack panel for 1st setting
-            StackPanel setting1 = new();
-            setting1.Orientation = Orientation.Horizontal;
-            setting1.Margin = new Thickness(5, 5, 0, 0);
+            StackPanel setting1 = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
             deviceSettings.Children.Add(setting1);
 
-            //Setting text
+            //Com Port Setting
             TextBlock setting1Text = new();
-            XamlUI.SetupTextBlock(ref setting1Text, "Com Port:");
-
             ComboBox comPort = new();
-            MDevice.UpdatePortList();
-            XamlUI.SetupComboBox(ref comPort, "comPort", MDevice.SerialPortList);
-            comPort.DropDownClosed += new EventHandler(portSelect_DropDownClosed);
-
-            Binding comPortBind = new();
-            comPortBind.Mode = BindingMode.OneWay;
-            comPortBind.Source = MDevice;
-            comPortBind.Path = new PropertyPath("PortName");
-            comPortBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(comPort, ComboBox.SelectedValueProperty, comPortBind);
-
             Button updatePortsButton = new();
-            updatePortsButton.Content = "Refresh";
-            updatePortsButton.Margin = new Thickness(15, 0, 0, 0);
-            updatePortsButton.Width = 100;
+            
+            MDevice.UpdatePortList();   //Generate new serial port list
+
+            XamlUI.SetupTextBlock(ref setting1Text, "Com Port:");
+            XamlUI.SetupComboBox(ref comPort, "comPort", MDevice.SerialPortList);
+            XamlUI.ComboBoxBinding(MDevice.SerialPortList, comPort, MDevice, "PortName");
+            XamlUI.SetupButton(ref updatePortsButton, "Refresh");
+
+            comPort.DropDownClosed += new EventHandler(portSelect_DropDownClosed);
             updatePortsButton.Click += new RoutedEventHandler(refreshPorts_Click);
 
             setting1.Children.Add(setting1Text);
             setting1.Children.Add(comPort);
             setting1.Children.Add(updatePortsButton);
 
-            //Create stack panel for 2nd setting
-            StackPanel setting2 = new();
-            setting2.Orientation = Orientation.Horizontal;
-            setting2.Margin = new Thickness(5, 5, 0, 0);
+
+            //Baud rate setting
+            StackPanel setting2 = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
             deviceSettings.Children.Add(setting2);
 
             TextBlock setting2Text = new();
-            XamlUI.SetupTextBlock(ref setting2Text, "Baud Rate:");
             ComboBox baudRate = new();
+            
+            XamlUI.SetupTextBlock(ref setting2Text, "Baud Rate:");
             XamlUI.SetupComboBox(ref baudRate, "baudRate", BaudRateList);
-            baudRate.DropDownClosed += new EventHandler(baudSelect_DropDownClosed);
-            Binding baudRateBind = new();
-            baudRateBind.Mode = BindingMode.OneWay;
-            baudRateBind.Source = MDevice;
-            baudRateBind.Path = new PropertyPath("BaudRate");
-            baudRateBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(baudRate, ComboBox.SelectedValueProperty, baudRateBind);
+            XamlUI.ComboBoxBinding(BaudRateList, baudRate, MDevice, "BaudRate");
+
+            baudRate.DropDownClosed += new EventHandler(baudSelect_DropDownClosed);           
             baudRate.SelectedItem = MDevice.BaudRate;
+
             setting2.Children.Add(setting2Text);
             setting2.Children.Add(baudRate);
         }
@@ -410,7 +398,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
             {
                 tbContent = ((KeyenceTM3000)source).ChName[channel - 1];
             }
-            
 
             //Bind and setup UI elements
             XamlUI.TextboxBinding(tb, source, tbpp);
