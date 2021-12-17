@@ -98,6 +98,7 @@ namespace TwinCat_Motion_ADS
         }
         public List<Tuple<string,int>> ChannelList = new();   //Channel list contains name of channel (csv header) and channel number for access
 
+        public bool ReadInProgress { get; set; }
 
         private string _name;
         public string Name
@@ -168,6 +169,7 @@ namespace TwinCat_Motion_ADS
 
         public MeasurementDevice(string deviceType)
         {
+            ReadInProgress = false;
             //Provide the motionchannel type access to the mainwindow PLC
             windowData = (MainWindow)Application.Current.MainWindow;
             motionChannel.Plc = windowData.Plc;
@@ -321,6 +323,11 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("Nothing to disconnect from");
                 return false; //Nothing to disconnect from
             }
+            if(ReadInProgress)
+            {
+                Console.WriteLine("Cannot disconnect during read");
+                return false;
+            }
             switch (DeviceType)
             {
                 case DeviceType.DigimaticIndicator:                   
@@ -432,7 +439,7 @@ namespace TwinCat_Motion_ADS
                     return retstr;
 
                 case DeviceType.Beckhoff:
-                    return await beckhoff.ReadChannels();
+                    return await beckhoff.ReadChannel(1);
 
                 case DeviceType.MotionChannel:
                     return await motionChannel.GetMeasurementAsync();
@@ -445,7 +452,6 @@ namespace TwinCat_Motion_ADS
             return string.Empty;
         }
 
-
         public async Task<string> GetChannelMeasurement(int channelNumber = 0)
         {
             if(!Connected)
@@ -456,22 +462,34 @@ namespace TwinCat_Motion_ADS
             {
                 return "No channels on device";
             }
+            ReadInProgress = true;
+            string measurement;
             switch (DeviceType)
             {
                 case DeviceType.DigimaticIndicator:
-                    return await dti.GetMeasurementAsync();
+                    measurement = await dti.GetMeasurementAsync();
+                    ReadInProgress = false;
+                    return measurement;
 
                 case DeviceType.Beckhoff:
-                    return await beckhoff.ReadChannel(channelNumber);
+                    measurement = await beckhoff.ReadChannel(channelNumber);
+                    ReadInProgress = false;
+                    return measurement;
 
                 case DeviceType.KeyenceTm3000:
-                    return await keyence.GetMeasureAsync(channelNumber);
+                    measurement = await keyence.GetMeasureAsync(channelNumber);
+                    ReadInProgress = false;
+                    return measurement;
 
                 case DeviceType.MotionChannel:
-                    return await motionChannel.GetMeasurementAsync();
+                    measurement = await motionChannel.GetMeasurementAsync();
+                    ReadInProgress = false;
+                    return measurement;
 
                 case DeviceType.Timestamp:
-                    return Timestamp.GetMeasurement();
+                    measurement = Timestamp.GetMeasurement();
+                    ReadInProgress = false;
+                    return measurement;
                 default:
                     break;
             }
