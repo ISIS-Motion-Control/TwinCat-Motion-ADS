@@ -149,52 +149,38 @@ namespace TwinCat_Motion_ADS.MVVM.View
             else if (MDevice.DeviceTypeString == "Beckhoff")
             {
                 //Create stack panel for 1st setting
-                StackPanel setting1 = new();
-                setting1.Orientation = Orientation.Horizontal;
-                setting1.Margin = new Thickness(5, 5, 0, 0);
+                StackPanel setting1 = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
                 deviceSettings.Children.Add(setting1);
 
-                //Setting text
+                //AMS NET ID SETTING
                 TextBlock setting1Text = new();
-                XamlUI.SetupTextBlock(ref setting1Text, "AMS NET ID:");
-
                 TextBox netID = new();
+                XamlUI.SetupTextBlock(ref setting1Text, "AMS NET ID:");
                 XamlUI.SetupTextBox(ref netID, "x.x.x.x");
-
-                Binding amsBind = new();
-                amsBind.Mode = BindingMode.TwoWay;
-                amsBind.Source = MDevice;
-                amsBind.Path = new PropertyPath("AmsNetId");
-                amsBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(netID, TextBox.TextProperty, amsBind);
-
-
+                XamlUI.TextboxBinding(netID, MDevice, "AmsNetId");
                 setting1.Children.Add(setting1Text);
                 setting1.Children.Add(netID);
 
+                //Create stack panel elements to hold channels
                 StackPanel channels = new() {Orientation=Orientation.Horizontal,Margin = new Thickness(5,5,0,0) };
+                StackPanel col1 = new() { Orientation = Orientation.Vertical };
+                StackPanel col2 = new() { Orientation = Orientation.Vertical, Margin = new Thickness(5, 0, 0, 0) };
 
-                deviceSettings.Children.Add(channels);
-
-                StackPanel col1 = new();
-                col1.Orientation = Orientation.Vertical;
-                StackPanel col2 = new();
-                col2.Orientation = Orientation.Vertical;
-                col2.Margin = new Thickness(5, 0, 0, 0);
-
+                //Create digital input channels
                 for (int i=1;i<=MDevice.beckhoff.DIGITAL_INPUT_CHANNELS;i++)
                 {
                     CheckBox cb = new();
                     XamlUI.CheckBoxBinding("DInput Ch" + i, cb, MDevice.beckhoff, "DigitalInputConnected[" + (i-1) + "]");
                     col1.Children.Add(cb);
                 }
+                //Create PT100 input channels
                 for (int i = 1; i <= MDevice.beckhoff.PT100_CHANNELS; i++)
                 {
                     CheckBox cb = new();
                     XamlUI.CheckBoxBinding("PT100 Ch" + i, cb, MDevice.beckhoff, "PT100Connected[" + (i - 1) + "]");
                     col2.Children.Add(cb);
                 }
-
+                deviceSettings.Children.Add(channels);
                 channels.Children.Add(col1);
                 channels.Children.Add(col2);
 
@@ -212,36 +198,20 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 ComboBox variableType = new();
                 XamlUI.SetupComboBox(ref variableType, "variableType", VariableTypeList);
                 variableType.DropDownClosed += new EventHandler(variableType_DropDownClosed);
-
-                Binding varTypeBind = new();
-                varTypeBind.Mode = BindingMode.OneWay;
-                varTypeBind.Source = MDevice.motionChannel;
-                varTypeBind.Path = new PropertyPath("VariableType");
-                varTypeBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(variableType, ComboBox.SelectedItemProperty, varTypeBind);
-
+                XamlUI.ComboBoxBinding(VariableTypeList, variableType, MDevice.motionChannel,"VariableType");
                 setting1.Children.Add(setting1Text);
                 setting1.Children.Add(variableType);
 
+
                 //VARIABLE STRING
-                StackPanel setting2 = new();
-                setting2.Orientation = Orientation.Horizontal;
-                setting2.Margin = new Thickness(5, 5, 0, 0);
+                StackPanel setting2 = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
                 deviceSettings.Children.Add(setting2);
 
                 TextBlock setting2Text = new();
                 XamlUI.SetupTextBlock(ref setting2Text, "Access Path");
                 TextBox accessPath = new();
-                XamlUI.SetupTextBox(ref accessPath, "");
-                accessPath.Width = 250;
-
-                Binding accessBind = new();
-                accessBind.Mode = BindingMode.TwoWay;
-                accessBind.Source = MDevice.motionChannel;
-                accessBind.Path = new PropertyPath("VariableString");
-                accessBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                BindingOperations.SetBinding(accessPath, TextBox.TextProperty, accessBind);
-
+                XamlUI.SetupTextBox(ref accessPath, "",250);
+                XamlUI.TextboxBinding(accessPath, MDevice.motionChannel, "VariableString");
                 setting2.Children.Add(setting2Text);
                 setting2.Children.Add(accessPath);
             }
@@ -426,10 +396,21 @@ namespace TwinCat_Motion_ADS.MVVM.View
         {
             channelID = channel;
             //Setup strings for content and property paths
-            string tbpp = "Ch" + channel + "Name";
-            string tbContent = "*Ch" + channel + "*";
+            //string tbpp = "Ch" + channel + "Name";
+            string tbpp = "ChName[" + (channel-1)+"]";           
             string cbContent = "Ch" + channel;
-            string cbpp = "Ch" + channel + "Connected";
+            string cbpp = "ChConnected[" + (channel - 1) + "]";
+            string tbContent;
+            //Don't want to reset name field unless it's empty
+            if ( string.IsNullOrEmpty(((KeyenceTM3000)source).ChName[channel - 1]))
+            {
+                tbContent = "*Ch" + channel + "*";
+            }
+            else
+            {
+                tbContent = ((KeyenceTM3000)source).ChName[channel - 1];
+            }
+            
 
             //Bind and setup UI elements
             XamlUI.TextboxBinding(tb, source, tbpp);
@@ -440,9 +421,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             sp.Children.Add(tb);
             sp.Children.Add(cb);
 
-        }
-
-        
+        }       
     }
 
 }
