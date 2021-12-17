@@ -178,84 +178,24 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
                 StackPanel col1 = new();
                 col1.Orientation = Orientation.Vertical;
+                StackPanel col2 = new();
+                col2.Orientation = Orientation.Vertical;
+                col2.Margin = new Thickness(5, 0, 0, 0);
 
-
-                for(int i=1;i<9;i++)
+                for (int i=1;i<=MDevice.beckhoff.DIGITAL_INPUT_CHANNELS;i++)
                 {
                     CheckBox cb = new();
                     XamlUI.CheckBoxBinding("DInput Ch" + i, cb, MDevice.beckhoff, "DigitalInputConnected[" + (i-1) + "]");
                     col1.Children.Add(cb);
                 }
+                for (int i = 1; i <= MDevice.beckhoff.PT100_CHANNELS; i++)
+                {
+                    CheckBox cb = new();
+                    XamlUI.CheckBoxBinding("PT100 Ch" + i, cb, MDevice.beckhoff, "PT100Connected[" + (i - 1) + "]");
+                    col2.Children.Add(cb);
+                }
 
-                //Digital input 1
-
-                /*CheckBox dig1CB = new();
-                XamlUI.CheckBoxBinding("DInput Ch1", dig1CB, MDevice.beckhoff, "Dig1Connection");
-
-                //Digital input 2
-                CheckBox dig2CB = new();
-                XamlUI.CheckBoxBinding("DInput Ch2", dig2CB, MDevice.beckhoff, "Dig2Connection");
-
-                //Digital input 3
-                CheckBox dig3CB = new();
-                XamlUI.CheckBoxBinding("DInput Ch3", dig3CB, MDevice.beckhoff, "Dig3Connection");
-
-                //Digital input 4
-                CheckBox dig4CB = new();
-                XamlUI.CheckBoxBinding("DInput Ch4", dig4CB, MDevice.beckhoff, "Dig4Connection");
-
-
-                //Digital input 5
-                CheckBox dig5CB = new();
-                XamlUI.CheckBoxBinding("DInput Ch5", dig5CB, MDevice.beckhoff, "Dig5Connection");
-
-                //Digital input 6
-                CheckBox dig6CB = new();
-                XamlUI.CheckBoxBinding("DInput Ch6", dig6CB, MDevice.beckhoff, "Dig6Connection");
-
-                //Digital input 7
-                CheckBox dig7CB = new();
-                XamlUI.CheckBoxBinding("DInput Ch7", dig7CB, MDevice.beckhoff, "Dig7Connection");
-
-                //Digital input 8
-                CheckBox dig8CB = new();
-                XamlUI.CheckBoxBinding("DInput Ch8", dig8CB, MDevice.beckhoff, "Dig8Connection");
-
-
-                col1.Children.Add(dig1CB);
-                col1.Children.Add(dig2CB);
-                col1.Children.Add(dig3CB);
-                col1.Children.Add(dig4CB);
-                col1.Children.Add(dig5CB);
-                col1.Children.Add(dig6CB);
-                col1.Children.Add(dig7CB);
-                col1.Children.Add(dig8CB);*/
                 channels.Children.Add(col1);
-
-                StackPanel col2 = new();
-                col2.Orientation = Orientation.Vertical;
-                col2.Margin = new Thickness(5, 0, 0, 0);
-
-                //PT100 - 1
-                CheckBox pt1CB = new();
-                XamlUI.CheckBoxBinding("PT100 Ch1", pt1CB, MDevice.beckhoff, "Pt1Connection");
-
-                //PT100 - 2
-                CheckBox pt2CB = new();
-                XamlUI.CheckBoxBinding("PT100 Ch2", pt2CB, MDevice.beckhoff, "Pt2Connection");
-
-                //PT100 - 3
-                CheckBox pt3CB = new();
-                XamlUI.CheckBoxBinding("PT100 Ch3", pt3CB, MDevice.beckhoff, "Pt3Connection");
-
-                //PT100 - 4
-                CheckBox pt4CB = new();
-                XamlUI.CheckBoxBinding("PT100 Ch4", pt4CB, MDevice.beckhoff, "Pt4Connection");
-
-                col2.Children.Add(pt1CB);
-                col2.Children.Add(pt2CB);
-                col2.Children.Add(pt3CB);
-                col2.Children.Add(pt4CB);
                 channels.Children.Add(col2);
 
             }
