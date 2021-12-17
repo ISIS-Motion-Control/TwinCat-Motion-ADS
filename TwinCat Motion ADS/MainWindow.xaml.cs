@@ -132,39 +132,84 @@ namespace TwinCat_Motion_ADS
                 }
                 i++;
             }
-            Console.WriteLine(MeasurementDevices.MeasurementDeviceList[deviceIndex].Name);
+
             TwinCat_Motion_ADS.MVVM.View.measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
             newMeasureWindow.Show();
         }
 
         //update devices menu
-        private void UpdateMeasurementDeviceMenu()
+        public void UpdateMeasurementDeviceMenu(bool suppress = false)
         {
             MenuItem newMenuItem = new();
 
             //This binding seems to be bugged, works fine but does not update.
-            Binding menuItemName = new();
+            int testInt = MeasurementDevices.NumberOfDevices - 1;
+            /*Binding menuItemName = new();
             menuItemName.Mode = BindingMode.OneWay;
-            menuItemName.Source = MeasurementDevices.MeasurementDeviceList[MeasurementDevices.NumberOfDevices - 1];
+            menuItemName.Source = MeasurementDevices.MeasurementDeviceList[testInt];
             menuItemName.Path = new PropertyPath("Name");
             menuItemName.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(newMenuItem, MenuItem.HeaderProperty, menuItemName);
+            BindingOperations.SetBinding(newMenuItem, MenuItem.HeaderProperty, menuItemName);*/
 
-           // newMenuItem.Header = MeasurementDevices.MeasurementDeviceList[MeasurementDevices.NumberOfDevices-1].Name;
+            //newMenuItem.Header = MeasurementDevices.MeasurementDeviceList[testInt].Name;
             newMenuItem.Click += new RoutedEventHandler(DeviceMenu_Click);
             newMenuItem.Template = (ControlTemplate)FindResource("VsMenuSub");
-            MeasureDevicesMenu.Items.Add(newMenuItem);
-            measurementMenuItems.Add(newMenuItem);
+            MeasureDevicesMenu.Items.Add(newMenuItem);  //adding to the actual UI
+            measurementMenuItems.Add(newMenuItem);      //Adding to internal list
 
             int deviceIndex = MeasurementDevices.NumberOfDevices - 1;
 
-            TwinCat_Motion_ADS.MVVM.View.measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
-            newMeasureWindow.Show();
+            if(!suppress)
+            {
+                MVVM.View.measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
+                newMeasureWindow.Show();
+            }
+            
 
         }
 
+        private void ImportDevices_Click(object sender, RoutedEventArgs e)
+        {
+            VistaOpenFileDialog fbd = new();
+            fbd.Filter = "*.XML|*.xml";
+            string selectedFile;
+            if (fbd.ShowDialog() == true)
+            {
+                selectedFile = fbd.FileName;
+                int temp = MeasurementDevices.ImportDevicesXML(selectedFile);
+                if (temp > 0)
+                {
+                    for (int i = 0; i < temp; i++)
+                    {
+                        UpdateMeasurementDeviceMenu(true);
+                    }
+                }
+            }
+        }
 
+        private void MeasureDevicesMenu_Click(object sender, RoutedEventArgs e)
+        {
+            MeasureDevicesMenu.Items.Refresh();
+            int counter = 0;
+            foreach(MenuItem mi in measurementMenuItems)
+            {
+                mi.Header = MeasurementDevices.MeasurementDeviceList[counter].Name;
+                counter++;
+            }
+        }
 
+        private void ExportDevices_Click(object sender, RoutedEventArgs e)
+        {
+            VistaSaveFileDialog fbd = new();
+            fbd.AddExtension = true;
+            fbd.DefaultExt = ".XML";
+            string selectedFile;
+            if (fbd.ShowDialog() == true)
+            {
+                selectedFile = fbd.FileName;
+                MeasurementDevices.ExportDeviceesXml(selectedFile);
+            }
+        }
     }
 
 

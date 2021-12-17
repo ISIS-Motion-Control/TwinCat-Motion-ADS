@@ -180,6 +180,7 @@ namespace TwinCat_Motion_ADS
             NumberOfChannels = 0;
             Connected = false;
             Name = "*NEW DEVICE*";
+            changeDeviceType(deviceType);
         }
 
         /// <summary>
@@ -560,6 +561,17 @@ namespace TwinCat_Motion_ADS
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+        
+        
+        public ObservableCollection<string> DeviceTypeList = new ObservableCollection<string>()
+        {
+            "",
+        "DigimaticIndicator",
+        "KeyenceTM3000",
+        "Beckhoff",
+        "MotionChannel",
+        "Timestamp"
+        };
     }
 
 
@@ -572,6 +584,7 @@ namespace TwinCat_Motion_ADS
         MotionChannel,
         Timestamp
     }
-
     
+
+
 }
