@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using TwinCAT.Ads;
 using System.ComponentModel;
@@ -13,36 +11,34 @@ namespace TwinCat_Motion_ADS
     public class Beckhoff : INotifyPropertyChanged
     {
         public PLC Plc { get; set; }
-        /*
-         * Notes: Should probably make this a little more neat/scalable than it currently is.
-         * Also need to implement some additional handles and methods for sensors.
-         */
+
+        //Constants for number of channels of each sensor type, property allows external access to compile time constant
         const int _DIGITAL_INPUT_CHANNELS = 8;
-        const int _PT100_CHANNELS = 4;
         public int DIGITAL_INPUT_CHANNELS { get { return _DIGITAL_INPUT_CHANNELS; } }
+        public bool[] DigitalInputConnected { get; set; }   //Connection status of channels
+        private uint[] DigitalInputHandle;                  //PLC handle for channel
+
+        const int _PT100_CHANNELS = 4;       
         public int PT100_CHANNELS { get { return _PT100_CHANNELS; } }
+        public bool[] PT100Connected { get; set; }          //Connection status of channels
+        private uint[] PT100Handle;                         //PLC handle for channel
 
-
-
+        //Publicly accessible channel list for device
         public List<Tuple<string, int>> ChannelList = new();
-
-
-        public bool[] DigitalInputConnected { get; set; }
-        public bool[] PT100Connected { get; set; }
-        private uint[] DigitalInputHandle;
-        private uint[] PT100Handle;
 
         public Beckhoff(PLC plc)
         {
+            //Setup channel arrays
             DigitalInputConnected = new bool[DIGITAL_INPUT_CHANNELS];
             DigitalInputHandle = new uint[DIGITAL_INPUT_CHANNELS];
 
             PT100Connected = new bool[PT100_CHANNELS];
             PT100Handle = new uint[PT100_CHANNELS];
+            
             Plc = plc;
         }
 
-        //Read Channel Methods
+        //Read digital input channel
         public async Task<string> ReadDigitalInput(int channel)
         {
             try
@@ -56,6 +52,7 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        //Read pt100 channel
         public async Task<string> ReadPt100(int channel)
         {
             try
@@ -69,8 +66,10 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        //Generic channel measurement method
         public async Task<string> ReadChannel(int channel)
         {
+            //Channels are ordered : Digital Inputs => PT100s => Unused
             if(channel == 0)
             {
                 return "Not a valid channel";
@@ -90,9 +89,7 @@ namespace TwinCat_Motion_ADS
             return "Not a valid channel";
         }
 
-
-        //Handle creation and checks
-
+        //Create all handles
         public async Task<bool> CreateHandles()
         {
             try
@@ -113,6 +110,7 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        //Create digital input handle
         public async Task<bool> CreateDigitalInputHandle(int channel)
         {
             try
@@ -127,6 +125,7 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        //Create PT100 handle
         public async Task<bool> CreatePT100Handle(int channel)
         {
             try
@@ -141,6 +140,7 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        //Update internal channel list
         public void UpdateChannelList()
         {
             ChannelList.Clear();
