@@ -432,7 +432,7 @@ namespace TwinCat_Motion_ADS
                     return retstr;
 
                 case DeviceType.Beckhoff:
-                    return await beckhoff.ReadChannels();
+                    return await beckhoff.ReadChannel(1);
 
                 case DeviceType.MotionChannel:
                     return await motionChannel.GetMeasurementAsync();
