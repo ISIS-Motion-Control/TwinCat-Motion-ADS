@@ -20,6 +20,10 @@ namespace TwinCat_Motion_ADS
 
         private const int defaultTimeout = 1000;
 
+        const int _KEYENCE_MAX_CHANNELS = 16;
+        public int KEYENCE_MAX_CHANNELS { get { return _KEYENCE_MAX_CHANNELS; } }
+
+        //internal readonly int KEYENCE_MAX_CHANNELS = 16;
         public ObservableCollection<string> SerialPortList = new();
 
         public KeyenceTM3000(string portName = "", int baudRate = 115200)

@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace TwinCat_Motion_ADS
 {
-    class XamlUIClass
+    class XamlUI
     {
         public static void TextboxBinding(DependencyObject item, object source, string pp, UpdateSourceTrigger ust = UpdateSourceTrigger.PropertyChanged)
         {

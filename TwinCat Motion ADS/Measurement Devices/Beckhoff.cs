@@ -17,6 +17,10 @@ namespace TwinCat_Motion_ADS
          * Notes: Should probably make this a little more neat/scalable than it currently is.
          * Also need to implement some additional handles and methods for sensors.
          */
+        const int _DIGITAL_INPUT_CHANNELS = 8;
+        const int _PT100_CHANNELS = 4;
+        public int DIGITAL_INPUT_CHANNELS { get { return _DIGITAL_INPUT_CHANNELS; } }
+        public int PT100_CHANNELS { get { return _PT100_CHANNELS; } }
 
         //Handle variables for address locations
         private uint Dig1Handle;
@@ -115,6 +119,8 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        
+
         private bool _pt1Connection;
         public bool Pt1Connection
         {
@@ -158,8 +164,21 @@ namespace TwinCat_Motion_ADS
 
         public List<Tuple<string, int>> ChannelList = new();
 
+
+        public bool[] DigitalInputConnected { get; set; }
+        public bool[] PT100Connected { get; set; }
+        private uint[] DigitalInputHandle;
+        private uint[] PT100Handle;
+
         public Beckhoff(PLC plc)
         {
+            DigitalInputConnected = new bool[DIGITAL_INPUT_CHANNELS];
+            DigitalInputHandle = new uint[DIGITAL_INPUT_CHANNELS];
+
+            PT100Connected = new bool[PT100_CHANNELS];
+            PT100Handle = new uint[PT100_CHANNELS];
+
+
             Plc = plc;
         }
 

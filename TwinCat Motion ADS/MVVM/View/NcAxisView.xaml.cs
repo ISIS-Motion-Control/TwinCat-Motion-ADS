@@ -51,29 +51,29 @@ namespace TwinCat_Motion_ADS.MVVM.View
         public void SetupBinds()
         {
             //Binds all the UI elemets to properties in the NC Axis
-            XamlUIClass.TextBlockBinding(axisPositionRB, testAxis, "AxisPosition");
-            XamlUIClass.CheckBoxBinding((string)enabledCheck.Content, enabledCheck, testAxis, "AxisEnabled", BindingMode.OneWay);
-            XamlUIClass.CheckBoxBinding((string)fwEnabledCheck.Content, fwEnabledCheck, testAxis, "AxisFwEnabled", BindingMode.OneWay);
-            XamlUIClass.CheckBoxBinding((string)bwEnabledCheck.Content, bwEnabledCheck, testAxis, "AxisBwEnabled", BindingMode.OneWay);
-            XamlUIClass.CheckBoxBinding((string)errorCheck.Content, errorCheck, testAxis, "Error", BindingMode.OneWay);
-            XamlUIClass.CheckBoxBinding((string)validAxis.Content, validAxis, testAxis, "Valid", BindingMode.OneWay);
-            XamlUIClass.TextBlockBinding(currentAxis, testAxis, "AxisID","D");
-            XamlUIClass.CheckBoxBinding((string)testCancelledCheck.Content, testCancelledCheck, testAxis, "CancelTest", BindingMode.OneWay);
-            XamlUIClass.CheckBoxBinding((string)testPausedCheck.Content, testPausedCheck, testAxis, "PauseTest", BindingMode.OneWay);
-            XamlUIClass.TextboxBinding(timeoutTB, NcTestSettings, "StrTimeout",UpdateSourceTrigger.LostFocus);
-            XamlUIClass.TextboxBinding(testTitleTB, NcTestSettings, "StrTestTitle", UpdateSourceTrigger.LostFocus);
-            XamlUIClass.TextboxBinding(velocityTB, NcTestSettings, "StrVelocity", UpdateSourceTrigger.LostFocus);
-            XamlUIClass.TextboxBinding(cycleTB, NcTestSettings, "StrCycles", UpdateSourceTrigger.LostFocus);
-            XamlUIClass.TextboxBinding(cycleDelayTB, NcTestSettings, "StrCycleDelaySeconds", UpdateSourceTrigger.LostFocus);
-            XamlUIClass.TextboxBinding(revVelTB, NcTestSettings, "StrReversalVelocity", UpdateSourceTrigger.LostFocus);
-            XamlUIClass.TextboxBinding(revExtraTB, NcTestSettings, "StrReversalExtraTimeSeconds", UpdateSourceTrigger.LostFocus);
-            XamlUIClass.TextboxBinding(revSettleTB, NcTestSettings, "StrReversalSettleTimeSeconds", UpdateSourceTrigger.LostFocus);
-            XamlUIClass.TextboxBinding(initSetpointTB, NcTestSettings, "StrInitialSetpoint", UpdateSourceTrigger.LostFocus);
-            XamlUIClass.TextboxBinding(NumberOfStepsTB, NcTestSettings, "StrNumberOfSteps", UpdateSourceTrigger.LostFocus);
-            XamlUIClass.TextboxBinding(stepSizeTB, NcTestSettings, "StrStepSize", UpdateSourceTrigger.LostFocus);
-            XamlUIClass.TextboxBinding(settleTimeTB, NcTestSettings, "StrSettleTimeSeconds", UpdateSourceTrigger.LostFocus);
-            XamlUIClass.TextboxBinding(revDistanceTB, NcTestSettings, "StrReversalDistance", UpdateSourceTrigger.LostFocus);
-            XamlUIClass.TextboxBinding(overshootDistanceTB, NcTestSettings, "StrOvershootDistance", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextBlockBinding(axisPositionRB, testAxis, "AxisPosition");
+            XamlUI.CheckBoxBinding((string)enabledCheck.Content, enabledCheck, testAxis, "AxisEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)fwEnabledCheck.Content, fwEnabledCheck, testAxis, "AxisFwEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)bwEnabledCheck.Content, bwEnabledCheck, testAxis, "AxisBwEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)errorCheck.Content, errorCheck, testAxis, "Error", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)validAxis.Content, validAxis, testAxis, "Valid", BindingMode.OneWay);
+            XamlUI.TextBlockBinding(currentAxis, testAxis, "AxisID","D");
+            XamlUI.CheckBoxBinding((string)testCancelledCheck.Content, testCancelledCheck, testAxis, "CancelTest", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)testPausedCheck.Content, testPausedCheck, testAxis, "PauseTest", BindingMode.OneWay);
+            XamlUI.TextboxBinding(timeoutTB, NcTestSettings, "StrTimeout",UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(testTitleTB, NcTestSettings, "StrTestTitle", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(velocityTB, NcTestSettings, "StrVelocity", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(cycleTB, NcTestSettings, "StrCycles", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(cycleDelayTB, NcTestSettings, "StrCycleDelaySeconds", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(revVelTB, NcTestSettings, "StrReversalVelocity", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(revExtraTB, NcTestSettings, "StrReversalExtraTimeSeconds", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(revSettleTB, NcTestSettings, "StrReversalSettleTimeSeconds", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(initSetpointTB, NcTestSettings, "StrInitialSetpoint", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(NumberOfStepsTB, NcTestSettings, "StrNumberOfSteps", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(stepSizeTB, NcTestSettings, "StrStepSize", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(settleTimeTB, NcTestSettings, "StrSettleTimeSeconds", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(revDistanceTB, NcTestSettings, "StrReversalDistance", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(overshootDistanceTB, NcTestSettings, "StrOvershootDistance", UpdateSourceTrigger.LostFocus);
         }
 
         
