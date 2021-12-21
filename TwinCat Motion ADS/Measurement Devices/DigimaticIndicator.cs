@@ -1,6 +1,6 @@
-﻿using System.IO.Ports;
+﻿using System.Collections.ObjectModel;
+using System.IO.Ports;
 using System.Threading;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace TwinCat_Motion_ADS
@@ -66,7 +66,7 @@ namespace TwinCat_Motion_ADS
 
         public bool ClosePort()
         {
-            if(SerialPort.IsOpen)
+            if (SerialPort.IsOpen)
             {
                 try
                 {
@@ -81,12 +81,12 @@ namespace TwinCat_Motion_ADS
             }
             return false;
         }
-    
+
         //Async method for getting DTI measurement
         public async Task<string> GetMeasurementAsync(int timeoutMilliSeconds = defaultTimeout)
         {
             CancellationTokenSource ct = new();
-            return await ReadAsync("1", ct, readDelay,timeoutMilliSeconds);
+            return await ReadAsync("1", ct, readDelay, timeoutMilliSeconds);
         }
 
         //Generic write/read command to DTI. 1 is measurement, 2 is unit, 3 is readtime
@@ -94,7 +94,7 @@ namespace TwinCat_Motion_ADS
         {
             string readValue = string.Empty;
             var readTask = Task<string>.Run(async () =>
-            {            
+            {
                 SerialPort.DiscardInBuffer(); //clear unread data
                 SerialPort.Write(cmd);
                 while (SerialPort.BytesToRead == 0)
@@ -109,7 +109,7 @@ namespace TwinCat_Motion_ADS
                 return readValue;
             });
 
-            if(await Task.WhenAny(readTask, Task.Delay(timeout,ct.Token)) == readTask)
+            if (await Task.WhenAny(readTask, Task.Delay(timeout, ct.Token)) == readTask)
             {
                 ct.Cancel();
                 return readValue;

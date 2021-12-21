@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 
 namespace TwinCat_Motion_ADS
 {
@@ -127,12 +123,12 @@ namespace TwinCat_Motion_ADS
         {
             Task.Run(() => ReadAllStatuses(readToken.Token));
         }
-        
+
         const int defaultReadTime = 10; //ms
 
         public async Task ReadAllStatuses(CancellationToken ct)
         {
-            while(!ct.IsCancellationRequested)
+            while (!ct.IsCancellationRequested)
             {
                 if (!ValidCommand())
                 {
@@ -194,7 +190,7 @@ namespace TwinCat_Motion_ADS
         {
             while (!ct.IsCancellationRequested)
             {
-                if(!ValidCommand())
+                if (!ValidCommand())
                 {
                     AxisEnabled = false;
                     return;
@@ -257,7 +253,7 @@ namespace TwinCat_Motion_ADS
             Error = true;
             return;
         }
-        
+
         public async Task ReadAxisDoneV2(CancellationToken ct, int ts = 0)
         {
             while (!ct.IsCancellationRequested)

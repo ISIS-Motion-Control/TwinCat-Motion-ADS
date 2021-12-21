@@ -6,7 +6,6 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 
 namespace TwinCat_Motion_ADS
 {
@@ -54,13 +53,13 @@ namespace TwinCat_Motion_ADS
         }
 
         private async Task CylinderActuation(bool extend)
-        {      
+        {
             await Plc.TcAds.WriteAnyAsync(bCylinder_Handle, extend, CancellationToken.None);
         }
         public async Task<bool> ExtendCylinder(bool ignoreLimits = false)
         {
             if (!ValidCommand()) return false;
-            
+
             if (ExtendedLimit == false && ignoreLimits == false)
             {
                 Console.WriteLine("Cylinder already extended");
@@ -204,7 +203,7 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> End2EndTest(AirTestSettings ts, MeasurementDevices md =null)
+        public async Task<bool> End2EndTest(AirTestSettings ts, MeasurementDevices md = null)
         {
             Stopwatch testStopwatch = new();
             testStopwatch.Start();
@@ -293,12 +292,12 @@ namespace TwinCat_Motion_ADS
 
 
                     //CancellationTokenSource testToken = new();
-                    if(md != null)
+                    if (md != null)
                     {
                         measurements = new();
-                        foreach(var device in md.MeasurementDeviceList)
+                        foreach (var device in md.MeasurementDeviceList)
                         {
-                            if(device.Connected)
+                            if (device.Connected)
                             {
                                 string measure = string.Empty;
                                 string timestamp = string.Empty;
@@ -311,7 +310,7 @@ namespace TwinCat_Motion_ADS
                             }
                         }
                     }
-                    
+
                     await Task.Delay((int)ts.ReadDelayMs);
                     //log a record
                     recordList.Add(new PneumaticEnd2EndCSVv2((uint)i, (uint)j, "Extending", ExtendedLimit, RetractedLimit, stopwatch.Elapsed));
@@ -335,13 +334,13 @@ namespace TwinCat_Motion_ADS
                 //Write the cycle data
                 using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
                 using (writer = new StreamWriter(stream))
-                
-                
+
+
                 using (csv = new CsvWriter(writer, config))
                 {
                     //csv.WriteRecords(recordList);
                     int loopIndex = 0;
-                    foreach(var record in recordList)
+                    foreach (var record in recordList)
                     {
                         csv.WriteRecord(record);
                         if (md != null)
@@ -374,7 +373,7 @@ namespace TwinCat_Motion_ADS
         }
         public async Task ReadCylinder(CancellationToken ct)
         {
-            while(!ct.IsCancellationRequested)
+            while (!ct.IsCancellationRequested)
             {
                 if (!ValidCommand()) return;
                 var result = await Plc.TcAds.ReadAnyAsync<bool>(bCylinder_Handle, CancellationToken.None);

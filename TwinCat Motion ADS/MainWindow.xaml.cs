@@ -1,24 +1,18 @@
-﻿using System;
+﻿using Ookii.Dialogs.Wpf;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Input;
-using System.Windows.Media;
 using TwinCAT.Ads;
-using Ookii.Dialogs.Wpf;
-using TwinCat_Motion_ADS.MVVM.ViewModel;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Collections.Generic;
 
 namespace TwinCat_Motion_ADS
 {
-   
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -31,10 +25,11 @@ namespace TwinCat_Motion_ADS
         public ObservableCollection<string> DeviceTypeList = new()
         {
             "",
-        "DigimaticIndicator",
-        "KeyenceTM3000"
+            "DigimaticIndicator",
+            "KeyenceTM3000"
         };
         private string _amsNetID;
+        private string fileFilter = "XML files|*.XML;*.xml";
         public string AmsNetID
         {
             get { return _amsNetID; }
@@ -50,7 +45,7 @@ namespace TwinCat_Motion_ADS
         public MainWindow()
         {
             InitializeComponent();
-            
+
             ConsoleAllocator.ShowConsoleWindow();
             AmsNetID = Properties.Settings.Default.amsNetID;
             SetupBinds();
@@ -123,9 +118,9 @@ namespace TwinCat_Motion_ADS
             MenuItem mI = sender as MenuItem;
             int i = 0;
             int deviceIndex = 0;
-            foreach(var device in measurementMenuItems)
+            foreach (var device in measurementMenuItems)
             {
-                if(mI == device)
+                if (mI == device)
                 {
                     deviceIndex = i;
                     //Console.WriteLine("That's a match on " + deviceIndex); //debugging line to check we can find item based on menuItemList
@@ -159,19 +154,20 @@ namespace TwinCat_Motion_ADS
 
             int deviceIndex = MeasurementDevices.NumberOfDevices - 1;
 
-            if(!suppress)
+            if (!suppress)
             {
                 MVVM.View.measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
                 newMeasureWindow.Show();
             }
-            
+
 
         }
 
         private void ImportDevices_Click(object sender, RoutedEventArgs e)
         {
             VistaOpenFileDialog fbd = new();
-            fbd.Filter = "*.XML|*.xml";
+            fbd.AddExtension = true;
+            fbd.Filter = fileFilter;
             string selectedFile;
             if (fbd.ShowDialog() == true)
             {
@@ -191,7 +187,7 @@ namespace TwinCat_Motion_ADS
         {
             MeasureDevicesMenu.Items.Refresh();
             int counter = 0;
-            foreach(MenuItem mi in measurementMenuItems)
+            foreach (MenuItem mi in measurementMenuItems)
             {
                 mi.Header = MeasurementDevices.MeasurementDeviceList[counter].Name;
                 counter++;
@@ -202,12 +198,13 @@ namespace TwinCat_Motion_ADS
         {
             VistaSaveFileDialog fbd = new();
             fbd.AddExtension = true;
-            fbd.DefaultExt = ".XML";
+            fbd.DefaultExt = ".xml";
+            fbd.Filter = fileFilter;
             string selectedFile;
             if (fbd.ShowDialog() == true)
             {
                 selectedFile = fbd.FileName;
-                MeasurementDevices.ExportDeviceesXml(selectedFile);
+                MeasurementDevices.ExportDevicesXml(selectedFile);
             }
         }
     }
@@ -249,7 +246,7 @@ namespace TwinCat_Motion_ADS
 
             ShowWindow(handle, SwHide);
         }
-        
+
     }
 
 }

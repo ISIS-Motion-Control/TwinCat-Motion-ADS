@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using TwinCAT.Ads;
 
 namespace TwinCat_Motion_ADS
@@ -21,11 +18,11 @@ namespace TwinCat_Motion_ADS
             get { return _VariableString; }
             set
             {
-                if(!Connected)
+                if (!Connected)
                 {
                     _VariableString = value;
                     OnPropertyChanged();
-                }               
+                }
             }
         }
 
@@ -39,7 +36,7 @@ namespace TwinCat_Motion_ADS
                 {
                     _VariableType = value;
                     OnPropertyChanged();
-                }               
+                }
             }
         }
 
@@ -71,14 +68,14 @@ namespace TwinCat_Motion_ADS
             }
             //create the variable handle
             Console.WriteLine(VariableString);
-            if(!CreateVariableHandle())
+            if (!CreateVariableHandle())
             {
                 Console.WriteLine("Failed to create handle");
                 Connected = false;
                 return false;
             }
             //confirm able to read handle
-            if(CanGetMeasurement() == null)
+            if (CanGetMeasurement() == null)
             {
                 Connected = false;
                 return false;
@@ -121,13 +118,13 @@ namespace TwinCat_Motion_ADS
                         var resultString = Plc.TcAds.ReadAny<string>(channelHandle);
                         return resultString.ToString();
                     case "double":
-                        var resultDouble =  Plc.TcAds.ReadAny<double>(channelHandle);
+                        var resultDouble = Plc.TcAds.ReadAny<double>(channelHandle);
                         return resultDouble.ToString();
                     case "short":
-                        var resultShort =  Plc.TcAds.ReadAny<short>(channelHandle);
+                        var resultShort = Plc.TcAds.ReadAny<short>(channelHandle);
                         return resultShort.ToString();
                     case "bool":
-                        var resultBool =  Plc.TcAds.ReadAny<bool>(channelHandle);
+                        var resultBool = Plc.TcAds.ReadAny<bool>(channelHandle);
                         return resultBool.ToString();
                     default:
                         return "No valid variable type selected";
@@ -138,7 +135,7 @@ namespace TwinCat_Motion_ADS
                 return null;
             }
         }
-        
+
         public async Task<string> GetMeasurementAsync()
         {
             try
@@ -173,7 +170,7 @@ namespace TwinCat_Motion_ADS
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
-            
+
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 

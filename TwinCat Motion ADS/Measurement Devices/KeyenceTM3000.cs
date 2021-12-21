@@ -1,11 +1,11 @@
-﻿using System.IO.Ports;
-using System.Threading;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
+﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO.Ports;
 using System.Runtime.CompilerServices;
-using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace TwinCat_Motion_ADS
 {
@@ -87,14 +87,14 @@ namespace TwinCat_Motion_ADS
         {
             return SerialPort.IsOpen;
         }
-        
+
         /// <summary>
         /// Disconnect from the serial port
         /// </summary>
         /// <returns></returns>
         public bool ClosePort()
         {
-            if(SerialPort.IsOpen)
+            if (SerialPort.IsOpen)
             {
                 try
                 {
@@ -125,7 +125,7 @@ namespace TwinCat_Motion_ADS
             txBuf[measurementChannel + 2] = 0x31;
             //create a buffer to hold the returned value
             var rxBuf = new byte[29];
-            rxBuf = await ReadAsyncBuff(txBuf, 29, ct,timeoutMilliSeconds);
+            rxBuf = await ReadAsyncBuff(txBuf, 29, ct, timeoutMilliSeconds);
             if (rxBuf.Length != 29) //Device should always return 29 bytes for a single channel read
             {
                 return "Measurement failed";
@@ -147,7 +147,7 @@ namespace TwinCat_Motion_ADS
             for (int i = 1; i < 17; i++)
             {
                 var str = await GetMeasureAsync(i);
-                if(str[1]!='X')  //Check the 2nd char of returned string, F is when no data present and X is unused channel
+                if (str[1] != 'X')  //Check the 2nd char of returned string, F is when no data present and X is unused channel
                 {
                     measurements.Add(str);  //If valid data add to the list
                 }
@@ -163,15 +163,15 @@ namespace TwinCat_Motion_ADS
         /// <param name="ct"></param>
         /// <param name="timeout"></param>
         /// <returns></returns>
-        public async Task<byte[]> ReadAsyncBuff(byte[] cmd,int rb, CancellationTokenSource ct, int timeout = defaultTimeout)
+        public async Task<byte[]> ReadAsyncBuff(byte[] cmd, int rb, CancellationTokenSource ct, int timeout = defaultTimeout)
         {
             byte[] measurement = new byte[rb];
             var readTask = Task<byte[]>.Run(() =>
             {
-                
+
                 SerialPort.DiscardInBuffer();
                 SerialPort.Write(cmd, 0, 20);   //Should be 20 bytes for a read
-                while (SerialPort.BytesToRead < rb) 
+                while (SerialPort.BytesToRead < rb)
                 {
                     if (ct.Token.IsCancellationRequested)
                     {
@@ -198,10 +198,10 @@ namespace TwinCat_Motion_ADS
         {
             ChannelList.Clear();
             Tuple<string, int> tmp;// = (Name, 1).ToTuple();
-            
-            for(int i=1; i<= KEYENCE_MAX_CHANNELS; i++)
+
+            for (int i = 1; i <= KEYENCE_MAX_CHANNELS; i++)
             {
-                if(ChConnected[i-1])
+                if (ChConnected[i - 1])
                 {
                     tmp = (ChName[i - 1], i).ToTuple();
                     ChannelList.Add(tmp);

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using TwinCAT.Ads;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
+using TwinCAT.Ads;
 
 namespace TwinCat_Motion_ADS
 {
@@ -18,7 +18,7 @@ namespace TwinCat_Motion_ADS
         public bool[] DigitalInputConnected { get; set; }   //Connection status of channels
         private uint[] DigitalInputHandle;                  //PLC handle for channel
 
-        const int _PT100_CHANNELS = 4;       
+        const int _PT100_CHANNELS = 4;
         public int PT100_CHANNELS { get { return _PT100_CHANNELS; } }
         public bool[] PT100Connected { get; set; }          //Connection status of channels
         private uint[] PT100Handle;                         //PLC handle for channel
@@ -34,7 +34,7 @@ namespace TwinCat_Motion_ADS
 
             PT100Connected = new bool[PT100_CHANNELS];
             PT100Handle = new uint[PT100_CHANNELS];
-            
+
             Plc = plc;
         }
 
@@ -43,12 +43,12 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var result = await Plc.TcAds.ReadAnyAsync<bool>(DigitalInputHandle[channel-1], CancellationToken.None);
+                var result = await Plc.TcAds.ReadAnyAsync<bool>(DigitalInputHandle[channel - 1], CancellationToken.None);
                 return result.Value.ToString();
             }
             catch
             {
-                return "*Dig "+ channel+" Read failure*";
+                return "*Dig " + channel + " Read failure*";
             }
         }
 
@@ -57,12 +57,12 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                var result = await Plc.TcAds.ReadAnyAsync<double>(PT100Handle[channel-1], CancellationToken.None);
+                var result = await Plc.TcAds.ReadAnyAsync<double>(PT100Handle[channel - 1], CancellationToken.None);
                 return result.Value.ToString();
             }
             catch
             {
-                return "*Pt100-"+channel+" Read failure*";
+                return "*Pt100-" + channel + " Read failure*";
             }
         }
 
@@ -70,18 +70,18 @@ namespace TwinCat_Motion_ADS
         public async Task<string> ReadChannel(int channel)
         {
             //Channels are ordered : Digital Inputs => PT100s => Unused
-            if(channel == 0)
+            if (channel == 0)
             {
                 return "Not a valid channel";
             }
 
-            if(channel<=DIGITAL_INPUT_CHANNELS)
+            if (channel <= DIGITAL_INPUT_CHANNELS)
             {
                 return await ReadDigitalInput(channel);
             }
             channel -= DIGITAL_INPUT_CHANNELS;  //If we didn't match a channel, reduce the input number
 
-            if(channel<=PT100_CHANNELS)
+            if (channel <= PT100_CHANNELS)
             {
                 return await ReadPt100(channel);
             }
@@ -94,11 +94,11 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                for(int i = 1; i<=DIGITAL_INPUT_CHANNELS;i++)
+                for (int i = 1; i <= DIGITAL_INPUT_CHANNELS; i++)
                 {
                     await CreateDigitalInputHandle(i);
                 }
-                for(int i = 1; i<=PT100_CHANNELS;i++)
+                for (int i = 1; i <= PT100_CHANNELS; i++)
                 {
                     await CreatePT100Handle(i);
                 }
@@ -146,17 +146,17 @@ namespace TwinCat_Motion_ADS
             ChannelList.Clear();
             Tuple<string, int> tmp;
 
-            for(int i=1; i<= DIGITAL_INPUT_CHANNELS; i++)
+            for (int i = 1; i <= DIGITAL_INPUT_CHANNELS; i++)
             {
-                if(DigitalInputConnected[i-1])
+                if (DigitalInputConnected[i - 1])
                 {
                     tmp = ("Dig" + i, i).ToTuple();
                     ChannelList.Add(tmp);
                 }
             }
-            for(int i=1; i<= PT100_CHANNELS; i++)
+            for (int i = 1; i <= PT100_CHANNELS; i++)
             {
-                if(PT100Connected[i-1])
+                if (PT100Connected[i - 1])
                 {
                     tmp = ("Pt" + i, (i + DIGITAL_INPUT_CHANNELS)).ToTuple();   //Pt100 access channels start after the digital inputs
                     ChannelList.Add(tmp);

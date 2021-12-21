@@ -1,11 +1,11 @@
-﻿using System;
+﻿using CsvHelper;
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Threading;
 using System.Diagnostics;
-using CsvHelper;
-using System.IO;
 using System.Globalization;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace TwinCat_Motion_ADS
 {
@@ -40,7 +40,9 @@ namespace TwinCat_Motion_ADS
         public uint AxisID
         {
             get { return _axisID; }
-            set { _axisID = value;
+            set
+            {
+                _axisID = value;
                 OnPropertyChanged();
             }
         }
@@ -55,7 +57,7 @@ namespace TwinCat_Motion_ADS
 
         private bool ValidCommand() //always going to check if PLC is valid or not
         {
-            if(!Plc.IsStateRun())
+            if (!Plc.IsStateRun())
             {
                 Console.WriteLine("Incorrect PLC configuration");
                 Valid = false;
@@ -72,8 +74,8 @@ namespace TwinCat_Motion_ADS
             if (!ValidCommand()) return;
             try
             {
-                
-                
+
+
                 AxisID = axisID;
                 Plc = plc;
                 //These variable handles rely on the twinCAT standard solution naming.
@@ -93,13 +95,13 @@ namespace TwinCat_Motion_ADS
                 bResetHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stControl.bReset");
                 //StartPositionRead();
                 ReadStatuses();
-                
+
             }
             catch
             {
                 Console.WriteLine("Invalid PLC Configuration - unable to create variable handles");
             }
-                   
+
 
         }
 
@@ -108,7 +110,7 @@ namespace TwinCat_Motion_ADS
             if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(eCommandHandle, command, CancellationToken.None);
         }
-        
+
         private async Task SetVelocity(double velocity)
         {
             if (!ValidCommand()) return;
@@ -150,11 +152,11 @@ namespace TwinCat_Motion_ADS
             {
                 return false;
             }
-            if(velocity == 0)
+            if (velocity == 0)
             {
                 return false;
             }
-            
+
 
             var commandTask = SetCommand(eMoveAbsolute);
             var velocityTask = SetVelocity(velocity);
@@ -197,7 +199,7 @@ namespace TwinCat_Motion_ADS
                 List<Task> waitingTask;
 
                 double currentPosition = AxisPosition;
-                if (position>currentPosition)
+                if (position > currentPosition)
                 {
                     limitTask = CheckFwLimitTask(true, ct.Token);
                 }
@@ -209,26 +211,26 @@ namespace TwinCat_Motion_ADS
                 if (timeout > 0)
                 {
                     Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token);
-                    waitingTask = new List<Task> { doneTask, errorTask,limitTask, timeoutTask };
+                    waitingTask = new List<Task> { doneTask, errorTask, limitTask, timeoutTask };
                 }
                 else
                 {
-                    waitingTask = new List<Task> { doneTask, errorTask,limitTask };
+                    waitingTask = new List<Task> { doneTask, errorTask, limitTask };
                 }
-                
-                if(await Task.WhenAny(waitingTask)==doneTask)
+
+                if (await Task.WhenAny(waitingTask) == doneTask)
                 {
                     Console.WriteLine("Move absolute complete");
                     ct.Cancel();
                     return true;
                 }
-                else if(await Task.WhenAny(waitingTask) == errorTask)
+                else if (await Task.WhenAny(waitingTask) == errorTask)
                 {
                     Console.WriteLine("Error on move absolute");
                     ct.Cancel();
                     return false;
                 }
-                else if(await Task.WhenAny(waitingTask) == limitTask)
+                else if (await Task.WhenAny(waitingTask) == limitTask)
                 {
                     Console.WriteLine("Limit hit before position reached");
                     ct.Cancel();
@@ -257,7 +259,7 @@ namespace TwinCat_Motion_ADS
             {
                 return false;
             }
-            if (velocity <=0)
+            if (velocity <= 0)
             { return false; }
             var commandTask = SetCommand(eMoveRelative);
             var velocityTask = SetVelocity(velocity);
@@ -286,19 +288,19 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> MoveRelativeAndWait(double position, double velocity, int timeout=0)
+        public async Task<bool> MoveRelativeAndWait(double position, double velocity, int timeout = 0)
         {
             if (!ValidCommand()) return false;
             CancellationTokenSource ct = new();
 
-            if (await MoveRelative(position,velocity))
+            if (await MoveRelative(position, velocity))
             {
                 await Task.Delay(40);
                 Task<bool> doneTask = WaitForDone(ct.Token);
                 Task<bool> errorTask = CheckForError(ct.Token);
                 Task<bool> limitTask;
                 List<Task> waitingTask;
-                
+
                 //Check direction of travel for monitoring limits
                 if (position > 0)
                 {
@@ -406,7 +408,7 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
             //"Correct" the velocity setting if required
-            if (velocity <0)
+            if (velocity < 0)
             {
                 velocity *= -1;
             }
@@ -418,19 +420,19 @@ namespace TwinCat_Motion_ADS
             };
             //Start a task to check the FwEnabled bool that only returns when flag is hit (fwEnabled == false)
             CancellationTokenSource ct = new();
-            Task<bool> limitTask = CheckFwLimitTask(true,ct.Token);
+            Task<bool> limitTask = CheckFwLimitTask(true, ct.Token);
             List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task. 
-            if(timeout==0)
+            if (timeout == 0)
             {
                 waitingTask = new List<Task> { limitTask };
             }
             else
             {
-                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token)};
+                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token) };
             }
 
-            if(await Task.WhenAny(waitingTask)==limitTask)
+            if (await Task.WhenAny(waitingTask) == limitTask)
             {
                 Console.WriteLine("High limit reached");
                 ct.Cancel();
@@ -782,7 +784,7 @@ namespace TwinCat_Motion_ADS
                         if (devices != null)    //If devices input, check for connected
                         {
                             measurementsHigh.Clear();
-                            foreach(var device in devices.MeasurementDeviceList)
+                            foreach (var device in devices.MeasurementDeviceList)
                             {
                                 if (device.Connected)
                                 {
@@ -825,7 +827,7 @@ namespace TwinCat_Motion_ADS
                     await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));//Allow axis to settle before reversal
                     if (await LowLimitReversal(testSettings.ReversalVelocity, (int)testSettings.Timeout, (int)testSettings.ReversalExtraTimeSeconds, (int)testSettings.ReversalSettleTimeSeconds))
                     {
-                        
+
 
                         ///READ MEASUREMENT DEVICES///
                         ///
@@ -847,7 +849,7 @@ namespace TwinCat_Motion_ADS
                         record2 = new End2endCSV(i, "High limit to low limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition);
 
                         Console.WriteLine("Cycle " + i + "- High limit to low limit: " + stopWatch.ElapsedMilliseconds + "ms. Low limit triggered at " + tmpAxisPosition);
-                        
+
                     }
                     else
                     {
@@ -870,7 +872,7 @@ namespace TwinCat_Motion_ADS
                 using (csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     csv.WriteRecord(record1);
-                    foreach(var m in measurementsHigh)
+                    foreach (var m in measurementsHigh)
                     {
                         csv.WriteField(m);
                     }
@@ -914,7 +916,7 @@ namespace TwinCat_Motion_ADS
 
             //Ensure positive velocity value
             testSettings.Velocity = Math.Abs(testSettings.Velocity);
-            
+
             //Establish "Reversal" position of test
             double reversalPosition;
             if (testSettings.StepSize > 0)
@@ -928,14 +930,14 @@ namespace TwinCat_Motion_ADS
 
             //Create file name string
             var currentTime = DateTime.Now;
-            string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.StrTestTitle, currentTime, AxisID);                  
+            string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.StrTestTitle, currentTime, AxisID);
             string settingFileFullPath = TestDirectory + @"\" + newTitle + ".settingsfile";
             string csvFileFullPath = TestDirectory + @"\" + newTitle + ".csv";
             Console.WriteLine(newTitle);
 
             //Create settings file and CSV file
             SaveSettingsFile(testSettings, settingFileFullPath, "Unidirectional Accuracy Test");
-            StartCSV(csvFileFullPath,devices);
+            StartCSV(csvFileFullPath, devices);
 
             CancellationTokenSource ctToken = new();
             CancellationTokenSource ptToken = new();
@@ -992,7 +994,7 @@ namespace TwinCat_Motion_ADS
 
                     //Log the data, if test fails to write to fail, exit test
                     StandardCSVData tmpCSV = new StandardCSVData(i, j, "Testing", TargetPosition, AxisPosition);
-                    if(await WriteToCSV(csvFileFullPath, tmpCSV, devices)== false)
+                    if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
                     {
                         Console.WriteLine("Failed to write data to file, exiting test");
                         stopWatch.Stop();
@@ -1017,7 +1019,7 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> BiDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
-            if (!ValidCommand()) return false;           
+            if (!ValidCommand()) return false;
             if (testSettings.Cycles == 0)
             {
                 Console.WriteLine("0 cycle count invalid");
@@ -1041,7 +1043,7 @@ namespace TwinCat_Motion_ADS
 
             //Ensure positive velocity value
             testSettings.Velocity = Math.Abs(testSettings.Velocity);  //Only want positive velocity
-            
+
             //Establish "Reversal" and "Overshoot" positions of test
             double reversalPosition;
             if (testSettings.StepSize > 0)
@@ -1064,11 +1066,11 @@ namespace TwinCat_Motion_ADS
 
 
             var currentTime = DateTime.Now;
-            string newTitle = string.Format(@"{0:yyMMdd} {0:HH};{0:mm};{0:ss} Axis {1}~ " + testSettings.StrTestTitle, currentTime, AxisID);           
+            string newTitle = string.Format(@"{0:yyMMdd} {0:HH};{0:mm};{0:ss} Axis {1}~ " + testSettings.StrTestTitle, currentTime, AxisID);
             string settingFileFullPath = TestDirectory + @"\" + newTitle + ".settingsfile";
             string csvFileFullPath = TestDirectory + @"\" + newTitle + ".csv";
             Console.WriteLine(newTitle);
-            
+
             SaveSettingsFile(testSettings, settingFileFullPath, "Bidirectional Accuracy Test");
             StartCSV(csvFileFullPath, devices);
 
@@ -1083,7 +1085,7 @@ namespace TwinCat_Motion_ADS
             stopWatch.Start();
             string approachUp;
             string approachDown;
-            if(testSettings.StepSize>0)
+            if (testSettings.StepSize > 0)
             {
                 approachUp = "Positive";
                 approachDown = "Negative";
@@ -1124,7 +1126,7 @@ namespace TwinCat_Motion_ADS
                 for (uint j = 0; j <= testSettings.NumberOfSteps; j++)
                 {
                     Console.WriteLine(approachUp + " Move. Step: " + j);
-                    
+
                     //Make the step
                     if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity, (int)testSettings.Timeout) == false)
                     {
@@ -1136,7 +1138,7 @@ namespace TwinCat_Motion_ADS
                     await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
 
 
-                    StandardCSVData tmpCSV = new StandardCSVData(i, j, approachUp+ " approach", TargetPosition, AxisPosition);
+                    StandardCSVData tmpCSV = new StandardCSVData(i, j, approachUp + " approach", TargetPosition, AxisPosition);
                     if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
                     {
                         Console.WriteLine("Failed to write data to file, exiting test");
@@ -1161,7 +1163,7 @@ namespace TwinCat_Motion_ADS
                 TargetPosition -= testSettings.StepSize;
                 for (int j = (int)testSettings.NumberOfSteps; j >= 0; j--)
                 {
-                    Console.WriteLine(approachDown+" Move. Step: " + j);
+                    Console.WriteLine(approachDown + " Move. Step: " + j);
                     //Do the step move
                     if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity, (int)testSettings.Timeout) == false)
                     {
@@ -1192,24 +1194,24 @@ namespace TwinCat_Motion_ADS
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed);
             return true;
         }
-   
+
 
 
 
         public void StartCSV(string fp, MeasurementDevices md)
         {
-            using (FileStream stream = File.Open(fp, FileMode.Append,FileAccess.Write,FileShare.ReadWrite))
+            using (FileStream stream = File.Open(fp, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
             using (StreamWriter writer = new StreamWriter(stream))
             using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
                 csv.WriteHeader<StandardCSVData>();
-                if (md!=null)
+                if (md != null)
                 {
-                    foreach(var device in md.MeasurementDeviceList) //for every device in the list
+                    foreach (var device in md.MeasurementDeviceList) //for every device in the list
                     {
                         if (device.Connected)   //if the device is connected
                         {
-                            foreach(var channel in device.ChannelList)  //for every channel on the device
+                            foreach (var channel in device.ChannelList)  //for every channel on the device
                             {
                                 csv.WriteField(channel.Item1);  //add a header for it
                             }
@@ -1217,13 +1219,13 @@ namespace TwinCat_Motion_ADS
                     }
                 }
                 csv.NextRecord();
-            }          
+            }
         }
 
         public async Task<bool> WriteToCSV(string fp, StandardCSVData csvData, MeasurementDevices md)
         {
             int retryCounter = 0;
-            while(true)
+            while (true)
             {
                 try
                 {
@@ -1254,7 +1256,7 @@ namespace TwinCat_Motion_ADS
                 }
                 catch
                 {
-                    if(retryCounter == 3)
+                    if (retryCounter == 3)
                     {
                         return false;
                     }
@@ -1264,7 +1266,7 @@ namespace TwinCat_Motion_ADS
                 }
             }
 
-            
+
         }
 
         private void SaveSettingsFile(NcTestSettings testSettings, string filePath, string testType)

@@ -1,18 +1,9 @@
 ﻿using Ookii.Dialogs.Wpf;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 
 namespace TwinCat_Motion_ADS.MVVM.View
@@ -26,7 +17,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
         public NcAxis testAxis;
         public NcTestSettings NcTestSettings = new();
         public string selectedFolder = string.Empty;
-        
+
         public NcAxisView()
         {
             InitializeComponent();
@@ -47,7 +38,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
             SetupBinds();
         }
-        
+
         public void SetupBinds()
         {
             //Binds all the UI elemets to properties in the NC Axis
@@ -57,10 +48,10 @@ namespace TwinCat_Motion_ADS.MVVM.View
             XamlUI.CheckBoxBinding((string)bwEnabledCheck.Content, bwEnabledCheck, testAxis, "AxisBwEnabled", BindingMode.OneWay);
             XamlUI.CheckBoxBinding((string)errorCheck.Content, errorCheck, testAxis, "Error", BindingMode.OneWay);
             XamlUI.CheckBoxBinding((string)validAxis.Content, validAxis, testAxis, "Valid", BindingMode.OneWay);
-            XamlUI.TextBlockBinding(currentAxis, testAxis, "AxisID","D");
+            XamlUI.TextBlockBinding(currentAxis, testAxis, "AxisID", "D");
             XamlUI.CheckBoxBinding((string)testCancelledCheck.Content, testCancelledCheck, testAxis, "CancelTest", BindingMode.OneWay);
             XamlUI.CheckBoxBinding((string)testPausedCheck.Content, testPausedCheck, testAxis, "PauseTest", BindingMode.OneWay);
-            XamlUI.TextboxBinding(timeoutTB, NcTestSettings, "StrTimeout",UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(timeoutTB, NcTestSettings, "StrTimeout", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(testTitleTB, NcTestSettings, "StrTestTitle", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(velocityTB, NcTestSettings, "StrVelocity", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(cycleTB, NcTestSettings, "StrCycles", UpdateSourceTrigger.LostFocus);
@@ -76,13 +67,13 @@ namespace TwinCat_Motion_ADS.MVVM.View
             XamlUI.TextboxBinding(overshootDistanceTB, NcTestSettings, "StrOvershootDistance", UpdateSourceTrigger.LostFocus);
         }
 
-        
+
 
 
 
         private void SelectFolderDirectory_Click(object sender, RoutedEventArgs e)
         {
-            if(testAxis == null)
+            if (testAxis == null)
             {
                 Console.WriteLine("Initialise an axis first");
                 return;
@@ -107,54 +98,54 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
 
             //Enable or Disable axis
-            if(sender as Button == enableButton)
+            if (sender as Button == enableButton)
             {
                 await testAxis.SetEnable(!testAxis.AxisEnabled);
             }
             //Reset axis
-            else if(sender as Button == resetButton)
+            else if (sender as Button == resetButton)
             {
                 await testAxis.Reset();
             }
-            else if(sender as Button == moveAbsButton)
+            else if (sender as Button == moveAbsButton)
             {
                 double posCommanded = Convert.ToDouble(positionText.Text);
                 await testAxis.MoveAbsoluteAndWait(posCommanded, Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
             }
             //Move relative
-            else if(sender as Button == moveRelButton)
+            else if (sender as Button == moveRelButton)
             {
                 double posCommanded = Convert.ToDouble(positionText.Text);
                 await testAxis.MoveRelativeAndWait(posCommanded, Convert.ToDouble(velocityTB.Text));
             }
             //Move velocity
-            else if(sender as Button == moveVelButton)
+            else if (sender as Button == moveVelButton)
             {
                 await testAxis.MoveVelocity(Convert.ToDouble(velocityTB.Text));
             }
             //Move to forward limit
-            else if(sender as Button == move2High)
+            else if (sender as Button == move2High)
             {
                 await testAxis.MoveToHighLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
             }
             //Move to backward limit
-            else if(sender as Button == move2Low)
+            else if (sender as Button == move2Low)
             {
                 await testAxis.MoveToLowLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
             }
             //Stop axis
-            else if(sender as Button == stopMove)
+            else if (sender as Button == stopMove)
             {
                 await testAxis.MoveStop();
             }
             //Forward limit reversal
-            else if(sender as Button == highLimReversal)
+            else if (sender as Button == highLimReversal)
             {
                 await testAxis.HighLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtraTB.Text), Convert.ToInt32(revSettleTB.Text));
                 Console.WriteLine(testAxis.AxisPosition);
             }
             //Backward limit reversal
-            else if(sender as Button == lowLimReversal)
+            else if (sender as Button == lowLimReversal)
             {
                 await testAxis.LowLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtraTB.Text), Convert.ToInt32(revSettleTB.Text));
                 Console.WriteLine(testAxis.AxisPosition);
@@ -206,7 +197,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             //if (await testAxis.uniDirectionalAccuracyTest(NcTestSettings,windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
             if (await testAxis.UniDirectionalAccuracyTest(NcTestSettings, windowData.MeasurementDevices))
             {
-                
+
             }
             else
             {
@@ -232,7 +223,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
             //if (await testAxis.biDirectionalAccuracyTest(Convert.ToDouble(initSetpointTB.Text), Convert.ToDouble(velocityTB.Text), Convert.ToInt32(cycleTB.Text), Convert.ToInt32(NumberOfStepsTB.Text), Convert.ToDouble(stepSizeTB.Text), Convert.ToInt32(settleTimeTB.Text), Convert.ToDouble(revDistanceTB.Text),Convert.ToDouble(overshootDistanceTB.Text),Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(cycleTB.Text), windowData.MeasurementDevice1, windowData.MeasurementDevice2, windowData.MeasurementDevice3, windowData.MeasurementDevice4))
             if (await testAxis.BiDirectionalAccuracyTest(NcTestSettings, windowData.MeasurementDevices))
-            {          }
+            { }
             else
             {
                 Console.WriteLine("Test did not complete");
@@ -259,7 +250,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             testAxis.PauseTest = !testAxis.PauseTest;
         }
 
-        
+
 
         private void TestButton_Click(object sender, RoutedEventArgs e)
         {
@@ -272,7 +263,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 NcTestSettings.ImportSettings(selectedFile);
             }
             Console.WriteLine(selectedFolder);
-            
+
         }
 
         private void ncWindowGrid_MouseDown(object sender, MouseButtonEventArgs e)

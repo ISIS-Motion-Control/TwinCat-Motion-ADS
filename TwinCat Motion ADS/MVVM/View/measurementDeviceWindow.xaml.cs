@@ -126,13 +126,13 @@ namespace TwinCat_Motion_ADS.MVVM.View
                         keyenceChannels.Add(new(i + 1, MDevice.keyence));
                     }
                     //Populate the UI columns based on channel numbers (8 channels per column)
-                    foreach(KeyenceChannel kc in keyenceChannels)
+                    foreach (KeyenceChannel kc in keyenceChannels)
                     {
-                        if(kc.channelID<9)
+                        if (kc.channelID < 9)
                         {
                             col1Channels.Children.Add(kc.sp);
                         }
-                        else if(kc.channelID>8 && kc.channelID<17)
+                        else if (kc.channelID > 8 && kc.channelID < 17)
                         {
                             col2Channels.Children.Add(kc.sp);
                         }
@@ -155,15 +155,15 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 setting1.Children.Add(netID);
 
                 //Create stack panel elements to hold channels
-                StackPanel channels = new() {Orientation=Orientation.Horizontal,Margin = new Thickness(5,5,0,0) };
+                StackPanel channels = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
                 StackPanel col1 = new() { Orientation = Orientation.Vertical };
                 StackPanel col2 = new() { Orientation = Orientation.Vertical, Margin = new Thickness(5, 0, 0, 0) };
 
                 //Create digital input channels
-                for (int i=1;i<=MDevice.beckhoff.DIGITAL_INPUT_CHANNELS;i++)
+                for (int i = 1; i <= MDevice.beckhoff.DIGITAL_INPUT_CHANNELS; i++)
                 {
                     CheckBox cb = new();
-                    XamlUI.CheckBoxBinding("DInput Ch" + i, cb, MDevice.beckhoff, "DigitalInputConnected[" + (i-1) + "]");
+                    XamlUI.CheckBoxBinding("DInput Ch" + i, cb, MDevice.beckhoff, "DigitalInputConnected[" + (i - 1) + "]");
                     col1.Children.Add(cb);
                 }
                 //Create PT100 input channels
@@ -191,7 +191,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 ComboBox variableType = new();
                 XamlUI.SetupComboBox(ref variableType, "variableType", VariableTypeList);
                 variableType.DropDownClosed += new EventHandler(variableType_DropDownClosed);
-                XamlUI.ComboBoxBinding(VariableTypeList, variableType, MDevice.motionChannel,"VariableType");
+                XamlUI.ComboBoxBinding(VariableTypeList, variableType, MDevice.motionChannel, "VariableType");
                 setting1.Children.Add(setting1Text);
                 setting1.Children.Add(variableType);
 
@@ -203,7 +203,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 TextBlock setting2Text = new();
                 XamlUI.SetupTextBlock(ref setting2Text, "Access Path");
                 TextBox accessPath = new();
-                XamlUI.SetupTextBox(ref accessPath, "",250);
+                XamlUI.SetupTextBox(ref accessPath, "", 250);
                 XamlUI.TextboxBinding(accessPath, MDevice.motionChannel, "VariableString");
                 setting2.Children.Add(setting2Text);
                 setting2.Children.Add(accessPath);
@@ -229,7 +229,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             TextBlock setting1Text = new();
             ComboBox comPort = new();
             Button updatePortsButton = new();
-            
+
             MDevice.UpdatePortList();   //Generate new serial port list
 
             XamlUI.SetupTextBlock(ref setting1Text, "Com Port:");
@@ -251,12 +251,12 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
             TextBlock setting2Text = new();
             ComboBox baudRate = new();
-            
+
             XamlUI.SetupTextBlock(ref setting2Text, "Baud Rate:");
             XamlUI.SetupComboBox(ref baudRate, "baudRate", BaudRateList);
             XamlUI.ComboBoxBinding(BaudRateList, baudRate, MDevice, "BaudRate");
 
-            baudRate.DropDownClosed += new EventHandler(baudSelect_DropDownClosed);           
+            baudRate.DropDownClosed += new EventHandler(baudSelect_DropDownClosed);
             baudRate.SelectedItem = MDevice.BaudRate;
 
             setting2.Children.Add(setting2Text);
@@ -378,12 +378,12 @@ namespace TwinCat_Motion_ADS.MVVM.View
             channelID = channel;
             //Setup strings for content and property paths
             //string tbpp = "Ch" + channel + "Name";
-            string tbpp = "ChName[" + (channel-1)+"]";           
+            string tbpp = "ChName[" + (channel - 1) + "]";
             string cbContent = "Ch" + channel;
             string cbpp = "ChConnected[" + (channel - 1) + "]";
             string tbContent;
             //Don't want to reset name field unless it's empty
-            if ( string.IsNullOrEmpty(((KeyenceTM3000)source).ChName[channel - 1]))
+            if (string.IsNullOrEmpty(((KeyenceTM3000)source).ChName[channel - 1]))
             {
                 tbContent = "*Ch" + channel + "*";
             }
@@ -395,13 +395,13 @@ namespace TwinCat_Motion_ADS.MVVM.View
             //Bind and setup UI elements
             XamlUI.TextboxBinding(tb, source, tbpp);
             XamlUI.SetupTextBox(ref tb, tbContent, 100);
-            XamlUI.CheckBoxBinding(cbContent,cb, source, cbpp);
+            XamlUI.CheckBoxBinding(cbContent, cb, source, cbpp);
 
             //Add elements to stackpanel
             sp.Children.Add(tb);
             sp.Children.Add(cb);
 
-        }       
+        }
     }
 
 }

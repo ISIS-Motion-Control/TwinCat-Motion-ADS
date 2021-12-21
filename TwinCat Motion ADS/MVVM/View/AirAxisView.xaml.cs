@@ -1,18 +1,8 @@
 ﻿using Ookii.Dialogs.Wpf;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace TwinCat_Motion_ADS.MVVM.View
 {
@@ -159,8 +149,8 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         private async void ShutterLimitToLimitTestButton_Click(object sender, RoutedEventArgs e)
         {
-           // await pneumaticAxis.End2EndTest(Convert.ToInt32(cycles.Text), Convert.ToInt32(settlingReads.Text), Convert.ToInt32(readDelay.Text), Convert.ToInt32(extendDelay.Text), Convert.ToInt32(retractDelay.Text), Convert.ToInt32(extendTimeout.Text), Convert.ToInt32(retractTimeout.Text));
-            await pneumaticAxis.End2EndTest(TestSettings,windowData.MeasurementDevices);
+            // await pneumaticAxis.End2EndTest(Convert.ToInt32(cycles.Text), Convert.ToInt32(settlingReads.Text), Convert.ToInt32(readDelay.Text), Convert.ToInt32(extendDelay.Text), Convert.ToInt32(retractDelay.Text), Convert.ToInt32(extendTimeout.Text), Convert.ToInt32(retractTimeout.Text));
+            await pneumaticAxis.End2EndTest(TestSettings, windowData.MeasurementDevices);
 
         }
 

@@ -46,7 +46,7 @@ namespace TwinCat_Motion_ADS
             {
                 //Console.WriteLine("Invalid AMS NET ID FORMAT");
             }
-                
+
         }
 
         public bool Connect()
@@ -97,7 +97,7 @@ namespace TwinCat_Motion_ADS
         {
             try
             {
-                if(TcAds.ReadState().AdsState == AdsState.Run)
+                if (TcAds.ReadState().AdsState == AdsState.Run)
                 {
                     return true;
                 }
@@ -116,7 +116,7 @@ namespace TwinCat_Motion_ADS
             { Console.WriteLine("Port open"); };
             //Connect();
             return checkAdsState();
-            
+
         }
     }
 }

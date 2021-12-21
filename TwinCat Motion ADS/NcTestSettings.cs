@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TwinCat_Motion_ADS
 {
@@ -43,7 +40,7 @@ namespace TwinCat_Motion_ADS
             {
                 _strTestTitle = value;
                 Properties.Settings.Default.testTitle = value;
-                OnPropertyChanged();   
+                OnPropertyChanged();
             }
         }
 
@@ -51,9 +48,9 @@ namespace TwinCat_Motion_ADS
         public string StrVelocity
         {
             get { return _strVelocity; }
-            set 
+            set
             {
-                if(double.TryParse(value, out _))
+                if (double.TryParse(value, out _))
                 {
                     _velocity = Convert.ToDouble(value);
                     _strVelocity = value;
@@ -80,7 +77,7 @@ namespace TwinCat_Motion_ADS
             get { return _strTimeout; }
             set
             {
-                if(uint.TryParse(value, out _))
+                if (uint.TryParse(value, out _))
                 {
                     _timeout = Convert.ToUInt32(value);
                     _strTimeout = value;
@@ -105,9 +102,9 @@ namespace TwinCat_Motion_ADS
         public string StrCycles
         {
             get { return _strCycles; }
-            set 
-            { 
-                if(uint.TryParse(value, out _))
+            set
+            {
+                if (uint.TryParse(value, out _))
                 {
                     _cycles = Convert.ToUInt32(value);
                     _strCycles = value;
@@ -120,8 +117,8 @@ namespace TwinCat_Motion_ADS
         public uint Cycles
         {
             get { return _cycles; }
-            set 
-            { 
+            set
+            {
                 _cycles = value;
                 StrCycles = value.ToString();
                 OnPropertyChanged();
@@ -161,7 +158,7 @@ namespace TwinCat_Motion_ADS
             get { return _strReversalVelocity; }
             set
             {
-                if(double.TryParse(value, out _))
+                if (double.TryParse(value, out _))
                 {
                     _reversalVelocity = Convert.ToDouble(value);
                     _strReversalVelocity = value;
@@ -175,12 +172,12 @@ namespace TwinCat_Motion_ADS
         {
             get { return _reversalVelocity; }
             set
-            { 
+            {
                 _reversalVelocity = value;
                 StrReversalVelocity = value.ToString();
                 OnPropertyChanged();
             }
-        }       
+        }
 
         private string _strReversalExtraTimeSeconds;
         public string StrReversalExtraTimeSeconds
@@ -188,7 +185,7 @@ namespace TwinCat_Motion_ADS
             get { return _strReversalExtraTimeSeconds; }
             set
             {
-                if(uint.TryParse(value, out _))
+                if (uint.TryParse(value, out _))
                 {
                     _reversalExtraTimeSeconds = Convert.ToUInt32(value);
                     _strReversalExtraTimeSeconds = value;
@@ -289,7 +286,7 @@ namespace TwinCat_Motion_ADS
                 OnPropertyChanged();
             }
         }
-        
+
         private string _strStepSize;
         public string StrStepSize
         {

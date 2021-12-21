@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TwinCat_Motion_ADS.Core;
+﻿using TwinCat_Motion_ADS.Core;
 namespace TwinCat_Motion_ADS.MVVM.ViewModel
 {
     class MainViewModel : ObservableObject
     {
-        
+
         public RelayCommand NcAxisCommand { get; set; }
         public RelayCommand AirAxisCommand { get; set; }
 
@@ -20,13 +15,15 @@ namespace TwinCat_Motion_ADS.MVVM.ViewModel
         public object CurrentView
         {
             get { return _currentView; }
-            set { _currentView = value;
+            set
+            {
+                _currentView = value;
                 OnPropertyChanged();
             }
         }
 
 
-        
+
 
         public MainViewModel()
         {
@@ -34,7 +31,7 @@ namespace TwinCat_Motion_ADS.MVVM.ViewModel
             AirAxisVm = new AirAxisViewModel();
             NcAxisVm = new NcAxisViewModel();
             CurrentView = NcAxisVm;
-            NcAxisCommand = new RelayCommand(o=> 
+            NcAxisCommand = new RelayCommand(o =>
             {
                 CurrentView = NcAxisVm;
             });
