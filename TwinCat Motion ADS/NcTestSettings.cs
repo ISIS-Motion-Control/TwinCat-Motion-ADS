@@ -34,6 +34,24 @@ namespace TwinCat_Motion_ADS
             StrOvershootDistance = Properties.Settings.Default.overshootDistance;
         }
 
+        public void ResetSettings()
+        {
+            StrTestTitle = "New Test";
+            StrVelocity = "0";
+            StrTimeout = "0";
+            StrCycles = "1";
+            StrCycleDelaySeconds = "0";
+            StrReversalVelocity = "0";
+            StrReversalExtraTimeSeconds = "0";
+            StrReversalSettleTimeSeconds = "0";
+            StrInitialSetpoint = "0";
+            StrNumberOfSteps = "1";
+            StrStepSize = "0";
+            StrSettleTimeSeconds = "0";
+            StrReversalDistance = "0";
+            StrOvershootDistance = "0";
+        }
+
         //Method to import and export test settings
         private string _strTestTitle;
         public string StrTestTitle
