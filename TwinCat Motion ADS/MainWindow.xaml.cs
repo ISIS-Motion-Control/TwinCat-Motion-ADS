@@ -26,6 +26,7 @@ namespace TwinCat_Motion_ADS
     {
         public PLC Plc;
         public string selectedFolder = string.Empty;
+        MVVM.View.TestSuite TestSuiteWindow;
         public MeasurementDevices MeasurementDevices = new();
         public List<MenuItem> measurementMenuItems = new();
         public ObservableCollection<string> DeviceTypeList = new()
@@ -209,6 +210,15 @@ namespace TwinCat_Motion_ADS
                 selectedFile = fbd.FileName;
                 MeasurementDevices.ExportDeviceesXml(selectedFile);
             }
+        }
+
+        private void TestSuiteMenu_Click(object sender, RoutedEventArgs e)
+        {
+            if (TestSuiteWindow == null)
+            {
+                TestSuiteWindow = new();
+            }
+            TestSuiteWindow.Show();
         }
     }
 
