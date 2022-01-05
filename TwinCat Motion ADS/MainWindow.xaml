@@ -132,19 +132,17 @@
                 </MenuItem>
             </Menu>
             <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
-                <RadioButton Content="NC Axis"
+                <RadioButton x:Name="NcAxis" Content="NC Axis"
                              Foreground="White"
                              FontSize="24"
                              Height="30"
                              Style="{StaticResource MenuButtonTheme}"
-                             IsChecked="True"
-                             Command="{Binding NcAxisCommand}"/>
-                <RadioButton Content="Air Axis"
+                             IsChecked="True" Click="RadioButton_Click"/>
+                <RadioButton x:Name="AirAxis" Content="Air Axis"
                              Foreground="White"
                              FontSize="24"
                              Height="30"
-                             Style="{StaticResource MenuButtonTheme}"
-                             Command="{Binding AirAxisCommand}"/>
+                             Style="{StaticResource MenuButtonTheme}" Click="RadioButton_Click"/>
                 
 
             </StackPanel>
@@ -181,7 +179,7 @@
 
 
         <StackPanel x:Name="StackPanel___MainWindow" Orientation="Vertical" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" Grid.RowSpan="2" Focusable="True">
-                <ContentControl Content="{Binding CurrentView}" d:IsHidden="True"/>
+                <ContentControl x:Name="tabbedWindow" d:IsHidden="True"/>
                
             </StackPanel>
 

@@ -25,11 +25,11 @@ namespace TwinCat_Motion_ADS.MVVM.View
     public partial class TestSuite : Window
     {
         ObservableCollection<TestListItem> testItems = new();
-
+        MainWindow windowData;
         public TestSuite()
         {
             InitializeComponent();
-
+            windowData = (MainWindow)App.Current.MainWindow;
             testItems.Add(new("1"));
             testItems.Add(new("1"));
             testItems.Add(new("2"));
@@ -204,12 +204,11 @@ namespace TwinCat_Motion_ADS.MVVM.View
         }
 
         private string saveDirectory;
-        NcAxisView windowData;
+        
         private void SelectSaveDirectory_Click(object sender, RoutedEventArgs e)
         {
-            windowData = ((NcAxisView)Application.Current.MainWindow.Content);
-            
-            if (windowData.testAxis == null)
+                       
+            if (windowData.NcAxisView.testAxis == null)
             {
                 Console.WriteLine("Initialise an axis first");
                 return;
@@ -221,7 +220,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 saveDirectory = fbd.SelectedPath;
             }
             Console.WriteLine(saveDirectory);
-            windowData.testAxis.TestDirectory = saveDirectory;
+            windowData.NcAxisView.testAxis.TestDirectory = saveDirectory;
         }
 
         private void AddTestButton_Click(object sender, RoutedEventArgs e)
