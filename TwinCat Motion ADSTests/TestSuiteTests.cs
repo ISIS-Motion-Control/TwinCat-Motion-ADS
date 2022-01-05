@@ -31,7 +31,7 @@ namespace TwinCat_Motion_ADS.MVVM.View.Tests
         }
 
         [TestMethod()]
-        public void AddFieldsTest()
+        public void GivenXmlDocumentUsingAddFieldsThenSaveTestToXml()
         {
             XmlDocument xmlDoc = new();
             XmlNode parentNode = xmlDoc.CreateElement("Test");
