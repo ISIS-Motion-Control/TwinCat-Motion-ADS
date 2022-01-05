@@ -94,8 +94,6 @@
                     <Button x:Name="DeleteTestButton" Content="Delete" Width="120" Height="32" Margin="5" Click="DeleteTestButton_Click"/>
                 </StackPanel>
             </StackPanel>
-            
-            
         </Grid>
         <StackPanel Orientation="Horizontal">
             <StackPanel>
@@ -105,8 +103,6 @@
                 <Border BorderBrush="Black" BorderThickness="1">
                     <ListBox x:Name="statusList" Width="650" Height="150" ScrollViewer.VerticalScrollBarVisibility="Visible"/>
                 </Border>
-                
-
             </StackPanel>
         </StackPanel>
     </StackPanel>
