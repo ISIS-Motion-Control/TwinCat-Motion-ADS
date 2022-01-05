@@ -25,22 +25,18 @@ namespace TwinCat_Motion_ADS.MVVM.View
     public partial class TestSuite : Window
     {
         ObservableCollection<TestListItem> testItems = new();
-        MainWindow windowData;
+        ObservableCollection<string> statusListItems = new();
+        MainWindow wd;
+        NcAxis NcAxis;
+
         public TestSuite()
         {
             InitializeComponent();
-            windowData = (MainWindow)App.Current.MainWindow;
-            testItems.Add(new("1"));
-            testItems.Add(new("1"));
-            testItems.Add(new("2"));
-
-            //debug code
-            testItems[0].TestType = TestType.EndToEnd;
-            testItems[1].TestType = TestType.UnidirectionalAccuracy;
-            testItems[2].TestType = TestType.BidirectionalAccuracy;
+            wd = (MainWindow)App.Current.MainWindow;
+            NcAxis = wd.NcAxisView.testAxis;
 
             TestList.ItemsSource = testItems;
-            //SettingTestType.ItemsSource = testTypeItems;
+            statusList.ItemsSource = statusListItems;
             SettingTestType.ItemsSource = Enum.GetValues(typeof(TestType)).Cast<TestType>();
 
             UpdateEnabledUIElements();
@@ -64,7 +60,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             testItems.Move(TestList.SelectedIndex, TestList.SelectedIndex+1);
         }
 
-        private void UpdateEnabledUIElements()
+        private void UpdateEnabledUIElements(bool force = false)
         {
             //Based on the current selection and test type of current selection it will enabled or disable the test setting UI elements
             bool enableFlag;
@@ -76,6 +72,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             {
                 enableFlag = true;
             }
+            if (force) enableFlag = false;
             SettingTestType.IsEnabled = enableFlag;
             SettingTitle.SettingValue.IsEnabled = enableFlag;
 
@@ -90,7 +87,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                     enableFlag = true;
                 }
             }
-
+            if (force) enableFlag = false;
             SettingAxisNumber.SettingValue.IsEnabled = enableFlag;
             SettingCycles.SettingValue.IsEnabled = enableFlag;
             SettingCycleDelay.SettingValue.IsEnabled = enableFlag;
@@ -108,7 +105,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                     enableFlag = false;
                 }
             }
-
+            if (force) enableFlag = false;
             SettingReversalVelocity.SettingValue.IsEnabled = enableFlag;
             SettingReversalExtraSeconds.SettingValue.IsEnabled = enableFlag;
             SettingReversalSettlingSeconds.SettingValue.IsEnabled = enableFlag;
@@ -124,7 +121,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                     enableFlag = false;
                 }
             }
-
+            if (force) enableFlag = false;
             SettingInitialSetpoint.SettingValue.IsEnabled = enableFlag;
             SettingAccuracySteps.SettingValue.IsEnabled = enableFlag;
             SettingStepSize.SettingValue.IsEnabled = enableFlag;
@@ -142,6 +139,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                     enableFlag = false;
                 }
             }
+            if (force) enableFlag = false;
             SettingOvershootDistance.SettingValue.IsEnabled = enableFlag;
         }
 
@@ -208,7 +206,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
         private void SelectSaveDirectory_Click(object sender, RoutedEventArgs e)
         {
                        
-            if (windowData.NcAxisView.testAxis == null)
+            if (wd.NcAxisView.testAxis == null)
             {
                 Console.WriteLine("Initialise an axis first");
                 return;
@@ -220,7 +218,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 saveDirectory = fbd.SelectedPath;
             }
             Console.WriteLine(saveDirectory);
-            windowData.NcAxisView.testAxis.TestDirectory = saveDirectory;
+            wd.NcAxisView.testAxis.TestDirectory = saveDirectory;
         }
 
         private void AddTestButton_Click(object sender, RoutedEventArgs e)
@@ -388,7 +386,81 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 testCounter++;
             }
         }
-                  
+
+        private async void RunTestButton_Click(object sender, RoutedEventArgs e)
+        {
+            statusListItems.Clear();
+            if (string.IsNullOrEmpty(saveDirectory))
+            {
+                Console.WriteLine("Select a save directory");
+                return;
+            }
+            UpdateEnabledUIElements(true);
+            TestList.IsEnabled = false;
+            //windowData.NcAxisView.testAxis.
+
+            int testCounter = 0;
+            foreach(TestListItem test in testItems)
+            {
+                
+                statusListItems.Add("Running test " + testCounter + ": " + test.TestSettings.StrTestTitle);
+                //foreach test we initialise the axis, pass the settings, pass the measurement devices
+
+                //Update axis ID
+                NcAxis.UpdateAxisInstance(Convert.ToUInt32(test.AxisID),wd.Plc);
+                bool testResult;
+                switch (test.TestType)
+                {
+                    case TestType.EndToEnd:
+                        testResult = await NcAxis.LimitToLimitTestwithReversingSequence(test.TestSettings, wd.MeasurementDevices);
+                        if(testResult)
+                        {
+                            statusListItems.Add("Complete");
+                        }
+                        else
+                        {
+                            statusListItems.Add("Failed");
+                        }
+                        break;
+                    case TestType.UnidirectionalAccuracy:
+                        testResult = await NcAxis.UniDirectionalAccuracyTest(test.TestSettings, wd.MeasurementDevices);
+                        if (testResult)
+                        {
+                            statusListItems.Add("Complete");
+                        }
+                        else
+                        {
+                            statusListItems.Add("Failed");
+                        }
+                        break;
+                    case TestType.BidirectionalAccuracy:
+                        testResult = await NcAxis.BiDirectionalAccuracyTest(test.TestSettings, wd.MeasurementDevices);
+                        if (testResult)
+                        {
+                            statusListItems.Add("Complete");
+                        }
+                        else
+                        {
+                            statusListItems.Add("Failed");
+                        }
+                        break;
+                    case TestType.UserPrompt:
+                        MessageBoxResult result = MessageBox.Show(test.TestSettings.StrTestTitle + "\nSelect 'cancel' to exit test sequence.", "User breakpoint", MessageBoxButton.OKCancel);
+                        if(result == MessageBoxResult.Cancel)
+                        {
+                            //exit the sequence
+                            Console.WriteLine("Test sequence cancelled");
+                            TestList.IsEnabled = true;
+                            return;
+                        }
+                        break;
+                }
+                testCounter++;
+            }
+            statusListItems.Add("All tests finished");
+            TestList.IsEnabled = true;
+
+        }
     }
 
     public class TestListItem : INotifyPropertyChanged

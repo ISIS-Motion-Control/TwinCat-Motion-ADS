@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TwinCat_Motion_ADS.MVVM.View"
         mc:Ignorable="d"
-        Title="TestSuite" Height="600" Width="900" Closing="Window_Closing">
+        Title="TestSuite" Height="800" Width="900" Closing="Window_Closing">
 
     
     
@@ -97,8 +97,19 @@
             
             
         </Grid>
-        
+        <StackPanel Orientation="Horizontal">
+            <StackPanel>
+                <Button x:Name="RunTestButton" Content="Run Tests" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0" Click="RunTestButton_Click"/>
+            </StackPanel>
+            <StackPanel Margin="50,0,0,0" HorizontalAlignment="Stretch">
+                <Border BorderBrush="Black" BorderThickness="1">
+                    <ListBox x:Name="statusList" Width="650" Height="150" ScrollViewer.VerticalScrollBarVisibility="Visible"/>
+                </Border>
+                
+
+            </StackPanel>
         </StackPanel>
+    </StackPanel>
     
 
 </Window>
