@@ -26,9 +26,9 @@ namespace TwinCat_Motion_ADS
     {
         public PLC Plc;
         public string selectedFolder = string.Empty;
-        MVVM.View.TestSuite TestSuiteWindow;
-        MVVM.View.NcAxisView NcAxisView;
-        MVVM.View.AirAxisView AirAxisView;
+        public MVVM.View.TestSuite TestSuiteWindow;
+        public MVVM.View.NcAxisView NcAxisView;
+        public MVVM.View.AirAxisView AirAxisView;
 
         public MeasurementDevices MeasurementDevices = new();
         public List<MenuItem> measurementMenuItems = new();
@@ -81,6 +81,7 @@ namespace TwinCat_Motion_ADS
             }
             NcAxisView = new();
             AirAxisView = new();
+            tabbedWindow.Content = NcAxisView;
         }
 
         private void SetupBinds()
@@ -217,6 +218,18 @@ namespace TwinCat_Motion_ADS
                 TestSuiteWindow = new();
             }
             TestSuiteWindow.Show();
+        }
+
+        private void RadioButton_Click(object sender, RoutedEventArgs e)
+        {
+            if(((RadioButton)sender) == NcAxis)
+            {
+                tabbedWindow.Content = NcAxisView;
+            }
+            else if(((RadioButton)sender)== AirAxis)
+            {
+                tabbedWindow.Content = AirAxisView;
+            }
         }
     }
 
