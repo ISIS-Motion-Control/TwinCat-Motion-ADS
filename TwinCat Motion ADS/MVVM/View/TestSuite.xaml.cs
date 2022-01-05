@@ -320,6 +320,13 @@ namespace TwinCat_Motion_ADS.MVVM.View
             xmlDoc.Save(selectedFile);
         }
 
+        public static XmlNode CreateXmlNode(XmlDocument doc, string ndName, string ndValue)
+        {
+            XmlNode xmlNode = doc.CreateElement(ndName);
+            xmlNode.InnerText = ndValue;
+            return xmlNode;
+        }
+
         private void LoadFileButton_Click(object sender, RoutedEventArgs e)
         {
             VistaOpenFileDialog fbd = new();

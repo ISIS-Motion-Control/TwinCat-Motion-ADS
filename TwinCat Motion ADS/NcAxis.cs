@@ -6,6 +6,7 @@ using System.Diagnostics;
 using CsvHelper;
 using System.IO;
 using System.Globalization;
+using System.Windows;
 
 namespace TwinCat_Motion_ADS
 {
@@ -1259,8 +1260,9 @@ namespace TwinCat_Motion_ADS
                         return false;
                     }
                     retryCounter += 1;
-                    Console.WriteLine("File not accesible. Press any key to retry...");
-                    Console.ReadLine();
+                    MessageBox.Show("File not accesible. Press OK to retry.\n"+ (3-retryCounter) + " attempt(s) remaining.");
+                    //Console.WriteLine("File not accesible. Press any key to retry...");
+                    //Console.ReadLine();
                 }
             }
 
