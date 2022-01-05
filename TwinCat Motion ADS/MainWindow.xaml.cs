@@ -9,7 +9,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using TwinCAT.Ads;
 using Ookii.Dialogs.Wpf;
-using TwinCat_Motion_ADS.MVVM.ViewModel;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.ComponentModel;
