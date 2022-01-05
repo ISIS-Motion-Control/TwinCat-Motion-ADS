@@ -27,6 +27,9 @@ namespace TwinCat_Motion_ADS
         public PLC Plc;
         public string selectedFolder = string.Empty;
         MVVM.View.TestSuite TestSuiteWindow;
+        MVVM.View.NcAxisView NcAxisView;
+        MVVM.View.AirAxisView AirAxisView;
+
         public MeasurementDevices MeasurementDevices = new();
         public List<MenuItem> measurementMenuItems = new();
         public ObservableCollection<string> DeviceTypeList = new()
@@ -76,7 +79,8 @@ namespace TwinCat_Motion_ADS
 
                 }
             }
-            //var vm = (MainViewModel)this.DataContext;     
+            NcAxisView = new();
+            AirAxisView = new();
         }
 
         private void SetupBinds()
@@ -143,16 +147,10 @@ namespace TwinCat_Motion_ADS
         {
             MenuItem newMenuItem = new();
 
-            //This binding seems to be bugged, works fine but does not update.
+            //This binding seems to be bugged, works fine but does not update. - I think due to the style used
             int testInt = MeasurementDevices.NumberOfDevices - 1;
-            /*Binding menuItemName = new();
-            menuItemName.Mode = BindingMode.OneWay;
-            menuItemName.Source = MeasurementDevices.MeasurementDeviceList[testInt];
-            menuItemName.Path = new PropertyPath("Name");
-            menuItemName.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(newMenuItem, MenuItem.HeaderProperty, menuItemName);*/
 
-            //newMenuItem.Header = MeasurementDevices.MeasurementDeviceList[testInt].Name;
+
             newMenuItem.Click += new RoutedEventHandler(DeviceMenu_Click);
             newMenuItem.Template = (ControlTemplate)FindResource("VsMenuSub");
             MeasureDevicesMenu.Items.Add(newMenuItem);  //adding to the actual UI
