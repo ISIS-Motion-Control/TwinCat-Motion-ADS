@@ -265,59 +265,73 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 XmlNode testNode = xmlDoc.CreateElement("Test");
                 rootNode.AppendChild(testNode);
 
-                XmlNode testType = xmlDoc.CreateElement("testType");
-                testType.InnerText = test.TestType.ToString();
-                XmlNode testTitle = xmlDoc.CreateElement("testTitle");
-                testTitle.InnerText = test.TestSettings.StrTestTitle;
-                XmlNode axisId = xmlDoc.CreateElement("axisId");
-                axisId.InnerText = test.AxisID;
+                
 
-                XmlNode velocity = xmlDoc.CreateElement("velocity");
-                velocity.InnerText = test.TestSettings.StrVelocity;
-                XmlNode timeout = xmlDoc.CreateElement("timeout");
-                timeout.InnerText = test.TestSettings.StrTimeout;
-                XmlNode cycles = xmlDoc.CreateElement("cycles");
-                cycles.InnerText = test.TestSettings.StrCycles;
-                XmlNode cycleDelaySeconds = xmlDoc.CreateElement("cycleDelaySeconds");
-                cycleDelaySeconds.InnerText = test.TestSettings.StrCycleDelaySeconds;
-                XmlNode reversalVelocity = xmlDoc.CreateElement("reversalVelocity");
-                reversalVelocity.InnerText = test.TestSettings.StrReversalVelocity;
-                XmlNode reversalExtraTime = xmlDoc.CreateElement("reversalExtraTime");
-                reversalExtraTime.InnerText = test.TestSettings.StrReversalExtraTimeSeconds;
-                XmlNode reversalSettleTime = xmlDoc.CreateElement("reversalSettleTime");
-                reversalSettleTime.InnerText = test.TestSettings.StrReversalSettleTimeSeconds;
-                XmlNode initialSetpoint = xmlDoc.CreateElement("initialSetpoint");
-                initialSetpoint.InnerText = test.TestSettings.StrInitialSetpoint;
-                XmlNode numberOfSteps = xmlDoc.CreateElement("numberOfSteps");
-                numberOfSteps.InnerText = test.TestSettings.StrNumberOfSteps;
-                XmlNode stepSize = xmlDoc.CreateElement("stepSize");
-                stepSize.InnerText = test.TestSettings.StrStepSize;
-                XmlNode settleTime = xmlDoc.CreateElement("settleTime");
-                settleTime.InnerText = test.TestSettings.StrSettleTimeSeconds;
-                XmlNode reversalDistance = xmlDoc.CreateElement("reversalDistance");
-                reversalDistance.InnerText = test.TestSettings.StrReversalDistance;
-                XmlNode overshootDistance = xmlDoc.CreateElement("overshootDistance");
-                overshootDistance.InnerText = test.TestSettings.StrOvershootDistance;
+                //CreateAndAppendXmlNode(testNode, xmlDoc, "velocity", test.TestSettings.StrVelocity)
 
-
-                testNode.AppendChild(testType);
-                testNode.AppendChild(testTitle);
-                testNode.AppendChild(axisId);
-                testNode.AppendChild(velocity);
-                testNode.AppendChild(timeout);
-                testNode.AppendChild(cycles);
-                testNode.AppendChild(cycleDelaySeconds);
-                testNode.AppendChild(reversalVelocity);
-                testNode.AppendChild(reversalExtraTime);
-                testNode.AppendChild(reversalSettleTime);
-                testNode.AppendChild(initialSetpoint);
-                testNode.AppendChild(numberOfSteps);
-                testNode.AppendChild(stepSize);
-                testNode.AppendChild(settleTime);
-                testNode.AppendChild(reversalDistance);
-                testNode.AppendChild(overshootDistance);
+                AddFields(xmlDoc, test, testNode);
             }
             xmlDoc.Save(selectedFile);
+        }
+
+        public static void AddFields(XmlDocument xmlDoc, TestListItem test, XmlNode parentNode)
+        {
+            XmlNode testType = xmlDoc.CreateElement("testType");
+            testType.InnerText = test.TestType.ToString();
+            XmlNode testTitle = xmlDoc.CreateElement("testTitle");
+            testTitle.InnerText = test.TestSettings.StrTestTitle;
+            XmlNode axisId = xmlDoc.CreateElement("axisId");
+            axisId.InnerText = test.AxisID;
+            XmlNode velocity = xmlDoc.CreateElement("velocity");
+            velocity.InnerText = test.TestSettings.StrVelocity;
+            XmlNode timeout = xmlDoc.CreateElement("timeout");
+            timeout.InnerText = test.TestSettings.StrTimeout;
+            XmlNode cycles = xmlDoc.CreateElement("cycles");
+            cycles.InnerText = test.TestSettings.StrCycles;
+            XmlNode cycleDelaySeconds = xmlDoc.CreateElement("cycleDelaySeconds");
+            cycleDelaySeconds.InnerText = test.TestSettings.StrCycleDelaySeconds;
+            XmlNode reversalVelocity = xmlDoc.CreateElement("reversalVelocity");
+            reversalVelocity.InnerText = test.TestSettings.StrReversalVelocity;
+            XmlNode reversalExtraTime = xmlDoc.CreateElement("reversalExtraTime");
+            reversalExtraTime.InnerText = test.TestSettings.StrReversalExtraTimeSeconds;
+            XmlNode reversalSettleTime = xmlDoc.CreateElement("reversalSettleTime");
+            reversalSettleTime.InnerText = test.TestSettings.StrReversalSettleTimeSeconds;
+            XmlNode initialSetpoint = xmlDoc.CreateElement("initialSetpoint");
+            initialSetpoint.InnerText = test.TestSettings.StrInitialSetpoint;
+            XmlNode numberOfSteps = xmlDoc.CreateElement("numberOfSteps");
+            numberOfSteps.InnerText = test.TestSettings.StrNumberOfSteps;
+            XmlNode stepSize = xmlDoc.CreateElement("stepSize");
+            stepSize.InnerText = test.TestSettings.StrStepSize;
+            XmlNode settleTime = xmlDoc.CreateElement("settleTime");
+            settleTime.InnerText = test.TestSettings.StrSettleTimeSeconds;
+            XmlNode reversalDistance = xmlDoc.CreateElement("reversalDistance");
+            reversalDistance.InnerText = test.TestSettings.StrReversalDistance;
+            XmlNode overshootDistance = xmlDoc.CreateElement("overshootDistance");
+            overshootDistance.InnerText = test.TestSettings.StrOvershootDistance;
+
+
+            parentNode.AppendChild(testType);
+            parentNode.AppendChild(testTitle);
+            parentNode.AppendChild(axisId);
+            parentNode.AppendChild(velocity);
+            parentNode.AppendChild(timeout);
+            parentNode.AppendChild(cycles);
+            parentNode.AppendChild(cycleDelaySeconds);
+            parentNode.AppendChild(reversalVelocity);
+            parentNode.AppendChild(reversalExtraTime);
+            parentNode.AppendChild(reversalSettleTime);
+            parentNode.AppendChild(initialSetpoint);
+            parentNode.AppendChild(numberOfSteps);
+            parentNode.AppendChild(stepSize);
+            parentNode.AppendChild(settleTime);
+            parentNode.AppendChild(reversalDistance);
+            parentNode.AppendChild(overshootDistance);
+        }
+
+        public static void CreateAndAppendXmlNode(XmlNode parentNode, XmlDocument doc, string ndName, string ndValue)
+        {
+            var node = CreateXmlNode(doc, ndName, ndValue);
+            parentNode.AppendChild(node);
         }
 
         public static XmlNode CreateXmlNode(XmlDocument doc, string ndName, string ndValue)
