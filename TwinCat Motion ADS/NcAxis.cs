@@ -1064,7 +1064,7 @@ namespace TwinCat_Motion_ADS
 
 
             var currentTime = DateTime.Now;
-            string newTitle = string.Format(@"{0:yyMMdd} {0:HH};{0:mm};{0:ss} Axis {1}~ " + testSettings.StrTestTitle, currentTime, AxisID);           
+            string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.StrTestTitle, currentTime, AxisID);           
             string settingFileFullPath = TestDirectory + @"\" + newTitle + ".settingsfile";
             string csvFileFullPath = TestDirectory + @"\" + newTitle + ".csv";
             Console.WriteLine(newTitle);

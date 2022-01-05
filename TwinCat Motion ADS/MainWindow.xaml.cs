@@ -9,7 +9,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using TwinCAT.Ads;
 using Ookii.Dialogs.Wpf;
-using TwinCat_Motion_ADS.MVVM.ViewModel;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.ComponentModel;
@@ -26,6 +25,10 @@ namespace TwinCat_Motion_ADS
     {
         public PLC Plc;
         public string selectedFolder = string.Empty;
+        public MVVM.View.TestSuite TestSuiteWindow;
+        public MVVM.View.NcAxisView NcAxisView;
+        public MVVM.View.AirAxisView AirAxisView;
+
         public MeasurementDevices MeasurementDevices = new();
         public List<MenuItem> measurementMenuItems = new();
         public ObservableCollection<string> DeviceTypeList = new()
@@ -75,7 +78,9 @@ namespace TwinCat_Motion_ADS
 
                 }
             }
-            //var vm = (MainViewModel)this.DataContext;     
+            NcAxisView = new();
+            AirAxisView = new();
+            tabbedWindow.Content = NcAxisView;
         }
 
         private void SetupBinds()
@@ -142,16 +147,10 @@ namespace TwinCat_Motion_ADS
         {
             MenuItem newMenuItem = new();
 
-            //This binding seems to be bugged, works fine but does not update.
+            //This binding seems to be bugged, works fine but does not update. - I think due to the style used
             int testInt = MeasurementDevices.NumberOfDevices - 1;
-            /*Binding menuItemName = new();
-            menuItemName.Mode = BindingMode.OneWay;
-            menuItemName.Source = MeasurementDevices.MeasurementDeviceList[testInt];
-            menuItemName.Path = new PropertyPath("Name");
-            menuItemName.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(newMenuItem, MenuItem.HeaderProperty, menuItemName);*/
 
-            //newMenuItem.Header = MeasurementDevices.MeasurementDeviceList[testInt].Name;
+
             newMenuItem.Click += new RoutedEventHandler(DeviceMenu_Click);
             newMenuItem.Template = (ControlTemplate)FindResource("VsMenuSub");
             MeasureDevicesMenu.Items.Add(newMenuItem);  //adding to the actual UI
@@ -208,6 +207,27 @@ namespace TwinCat_Motion_ADS
             {
                 selectedFile = fbd.FileName;
                 MeasurementDevices.ExportDeviceesXml(selectedFile);
+            }
+        }
+
+        private void TestSuiteMenu_Click(object sender, RoutedEventArgs e)
+        {
+            if (TestSuiteWindow == null)
+            {
+                TestSuiteWindow = new();
+            }
+            TestSuiteWindow.Show();
+        }
+
+        private void RadioButton_Click(object sender, RoutedEventArgs e)
+        {
+            if(((RadioButton)sender) == NcAxis)
+            {
+                tabbedWindow.Content = NcAxisView;
+            }
+            else if(((RadioButton)sender)== AirAxis)
+            {
+                tabbedWindow.Content = AirAxisView;
             }
         }
     }
