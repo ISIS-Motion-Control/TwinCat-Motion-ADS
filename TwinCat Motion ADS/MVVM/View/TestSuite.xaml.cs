@@ -203,6 +203,26 @@ namespace TwinCat_Motion_ADS.MVVM.View
             UpdateEnabledUIElements();
         }
 
+        private string saveDirectory;
+        NcAxisView windowData;
+        private void SelectSaveDirectory_Click(object sender, RoutedEventArgs e)
+        {
+            windowData = ((NcAxisView)Application.Current.MainWindow.Content);
+            
+            if (windowData.testAxis == null)
+            {
+                Console.WriteLine("Initialise an axis first");
+                return;
+            }
+            var fbd = new VistaFolderBrowserDialog();
+            saveDirectory = String.Empty;
+            if (fbd.ShowDialog() == true)
+            {
+                saveDirectory = fbd.SelectedPath;
+            }
+            Console.WriteLine(saveDirectory);
+            windowData.testAxis.TestDirectory = saveDirectory;
+        }
 
         private void AddTestButton_Click(object sender, RoutedEventArgs e)
         {
@@ -286,107 +306,95 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 testNode.AppendChild(testType);
                 testNode.AppendChild(testTitle);
                 testNode.AppendChild(axisId);
+                testNode.AppendChild(velocity);
+                testNode.AppendChild(timeout);
+                testNode.AppendChild(cycles);
+                testNode.AppendChild(cycleDelaySeconds);
+                testNode.AppendChild(reversalVelocity);
+                testNode.AppendChild(reversalExtraTime);
+                testNode.AppendChild(reversalSettleTime);
+                testNode.AppendChild(initialSetpoint);
+                testNode.AppendChild(numberOfSteps);
+                testNode.AppendChild(stepSize);
+                testNode.AppendChild(settleTime);
+                testNode.AppendChild(reversalDistance);
+                testNode.AppendChild(overshootDistance);
             }
             xmlDoc.Save(selectedFile);
         }
 
+        private void LoadFileButton_Click(object sender, RoutedEventArgs e)
+        {
+            VistaOpenFileDialog fbd = new();
+            fbd.Filter = "*.XML|*.xml";
+            string selectedFile;
+            if (fbd.ShowDialog() == true)
+            {
+                selectedFile = fbd.FileName;
+                LoadTestSuite(selectedFile);
+            }
+        }
+        private void LoadTestSuite(string selectedFile)
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.Load(selectedFile);
+            XmlNodeList tests = xmlDoc.SelectNodes("Tests/Test");
 
-        /*
-
-                XmlNode deviceNode = xmlDoc.CreateElement("MeasurementDevice");
-                XmlNode nameNode = xmlDoc.CreateElement("Name");
-                XmlNode deviceTypeNode = xmlDoc.CreateElement("DeviceType");
+            testItems.Clear();  //clear the current list
+            int testCounter = 0;
+            //Add each test in turn
+            foreach (XmlNode test in tests)
+            {
                 
-                //Common setup to all types
-                nameNode.InnerText = md.Name;
-                deviceTypeNode.InnerText = md.DeviceTypeString;
-                deviceNode.AppendChild(nameNode);
-                deviceNode.AppendChild(deviceTypeNode);
-                rootNode.AppendChild(deviceNode);
+                testItems.Add(new("1"));    //temp axis ID
 
-                //Unique settings
-                switch(md.DeviceTypeString)
+                //Select the test type
+                switch(test.SelectSingleNode("testType").InnerText)
                 {
-                    case "DigimaticIndicator":
-                        XmlNode commNode = xmlDoc.CreateElement("Port");
-                        commNode.InnerText = md.PortName;
-                        XmlNode baudNode = xmlDoc.CreateElement("BaudRate");
-                        baudNode.InnerText = md.BaudRate;
-                        deviceNode.AppendChild(commNode);
-                        deviceNode.AppendChild(baudNode);
+                    case "EndToEnd":
+                        testItems[testCounter].TestType = TestType.EndToEnd;
                         break;
-
-                    case "KeyenceTM3000":
-                        commNode = xmlDoc.CreateElement("Port");
-                        commNode.InnerText = md.PortName;
-                        baudNode = xmlDoc.CreateElement("BaudRate");
-                        baudNode.InnerText = md.BaudRate;
-                        deviceNode.AppendChild(commNode);
-                        deviceNode.AppendChild(baudNode);
-
-                        for (int i = 0; i<md.keyence.KEYENCE_MAX_CHANNELS;i++)
-                        {
-                            XmlNode channelNode = xmlDoc.CreateElement("Channel");
-                            XmlNode channelName = xmlDoc.CreateElement("Name");
-                            XmlNode channelConnection = xmlDoc.CreateElement("Connected");
-
-                            channelName.InnerText = md.keyence.ChName[i];
-                            channelConnection.InnerText = md.keyence.ChConnected[i].ToString();
-                            channelNode.AppendChild(channelName);
-                            channelNode.AppendChild(channelConnection);
-                            deviceNode.AppendChild(channelNode);
-                        }
+                    case "UnidirectionalAccuracy":
+                        testItems[testCounter].TestType = TestType.UnidirectionalAccuracy;
                         break;
-
-                    case "Beckhoff":
-                        XmlNode amsNode = xmlDoc.CreateElement("AmsNetID");
-                        amsNode.InnerText = md.AmsNetId;
-                        deviceNode.AppendChild(amsNode);
-
-                        //Create digital channles
-                        for(int i=0;i<md.beckhoff.DIGITAL_INPUT_CHANNELS;i++)
-                        {
-                            XmlNode channelNode = xmlDoc.CreateElement("DigChannel");
-                            XmlNode channelConnection = xmlDoc.CreateElement("Connected");
-                            channelConnection.InnerText = md.beckhoff.DigitalInputConnected[i].ToString();
-                            channelNode.AppendChild(channelConnection);
-                            deviceNode.AppendChild(channelNode);
-                        }
-                        //create pt100 channels
-                        for (int i = 0; i < md.beckhoff.PT100_CHANNELS; i++)
-                        {
-                            XmlNode channelNode = xmlDoc.CreateElement("PT100Channel");
-                            XmlNode channelConnection = xmlDoc.CreateElement("Connected");
-                            channelConnection.InnerText = md.beckhoff.PT100Connected[i].ToString();
-                            channelNode.AppendChild(channelConnection);
-                            deviceNode.AppendChild(channelNode);
-                        }
+                    case "BidirectionalAccuracy":
+                        testItems[testCounter].TestType = TestType.BidirectionalAccuracy;
                         break;
-
-                    case "MotionChannel":
-                        XmlNode varTypeNode = xmlDoc.CreateElement("VariableType");
-                        XmlNode varPathNode = xmlDoc.CreateElement("VariablePath");
-                        varTypeNode.InnerText = md.motionChannel.VariableType;
-                        varPathNode.InnerText = md.motionChannel.VariableString;
-                        deviceNode.AppendChild(varTypeNode);
-                        deviceNode.AppendChild(varPathNode);
+                    case "UserPrompt":
+                        testItems[testCounter].TestType = TestType.UserPrompt;
                         break;
-
-                    case "Timestamp":
-                        //No settings to export
+                    default:
+                        testItems[testCounter].TestType = TestType.NoneSelected;
                         break;
+                }
 
-                }*/
-
-
-
-
+                //Import all the settings
+                testItems[testCounter].TestSettings.StrTestTitle = test.SelectSingleNode("testTitle").InnerText;
+                testItems[testCounter].AxisID = test.SelectSingleNode("axisId").InnerText;
+                testItems[testCounter].TestSettings.StrVelocity = test.SelectSingleNode("velocity").InnerText;
+                testItems[testCounter].TestSettings.StrTimeout = test.SelectSingleNode("timeout").InnerText;
+                testItems[testCounter].TestSettings.StrCycles = test.SelectSingleNode("cycles").InnerText;
+                testItems[testCounter].TestSettings.StrCycleDelaySeconds = test.SelectSingleNode("cycleDelaySeconds").InnerText;
+                testItems[testCounter].TestSettings.StrReversalVelocity = test.SelectSingleNode("reversalVelocity").InnerText;
+                testItems[testCounter].TestSettings.StrReversalExtraTimeSeconds = test.SelectSingleNode("reversalExtraTime").InnerText;
+                testItems[testCounter].TestSettings.StrReversalSettleTimeSeconds = test.SelectSingleNode("reversalSettleTime").InnerText;
+                testItems[testCounter].TestSettings.StrInitialSetpoint = test.SelectSingleNode("initialSetpoint").InnerText;
+                testItems[testCounter].TestSettings.StrNumberOfSteps = test.SelectSingleNode("numberOfSteps").InnerText;
+                testItems[testCounter].TestSettings.StrStepSize = test.SelectSingleNode("stepSize").InnerText;
+                testItems[testCounter].TestSettings.StrSettleTimeSeconds = test.SelectSingleNode("settleTime").InnerText;
+                testItems[testCounter].TestSettings.StrReversalDistance = test.SelectSingleNode("reversalDistance").InnerText;
+                testItems[testCounter].TestSettings.StrOvershootDistance = test.SelectSingleNode("overshootDistance").InnerText;
+                
+                //increment the list counter
+                testCounter++;
+            }
+        }
+                  
     }
 
     public class TestListItem : INotifyPropertyChanged
     {
         private string _AxisID;
-
         public string AxisID
         {
             get { return _AxisID; }
@@ -395,10 +403,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
         }
 
-
-
         private TestType _testType;
-
         public TestType TestType
         {
             get { return _testType; }
@@ -410,7 +415,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
 
         public NcTestSettings TestSettings { get; set; }
-
         public TestListItem(string axisID)
         {
             AxisID = axisID;
@@ -422,7 +426,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
-
     }
 
     public enum TestType

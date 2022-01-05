@@ -11,8 +11,9 @@
     
     <StackPanel Orientation="Vertical">
         <Button x:Name="SaveFileButton" Content="Save" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0" Click="SaveFileButton_Click"/>
-        <Button x:Name="LoadFileButton" Content="Load" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0"/>
-        
+        <Button x:Name="LoadFileButton" Content="Load" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0" Click="LoadFileButton_Click"/>
+        <Button x:Name="FileSaveSelect" Content="Select Save Directory" Width="240" HorizontalAlignment="Left" Margin="5,5,0,0" Click="SelectSaveDirectory_Click"/>
+
         <!--Main Screen of the window-->
         <Grid>
             <Grid.ColumnDefinitions>
