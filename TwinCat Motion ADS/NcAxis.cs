@@ -7,6 +7,7 @@ using CsvHelper;
 using System.IO;
 using System.Globalization;
 using System.Windows;
+using System.Xml;
 
 namespace TwinCat_Motion_ADS
 {
@@ -695,12 +696,12 @@ namespace TwinCat_Motion_ADS
         public async Task<bool> LimitToLimitTestwithReversingSequence(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
             if (!ValidCommand()) return false;
-            if (testSettings.Cycles == 0)
+            if (testSettings.Cycles.Val == 0)
             {
                 Console.WriteLine("0 cycle count invalid");
                 return false;
             }
-            if (testSettings.ReversalVelocity == 0)
+            if (testSettings.ReversalVelocity.Val == 0)
             {
                 Console.WriteLine("0 reversal velocity invalid");
                 return false;
@@ -714,7 +715,7 @@ namespace TwinCat_Motion_ADS
             var currentTime = DateTime.Now;
             string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.TestTitle.UiVal, currentTime, AxisID);
             Console.WriteLine(newTitle);
-            string settingFileFullPath = TestDirectory + @"\" + newTitle + ".settingsfile";
+            string settingFileFullPath = TestDirectory + @"\" + newTitle + ".xml";
             string csvFileFullPath = TestDirectory + @"\" + newTitle + ".csv";
             SaveSettingsFile(testSettings, settingFileFullPath, "Limit to Limit Test");
 
@@ -729,7 +730,7 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));
+            await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds.Val));
 
             CancellationTokenSource ctToken = new();
             CancellationTokenSource ptToken = new();
@@ -742,7 +743,7 @@ namespace TwinCat_Motion_ADS
             
 
 
-            for (int i = 1; i <= testSettings.Cycles; i++)
+            for (int i = 1; i <= testSettings.Cycles.Val; i++)
             {
                 Task<bool> pauseTaskRequest = CheckPauseRequestTask(ptToken.Token);
                 await pauseTaskRequest;
@@ -757,8 +758,8 @@ namespace TwinCat_Motion_ADS
                 
                 if (await MoveToHighLimit(testSettings.Velocity.Val, (int)testSettings.Timeout.Val))
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));//Allow axis to settle before reversal
-                    if (await HighLimitReversal(testSettings.ReversalVelocity, (int)testSettings.Timeout.Val, (int)testSettings.ReversalExtraTimeSeconds, (int)testSettings.ReversalSettleTimeSeconds))
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds.Val));//Allow axis to settle before reversal
+                    if (await HighLimitReversal(testSettings.ReversalVelocity.Val, (int)testSettings.Timeout.Val, (int)testSettings.ReversalExtraTimeSeconds.Val, (int)testSettings.ReversalSettleTimeSeconds.Val))
                     {
 
                         StandardCSVData tmpCSV = new StandardCSVData((uint)i, 0, "Moving to high limit", 0, AxisPosition);
@@ -793,8 +794,8 @@ namespace TwinCat_Motion_ADS
                 if (await MoveToLowLimit(-testSettings.Velocity.Val, (int)testSettings.Timeout.Val))
                 {
 
-                    await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));//Allow axis to settle before reversal
-                    if (await LowLimitReversal(testSettings.ReversalVelocity, (int)testSettings.Timeout.Val, (int)testSettings.ReversalExtraTimeSeconds, (int)testSettings.ReversalSettleTimeSeconds))
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds.Val));//Allow axis to settle before reversal
+                    if (await LowLimitReversal(testSettings.ReversalVelocity.Val, (int)testSettings.Timeout.Val, (int)testSettings.ReversalExtraTimeSeconds.Val, (int)testSettings.ReversalSettleTimeSeconds.Val))
                     {
                         StandardCSVData tmpCSV = new StandardCSVData((uint)i, 0, "Moving to low limit", 0, AxisPosition);
                         if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
@@ -824,7 +825,7 @@ namespace TwinCat_Motion_ADS
                     ptToken.Cancel();
                     return false;
                 }
-                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds)); //inter-cycle delay wait
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
             ctToken.Cancel();
             return true;
@@ -834,12 +835,12 @@ namespace TwinCat_Motion_ADS
         {
             //Check settings are valid
             if (!ValidCommand()) return false;
-            if (testSettings.Cycles <= 0)
+            if (testSettings.Cycles.Val <= 0)
             {
                 Console.WriteLine("Cycle count invalid");
                 return false;
             }
-            if (testSettings.NumberOfSteps <= 0)
+            if (testSettings.NumberOfSteps.Val <= 0)
             {
                 Console.WriteLine("Step count invalid");
                 return false;
@@ -849,7 +850,7 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("0 velocity invalid");
                 return false;
             }
-            if (testSettings.StepSize == 0)
+            if (testSettings.StepSize.Val == 0)
             {
                 Console.WriteLine("0 step size invalid");
                 return false;
@@ -860,19 +861,19 @@ namespace TwinCat_Motion_ADS
             
             //Establish "Reversal" position of test
             double reversalPosition;
-            if (testSettings.StepSize > 0)
+            if (testSettings.StepSize.Val > 0)
             {
-                reversalPosition = testSettings.InitialSetpoint - testSettings.ReversalDistance;
+                reversalPosition = testSettings.InitialSetpoint.Val - testSettings.ReversalDistance.Val;
             }
             else
             {
-                reversalPosition = testSettings.InitialSetpoint + testSettings.ReversalDistance;
+                reversalPosition = testSettings.InitialSetpoint.Val + testSettings.ReversalDistance.Val;
             }
 
             //Create file name string
             var currentTime = DateTime.Now;
             string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.TestTitle.UiVal, currentTime, AxisID);                  
-            string settingFileFullPath = TestDirectory + @"\" + newTitle + ".settingsfile";
+            string settingFileFullPath = TestDirectory + @"\" + newTitle + ".xml";
             string csvFileFullPath = TestDirectory + @"\" + newTitle + ".csv";
             Console.WriteLine(newTitle);
 
@@ -887,7 +888,7 @@ namespace TwinCat_Motion_ADS
 
             //Cycles
             stopWatch.Start();
-            for (uint i = 1; i <= testSettings.Cycles; i++)
+            for (uint i = 1; i <= testSettings.Cycles.Val; i++)
             {
                 Console.WriteLine("Cycle " + i);
 
@@ -904,7 +905,7 @@ namespace TwinCat_Motion_ADS
                 }
 
                 //Set target position to cycle initial setpoint
-                double TargetPosition = testSettings.InitialSetpoint;
+                double TargetPosition = testSettings.InitialSetpoint.Val;
 
                 //Start test at reversal position then moving to initial setpoint          
                 if (await MoveAbsoluteAndWait(reversalPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
@@ -915,10 +916,10 @@ namespace TwinCat_Motion_ADS
                     ptToken.Cancel();
                     return false;
                 }
-                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
 
                 //Steps of cycle
-                for (uint j = 0; j <= testSettings.NumberOfSteps; j++)
+                for (uint j = 0; j <= testSettings.NumberOfSteps.Val; j++)
                 {
                     Console.WriteLine("Step: " + j);
 
@@ -931,7 +932,7 @@ namespace TwinCat_Motion_ADS
                         ptToken.Cancel();
                         return false;
                     }
-                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
 
                     //Log the data, if test fails to write to fail, exit test
                     StandardCSVData tmpCSV = new StandardCSVData(i, j, "Testing", TargetPosition, AxisPosition);
@@ -945,10 +946,10 @@ namespace TwinCat_Motion_ADS
                     }
 
                     //Update target position for next step
-                    TargetPosition += testSettings.StepSize;
+                    TargetPosition += testSettings.StepSize.Val;
                 }
                 //Delay between cycles
-                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds)); //inter-cycle delay wait
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
@@ -961,12 +962,12 @@ namespace TwinCat_Motion_ADS
         public async Task<bool> BiDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
             if (!ValidCommand()) return false;           
-            if (testSettings.Cycles == 0)
+            if (testSettings.Cycles.Val == 0)
             {
                 Console.WriteLine("0 cycle count invalid");
                 return false;
             }
-            if (testSettings.NumberOfSteps == 0)
+            if (testSettings.NumberOfSteps.Val == 0)
             {
                 Console.WriteLine("0 step count invalid");
                 return false;
@@ -976,7 +977,7 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("0 velocity invalid");
                 return false;
             }
-            if (testSettings.StepSize == 0)
+            if (testSettings.StepSize.Val == 0)
             {
                 Console.WriteLine("0 step size invalid");
                 return false;
@@ -987,28 +988,28 @@ namespace TwinCat_Motion_ADS
             
             //Establish "Reversal" and "Overshoot" positions of test
             double reversalPosition;
-            if (testSettings.StepSize > 0)
+            if (testSettings.StepSize.Val > 0)
             {
-                reversalPosition = testSettings.InitialSetpoint - testSettings.ReversalDistance;
+                reversalPosition = testSettings.InitialSetpoint.Val - testSettings.ReversalDistance.Val;
             }
             else
             {
-                reversalPosition = testSettings.InitialSetpoint + testSettings.ReversalDistance;
+                reversalPosition = testSettings.InitialSetpoint.Val + testSettings.ReversalDistance.Val;
             }
             double overshootPosition;
-            if (testSettings.StepSize > 0)
+            if (testSettings.StepSize.Val > 0)
             {
-                overshootPosition = testSettings.InitialSetpoint + ((testSettings.NumberOfSteps - 1) * testSettings.StepSize) + testSettings.OvershootDistance.Val;
+                overshootPosition = testSettings.InitialSetpoint.Val + ((testSettings.NumberOfSteps.Val - 1) * testSettings.StepSize.Val) + testSettings.OvershootDistance.Val;
             }
             else
             {
-                overshootPosition = testSettings.InitialSetpoint + ((testSettings.NumberOfSteps - 1) * testSettings.StepSize) - testSettings.OvershootDistance.Val;
+                overshootPosition = testSettings.InitialSetpoint.Val + ((testSettings.NumberOfSteps.Val - 1) * testSettings.StepSize.Val) - testSettings.OvershootDistance.Val;
             }
 
 
             var currentTime = DateTime.Now;
             string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.TestTitle.UiVal, currentTime, AxisID);           
-            string settingFileFullPath = TestDirectory + @"\" + newTitle + ".settingsfile";
+            string settingFileFullPath = TestDirectory + @"\" + newTitle + ".xml";
             string csvFileFullPath = TestDirectory + @"\" + newTitle + ".csv";
             Console.WriteLine(newTitle);
             
@@ -1026,7 +1027,7 @@ namespace TwinCat_Motion_ADS
             stopWatch.Start();
             string approachUp;
             string approachDown;
-            if(testSettings.StepSize>0)
+            if(testSettings.StepSize.Val > 0)
             {
                 approachUp = "Positive";
                 approachDown = "Negative";
@@ -1037,7 +1038,7 @@ namespace TwinCat_Motion_ADS
                 approachDown = "Positive";
             }
 
-            for (uint i = 1; i <= testSettings.Cycles; i++)
+            for (uint i = 1; i <= testSettings.Cycles.Val; i++)
             {
                 Console.WriteLine("Cycle " + i);
 
@@ -1053,7 +1054,7 @@ namespace TwinCat_Motion_ADS
                     return false;
                 }
 
-                double TargetPosition = testSettings.InitialSetpoint;
+                double TargetPosition = testSettings.InitialSetpoint.Val;
                 //Start test at reversal position then moving to initial setpoint          
                 if (await MoveAbsoluteAndWait(reversalPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
                 {
@@ -1061,10 +1062,10 @@ namespace TwinCat_Motion_ADS
                     stopWatch.Stop();
                     return false;
                 }
-                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
 
                 //going up the steps
-                for (uint j = 0; j <= testSettings.NumberOfSteps; j++)
+                for (uint j = 0; j <= testSettings.NumberOfSteps.Val; j++)
                 {
                     Console.WriteLine(approachUp + " Move. Step: " + j);
                     
@@ -1076,7 +1077,7 @@ namespace TwinCat_Motion_ADS
                         return false;
                     }
                     //Wait for a settle time
-                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
 
 
                     StandardCSVData tmpCSV = new StandardCSVData(i, j, approachUp+ " approach", TargetPosition, AxisPosition);
@@ -1089,7 +1090,7 @@ namespace TwinCat_Motion_ADS
                         return false;
                     }
                     //Update target position
-                    TargetPosition += testSettings.StepSize;
+                    TargetPosition += testSettings.StepSize.Val;
                 }
                 //END OF APPROACH
                 //Overshoot the final position before coming back down
@@ -1099,10 +1100,10 @@ namespace TwinCat_Motion_ADS
                     stopWatch.Stop();
                     return false;
                 }
-                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
                 //going down the steps. Need the cast here as we require j to go negative to cancel the loop
-                TargetPosition -= testSettings.StepSize;
-                for (int j = (int)testSettings.NumberOfSteps; j >= 0; j--)
+                TargetPosition -= testSettings.StepSize.Val;
+                for (int j = (int)testSettings.NumberOfSteps.Val; j >= 0; j--)
                 {
                     Console.WriteLine(approachDown+" Move. Step: " + j);
                     //Do the step move
@@ -1113,7 +1114,7 @@ namespace TwinCat_Motion_ADS
                         return false;
                     }
                     //Wait for a settle time
-                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds));
+                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
 
                     StandardCSVData tmpCSV = new StandardCSVData(i, (uint)j, "Negative approach", TargetPosition, AxisPosition);
                     if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
@@ -1126,10 +1127,10 @@ namespace TwinCat_Motion_ADS
                     }
                     //Update target position
 
-                    TargetPosition -= testSettings.StepSize;
+                    TargetPosition -= testSettings.StepSize.Val;
                 }
                 //Delay between cycles
-                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds)); //inter-cycle delay wait
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed);
@@ -1202,9 +1203,8 @@ namespace TwinCat_Motion_ADS
                         return false;
                     }
                     retryCounter += 1;
-                    MessageBox.Show("File not accesible. Press OK to retry.\n"+ (3-retryCounter) + " attempt(s) remaining.");
-                    //Console.WriteLine("File not accesible. Press any key to retry...");
-                    //Console.ReadLine();
+                    MessageBox.Show("File not accesible. Press OK to retry.\n"+ (4-retryCounter) + " attempt(s) remaining.");
+
                 }
             }
 
@@ -1213,24 +1213,17 @@ namespace TwinCat_Motion_ADS
 
         private void SaveSettingsFile(NcTestSettings testSettings, string filePath, string testType)
         {
-            List<string> settings = new();
-            settings.Add("Test Type: " + testType);
-            settings.Add("Axis Number: " + AxisID);
-            settings.Add("Velocity: " + testSettings.Velocity.UiVal);
-            settings.Add("Timeout: " + testSettings.Timeout.UiVal);
-            settings.Add("Cycles: " + testSettings.StrCycles);
-            settings.Add("Cycle Delay (s): " + testSettings.StrCycleDelaySeconds);
-            settings.Add("Reversal Velocity: " + testSettings.StrReversalVelocity);
-            settings.Add("Reversal Extra Time (s): " + testSettings.StrReversalExtraTimeSeconds);
-            settings.Add("Reversal Settle Time (s): " + testSettings.StrReversalSettleTimeSeconds);
-            settings.Add("Initial Setpoint: " + testSettings.StrInitialSetpoint);
-            settings.Add("Number of Steps : " + testSettings.StrNumberOfSteps);
-            settings.Add("Step Size: " + testSettings.StrStepSize);
-            settings.Add("Settle Time (s): " + testSettings.StrSettleTimeSeconds);
-            settings.Add("Reversal Distance: " + testSettings.StrReversalDistance);
-            settings.Add("Overshoot Distance: " + testSettings.OvershootDistance.UiVal);
+            XmlDocument doc = new();
+            XmlNode rootNode = doc.CreateElement("Settings");
+            doc.AppendChild(rootNode);
 
-            File.WriteAllLines(filePath, settings);
+            MVVM.View.TestListItem tli = new("1");
+            tli.AxisID = AxisID.ToString();
+            tli.TestSettings = testSettings;
+            
+            MVVM.View.TestSuite.AddFields(doc,tli, rootNode);
+            rootNode.SelectSingleNode("testType").InnerText = testType; //Need to manually go in and change what test type was run
+            doc.Save(filePath);
         }
     }
 }
