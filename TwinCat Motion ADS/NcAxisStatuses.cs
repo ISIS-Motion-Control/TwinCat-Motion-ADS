@@ -105,6 +105,21 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
+        public async Task<bool> WaitForNotBusy(CancellationToken wToken)
+        {
+            bool busyStatus = AxisBusy;
+            while(busyStatus != false)
+            {
+                busyStatus = AxisBusy;
+                if (wToken.IsCancellationRequested)
+                {
+                    throw new TaskCanceledException();
+                }
+                await Task.Delay(defaultReadTime, wToken);
+            }
+            return true;
+        }
+
         public async Task<bool> CheckForError(CancellationToken wToken)
         {
             bool errorStatus = Error;
