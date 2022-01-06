@@ -35,95 +35,18 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         public void SetupBinds()
         {
-            Binding pneumaticExtendedBinding = new()
-            {
-                Mode = BindingMode.OneWay,
-                Source = pneumaticAxis,
-                Path = new PropertyPath("ExtendedLimit"),
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
-            };
-            BindingOperations.SetBinding(pneumaticExtended, CheckBox.IsCheckedProperty, pneumaticExtendedBinding);
-            Binding pneumaticRetractedBinding = new()
-            {
-                Mode = BindingMode.OneWay,
-                Source = pneumaticAxis,
-                Path = new PropertyPath("RetractedLimit"),
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
-            };
-            BindingOperations.SetBinding(pneumaticRetracted, CheckBox.IsCheckedProperty, pneumaticRetractedBinding);
-            Binding cylinderBinding = new()
-            {
-                Mode = BindingMode.OneWay,
-                Source = pneumaticAxis,
-                Path = new PropertyPath("Cylinder"),
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
-            };
-            BindingOperations.SetBinding(CylinderAir, CheckBox.IsCheckedProperty, cylinderBinding);
+            XamlUI.CheckBoxBinding("Extended Limit", pneumaticExtended, pneumaticAxis, "ExtendedLimit", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding("Retracted Limit", pneumaticRetracted, pneumaticAxis, "RetractedLimit", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding("Actuator", CylinderAir, pneumaticAxis, "Cylinder", BindingMode.OneWay);
 
-            Binding cycleBinding = new()
-            {
-                Mode = BindingMode.TwoWay,
-                Source = TestSettings,
-                Path = new PropertyPath("StrCycles"),
-                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
-            };
-            BindingOperations.SetBinding(cycles, TextBox.TextProperty, cycleBinding);
-
-            Binding settleReadsBinding = new()
-            {
-                Mode = BindingMode.TwoWay,
-                Source = TestSettings,
-                Path = new PropertyPath("StrSettlingReads"),
-                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
-            };
-            BindingOperations.SetBinding(settlingReads, TextBox.TextProperty, settleReadsBinding);
-
-            Binding ReadDelayBinding = new()
-            {
-                Mode = BindingMode.TwoWay,
-                Source = TestSettings,
-                Path = new PropertyPath("StrReadDelayMs"),
-                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
-            };
-            BindingOperations.SetBinding(readDelay, TextBox.TextProperty, ReadDelayBinding);
-
-            Binding extendDelayBinding = new()
-            {
-                Mode = BindingMode.TwoWay,
-                Source = TestSettings,
-                Path = new PropertyPath("StrDelayAfterExtend"),
-                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
-            };
-            BindingOperations.SetBinding(extendDelay, TextBox.TextProperty, extendDelayBinding);
-
-            Binding retractDelayBinding = new()
-            {
-                Mode = BindingMode.TwoWay,
-                Source = TestSettings,
-                Path = new PropertyPath("StrDelayAfterRetract"),
-                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
-            };
-            BindingOperations.SetBinding(retractDelay, TextBox.TextProperty, retractDelayBinding);
-
-            Binding extendTimeoutBinding = new()
-            {
-                Mode = BindingMode.TwoWay,
-                Source = TestSettings,
-                Path = new PropertyPath("StrExtendTimeout"),
-                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
-            };
-            BindingOperations.SetBinding(extendTimeout, TextBox.TextProperty, extendTimeoutBinding);
-
-            Binding retractTimeoutBinding = new()
-            {
-                Mode = BindingMode.TwoWay,
-                Source = TestSettings,
-                Path = new PropertyPath("StrRetractTimeout"),
-                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
-            };
-            BindingOperations.SetBinding(retractTimeout, TextBox.TextProperty, retractTimeoutBinding);
+            XamlUI.TextboxBinding(cycles, TestSettings.Cycles, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(settlingReads, TestSettings.SettlingReads, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(readDelay, TestSettings.ReadDelayMs, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(extendDelay, TestSettings.DelayAfterExtend, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(retractDelay, TestSettings.DelayAfterRetract, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(extendTimeout, TestSettings.ExtendTimeout, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(retractTimeout, TestSettings.RetractTimeout, "UiVal", UpdateSourceTrigger.LostFocus);
         }
-
 
         private void InitialisePneumatic_Click(object sender, RoutedEventArgs e)
         {
