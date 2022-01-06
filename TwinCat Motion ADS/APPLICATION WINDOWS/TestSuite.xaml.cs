@@ -4,20 +4,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Xml;
 
-namespace TwinCat_Motion_ADS.MVVM.View
+namespace TwinCat_Motion_ADS
 {
     /// <summary>
     /// Interaction logic for TestSuite.xaml
@@ -154,24 +147,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 UpdateEnabledUIElements();
                 return;
             }
-            switch (testItems[TestList.SelectedIndex].TestType)
-            {
-                case TestType.NoneSelected:
-                    SettingTestType.SelectedItem = TestType.NoneSelected;
-                    break;
-                case TestType.UserPrompt:
-                    SettingTestType.SelectedItem = TestType.UserPrompt;
-                    break;
-                case TestType.EndToEnd:
-                    SettingTestType.SelectedItem = TestType.EndToEnd;
-                    break;
-                case TestType.UnidirectionalAccuracy:
-                    SettingTestType.SelectedItem = TestType.UnidirectionalAccuracy;
-                    break;
-                case TestType.BidirectionalAccuracy:
-                    SettingTestType.SelectedItem = TestType.BidirectionalAccuracy;
-                    break;
-            }
+            SettingTestType.SelectedItem = testItems[TestList.SelectedIndex].TestType;
 
             XamlUI.TextboxBinding(SettingTitle.SettingValue, testItems[TestList.SelectedIndex].TestSettings.TestTitle, "UiVal");
             XamlUI.TextboxBinding(SettingAxisNumber.SettingValue, testItems[TestList.SelectedIndex], "AxisID");
@@ -482,14 +458,22 @@ namespace TwinCat_Motion_ADS.MVVM.View
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+        
     }
 
-    public enum TestType
+    public enum TestType 
     {
+        [StringValue("EndToEnd")]
         EndToEnd,
+        [StringValue("UnidirectionalAccuracy")]
         UnidirectionalAccuracy,
+        [StringValue("BidirectionalAccuracy")]
         BidirectionalAccuracy,
+        [StringValue("UserPrompt")]
         UserPrompt,
+        [StringValue("NoneSelected")]
         NoneSelected
     }
+
+
 }

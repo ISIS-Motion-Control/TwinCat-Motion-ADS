@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace TwinCat_Motion_ADS.MVVM.View
+namespace TwinCat_Motion_ADS
 {
     /// <summary>
     /// Interaction logic for AirAxisView.xaml
@@ -38,7 +38,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
             XamlUI.CheckBoxBinding("Extended Limit", pneumaticExtended, pneumaticAxis, "ExtendedLimit", BindingMode.OneWay);
             XamlUI.CheckBoxBinding("Retracted Limit", pneumaticRetracted, pneumaticAxis, "RetractedLimit", BindingMode.OneWay);
             XamlUI.CheckBoxBinding("Actuator", CylinderAir, pneumaticAxis, "Cylinder", BindingMode.OneWay);
-
             XamlUI.TextboxBinding(cycles, TestSettings.Cycles, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(settlingReads, TestSettings.SettlingReads, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(readDelay, TestSettings.ReadDelayMs, "UiVal", UpdateSourceTrigger.LostFocus);
@@ -60,7 +59,6 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 pneumaticAxis = new PneumaticAxis(windowData.Plc);
             }
             SetupBinds();
-            //pneumaticAxis.startLimitRead();
             pneumaticAxis.ReadStatuses();
         }
 
@@ -82,9 +80,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         private async void ShutterLimitToLimitTestButton_Click(object sender, RoutedEventArgs e)
         {
-           // await pneumaticAxis.End2EndTest(Convert.ToInt32(cycles.Text), Convert.ToInt32(settlingReads.Text), Convert.ToInt32(readDelay.Text), Convert.ToInt32(extendDelay.Text), Convert.ToInt32(retractDelay.Text), Convert.ToInt32(extendTimeout.Text), Convert.ToInt32(retractTimeout.Text));
             await pneumaticAxis.End2EndTest(TestSettings,windowData.MeasurementDevices);
-
         }
 
         private void SelectTestDirectory_Click(object sender, RoutedEventArgs e)

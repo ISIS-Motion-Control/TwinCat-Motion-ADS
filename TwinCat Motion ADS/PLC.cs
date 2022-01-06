@@ -32,8 +32,6 @@ namespace TwinCat_Motion_ADS
             set { _port = value; }
         }
 
-
-
         public PLC(string amsID, int port)
         {
             ID = amsID;
@@ -44,7 +42,7 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
-                //Console.WriteLine("Invalid AMS NET ID FORMAT");
+                //Do Nothing - Usually means invalid AMS NET ID format
             }
                 
         }
@@ -80,6 +78,7 @@ namespace TwinCat_Motion_ADS
         {
             return TcAds.IsConnected;
         }
+
         public AdsState checkAdsState()
         {
             try

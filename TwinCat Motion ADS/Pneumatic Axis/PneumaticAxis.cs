@@ -17,7 +17,6 @@ namespace TwinCat_Motion_ADS
         private readonly uint bExtendedLimit_Handle;
         private readonly uint bRetractedLimit_Handle;
 
-
         private bool _extendedLimit;
         public bool ExtendedLimit
         {
@@ -405,22 +404,5 @@ namespace TwinCat_Motion_ADS
             RetractedLimit = false;
             return;
         }
-
-
-        private bool ValidCommand() //always going to check if PLC is valid or not
-        {
-            if (!Plc.IsStateRun())
-            {
-                Console.WriteLine("Incorrect PLC configuration");
-                Valid = false;
-                return false;
-            }
-            //check some motion parameters???
-
-            Valid = true;
-            return true;
-        }
-
-
     }
 }

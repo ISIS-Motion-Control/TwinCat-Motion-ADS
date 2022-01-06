@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 
 
-namespace TwinCat_Motion_ADS.MVVM.View
+namespace TwinCat_Motion_ADS
 {
     /// <summary>
     /// Interaction logic for SettingControl.xaml
