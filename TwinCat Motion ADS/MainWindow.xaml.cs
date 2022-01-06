@@ -131,7 +131,7 @@ namespace TwinCat_Motion_ADS
 
         private void AddNewDevice(object sender, RoutedEventArgs e)
         {
-            MeasurementDevices.AddDevice("none");
+            MeasurementDevices.AddDevice(DeviceTypes.NoneSelected);
             UpdateMeasurementDeviceMenu();
         }
 

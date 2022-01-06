@@ -30,7 +30,7 @@ namespace TwinCat_Motion_ADS
 
             TestList.ItemsSource = testItems;
             statusList.ItemsSource = statusListItems;
-            SettingTestType.ItemsSource = Enum.GetValues(typeof(TestType)).Cast<TestType>();
+            SettingTestType.ItemsSource = Enum.GetValues(typeof(TestTypes)).Cast<TestTypes>();
 
             UpdateEnabledUIElements();
         }
@@ -74,7 +74,7 @@ namespace TwinCat_Motion_ADS
 
             if(TestList.SelectedIndex != -1)
             {
-                if(testItems[TestList.SelectedIndex].TestType == TestType.NoneSelected || testItems[TestList.SelectedIndex].TestType == TestType.UserPrompt)
+                if(testItems[TestList.SelectedIndex].TestType == TestTypes.NoneSelected || testItems[TestList.SelectedIndex].TestType == TestTypes.UserPrompt)
                 {
                     enableFlag = false;
                 }
@@ -92,7 +92,7 @@ namespace TwinCat_Motion_ADS
 
             if (TestList.SelectedIndex != -1)
             {
-                if (testItems[TestList.SelectedIndex].TestType == TestType.EndToEnd)
+                if (testItems[TestList.SelectedIndex].TestType == TestTypes.EndToEnd)
                 {
                     enableFlag = true;
                 }
@@ -108,7 +108,7 @@ namespace TwinCat_Motion_ADS
 
             if (TestList.SelectedIndex != -1)
             {
-                if (testItems[TestList.SelectedIndex].TestType == TestType.UnidirectionalAccuracy || testItems[TestList.SelectedIndex].TestType == TestType.BidirectionalAccuracy)
+                if (testItems[TestList.SelectedIndex].TestType == TestTypes.UnidirectionalAccuracy || testItems[TestList.SelectedIndex].TestType == TestTypes.BidirectionalAccuracy)
                 {
                     enableFlag = true;
                 }
@@ -126,7 +126,7 @@ namespace TwinCat_Motion_ADS
 
             if (TestList.SelectedIndex != -1)
             {
-                if (testItems[TestList.SelectedIndex].TestType == TestType.BidirectionalAccuracy)
+                if (testItems[TestList.SelectedIndex].TestType == TestTypes.BidirectionalAccuracy)
                 {
                     enableFlag = true;
                 }
@@ -171,7 +171,7 @@ namespace TwinCat_Motion_ADS
         private void SettingTestType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             //Update testItem Test type from combo box
-            testItems[TestList.SelectedIndex].TestType = (TestType)SettingTestType.SelectedItem;
+            testItems[TestList.SelectedIndex].TestType = (TestTypes)SettingTestType.SelectedItem;
             UpdateEnabledUIElements();
         }
 
@@ -246,7 +246,7 @@ namespace TwinCat_Motion_ADS
 
         public static void AddFields(XmlDocument xmlDoc, TestListItem test, XmlNode parentNode)
         {
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "testType", test.TestType.ToString());
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "testType", test.TestType.GetStringValue());
             CreateAndAppendXmlNode(parentNode, xmlDoc, "testTitle", test.TestSettings.TestTitle.UiVal);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "axisId", test.AxisID);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "velocity", test.TestSettings.Velocity.UiVal);
@@ -301,24 +301,27 @@ namespace TwinCat_Motion_ADS
             {
                 
                 testItems.Add(new("1"));    //temp axis ID
+                TestTypes importedType;
+                string testTypeXml = test.SelectSingleNode("testType").InnerText;
+                Enum.TryParse(testTypeXml, out importedType);
 
                 //Select the test type
-                switch(test.SelectSingleNode("testType").InnerText)
+                switch(importedType)
                 {
-                    case "EndToEnd":
-                        testItems[testCounter].TestType = TestType.EndToEnd;
+                    case TestTypes.EndToEnd:
+                        testItems[testCounter].TestType = TestTypes.EndToEnd;
                         break;
-                    case "UnidirectionalAccuracy":
-                        testItems[testCounter].TestType = TestType.UnidirectionalAccuracy;
+                    case TestTypes.UnidirectionalAccuracy:
+                        testItems[testCounter].TestType = TestTypes.UnidirectionalAccuracy;
                         break;
-                    case "BidirectionalAccuracy":
-                        testItems[testCounter].TestType = TestType.BidirectionalAccuracy;
+                    case TestTypes.BidirectionalAccuracy:
+                        testItems[testCounter].TestType = TestTypes.BidirectionalAccuracy;
                         break;
-                    case "UserPrompt":
-                        testItems[testCounter].TestType = TestType.UserPrompt;
+                    case TestTypes.UserPrompt:
+                        testItems[testCounter].TestType = TestTypes.UserPrompt;
                         break;
                     default:
-                        testItems[testCounter].TestType = TestType.NoneSelected;
+                        testItems[testCounter].TestType = TestTypes.NoneSelected;
                         break;
                 }
 
@@ -372,7 +375,7 @@ namespace TwinCat_Motion_ADS
                 bool testResult;
                 switch (test.TestType)
                 {
-                    case TestType.EndToEnd:
+                    case TestTypes.EndToEnd:
                         testResult = await NcAxis.LimitToLimitTestwithReversingSequence(test.TestSettings, wd.MeasurementDevices);
                         if(testResult)
                         {
@@ -383,7 +386,7 @@ namespace TwinCat_Motion_ADS
                             statusListItems.Add("Failed");
                         }
                         break;
-                    case TestType.UnidirectionalAccuracy:
+                    case TestTypes.UnidirectionalAccuracy:
                         testResult = await NcAxis.UniDirectionalAccuracyTest(test.TestSettings, wd.MeasurementDevices);
                         if (testResult)
                         {
@@ -394,7 +397,7 @@ namespace TwinCat_Motion_ADS
                             statusListItems.Add("Failed");
                         }
                         break;
-                    case TestType.BidirectionalAccuracy:
+                    case TestTypes.BidirectionalAccuracy:
                         testResult = await NcAxis.BiDirectionalAccuracyTest(test.TestSettings, wd.MeasurementDevices);
                         if (testResult)
                         {
@@ -405,7 +408,7 @@ namespace TwinCat_Motion_ADS
                             statusListItems.Add("Failed");
                         }
                         break;
-                    case TestType.UserPrompt:
+                    case TestTypes.UserPrompt:
                         MessageBoxResult result = MessageBox.Show(test.TestSettings.TestTitle.UiVal + "\nSelect 'cancel' to exit test sequence.", "User breakpoint", MessageBoxButton.OKCancel);
                         if(result == MessageBoxResult.Cancel)
                         {
@@ -435,8 +438,8 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        private TestType _testType;
-        public TestType TestType
+        private TestTypes _testType;
+        public TestTypes TestType
         {
             get { return _testType; }
             set { _testType = value;
@@ -451,7 +454,7 @@ namespace TwinCat_Motion_ADS
         {
             AxisID = axisID;
             TestSettings = new();
-            TestType = TestType.NoneSelected;
+            TestType = TestTypes.NoneSelected;
         }
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
@@ -461,7 +464,7 @@ namespace TwinCat_Motion_ADS
         
     }
 
-    public enum TestType 
+    public enum TestTypes 
     {
         [StringValue("EndToEnd")]
         EndToEnd,
