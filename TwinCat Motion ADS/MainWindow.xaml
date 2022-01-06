@@ -158,6 +158,7 @@
                             VerticalAlignment="Top"
                             Margin="10,5,0,0"
                         Style="{StaticResource myDefaultButton}"/>
+                    <Button Content="Test" Click="Button_Click"/>
                 </StackPanel>
             </StackPanel>
 
