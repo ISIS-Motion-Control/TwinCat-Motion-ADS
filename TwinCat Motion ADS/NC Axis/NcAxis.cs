@@ -712,6 +712,10 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
 
+            progScaler = 1/Convert.ToDouble(testSettings.Cycles.Val);
+            Console.WriteLine("Progress scaler is: " + progScaler);
+            TestProgress = 0;
+
             var currentTime = DateTime.Now;
             string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.TestTitle.UiVal, currentTime, AxisID);
             Console.WriteLine(newTitle);
@@ -745,6 +749,8 @@ namespace TwinCat_Motion_ADS
 
             for (int i = 1; i <= testSettings.Cycles.Val; i++)
             {
+                TestProgress = Convert.ToDouble(i-1) * progScaler;
+
                 Task<bool> pauseTaskRequest = CheckPauseRequestTask(ptToken.Token);
                 await pauseTaskRequest;
                 if (cancelRequestTask.IsCompleted)
@@ -827,6 +833,7 @@ namespace TwinCat_Motion_ADS
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
+            TestProgress = 1;
             ctToken.Cancel();
             return true;
         }
@@ -856,6 +863,9 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
 
+            progScaler = 1 / Convert.ToDouble(testSettings.Cycles.Val);
+            TestProgress = 0;
+            stepScaler = progScaler / Convert.ToDouble(testSettings.NumberOfSteps.Val);
             //Ensure positive velocity value
             testSettings.Velocity.Val = Math.Abs(testSettings.Velocity.Val);
             
@@ -921,6 +931,7 @@ namespace TwinCat_Motion_ADS
                 //Steps of cycle
                 for (uint j = 0; j <= testSettings.NumberOfSteps.Val; j++)
                 {
+                    TestProgress = Convert.ToDouble(i-1)*progScaler + Convert.ToDouble(j)*stepScaler;
                     Console.WriteLine("Step: " + j);
 
                     //Absolute position move (Exit test if failure)
@@ -951,6 +962,7 @@ namespace TwinCat_Motion_ADS
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
+            TestProgress = 1;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
             ctToken.Cancel();
