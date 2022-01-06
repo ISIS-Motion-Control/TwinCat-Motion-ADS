@@ -18,7 +18,7 @@ namespace TwinCat_Motion_ADS
      */
     public class MeasurementDevice : INotifyPropertyChanged
     {
-        public DeviceType DeviceType { get; set; }
+        public DeviceTypes DeviceType { get; set; }
         public ObservableCollection<string> SerialPortList = new();
 
         //Device type instances
@@ -39,14 +39,14 @@ namespace TwinCat_Motion_ADS
             {
                 switch (DeviceType)
                 {
-                    case DeviceType.DigimaticIndicator:
+                    case DeviceTypes.DigimaticIndicator:
                         if(dti.CheckConnected()== false)
                         {
                             _portName = value;
                             OnPropertyChanged();
                         }
                         break;
-                    case DeviceType.KeyenceTm3000:
+                    case DeviceTypes.KeyenceTM3000:
                         if(keyence.CheckConnected() == false)
                         {
                             _portName = value;
@@ -63,7 +63,7 @@ namespace TwinCat_Motion_ADS
             get { return beckhoffPlc.ID; }
             set
             {
-                if(DeviceType == DeviceType.Beckhoff && !Connected)
+                if(DeviceType == DeviceTypes.Beckhoff && !Connected)
                 {
                     _amsNetID = value;
                     beckhoffPlc.ID = value;
@@ -78,7 +78,7 @@ namespace TwinCat_Motion_ADS
             get { return _plcPort; }
             set 
             {
-                if (DeviceType == DeviceType.Beckhoff && !Connected)
+                if (DeviceType == DeviceTypes.Beckhoff && !Connected)
                 {
                     _plcPort = value;
                     OnPropertyChanged();
@@ -106,47 +106,16 @@ namespace TwinCat_Motion_ADS
             get { return _name; }
             set { _name = value; }
         }
-
-        public string DeviceTypeString
-        {
-            get
-            {
-                if (DeviceType == DeviceType.DigimaticIndicator)
-                {
-                    return "DigimaticIndicator";
-                }
-                else if (DeviceType == DeviceType.KeyenceTm3000)
-                {
-                    return "KeyenceTM3000";
-                }
-                else if (DeviceType == DeviceType.Beckhoff)
-                {
-                    return "Beckhoff";
-                }
-                else if (DeviceType == DeviceType.MotionChannel)
-                {
-                    return "MotionChannel";
-                }
-                else if (DeviceType == DeviceType.Timestamp)
-                {
-                    return "Timestamp";
-                }
-                else
-                {
-                    return "";
-                }
-            }
-        }
         
         public string BaudRate
         {
             get
             {
-                if (DeviceType == DeviceType.DigimaticIndicator)
+                if (DeviceType == DeviceTypes.DigimaticIndicator)
                 {
                     return dti.BaudRate.ToString();
                 }
-                else if (DeviceType == DeviceType.KeyenceTm3000)
+                else if (DeviceType == DeviceTypes.KeyenceTM3000)
                 {
                     return keyence.BaudRate.ToString();
                 }
@@ -167,8 +136,12 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        public MeasurementDevice(string deviceType)
+        public ObservableCollection<DeviceTypes> DeviceTypeList;
+
+
+        public MeasurementDevice(DeviceTypes dType = DeviceTypes.NoneSelected)
         {
+            DeviceTypeList = new(Enum.GetValues(typeof(DeviceTypes)).Cast<DeviceTypes>());
             ReadInProgress = false;
             //Provide the motionchannel type access to the mainwindow PLC
             windowData = (MainWindow)Application.Current.MainWindow;
@@ -180,7 +153,7 @@ namespace TwinCat_Motion_ADS
             NumberOfChannels = 0;
             Connected = false;
             Name = "*NEW DEVICE*";
-            changeDeviceType(deviceType);
+            changeDeviceType(dType);
         }
 
         /// <summary>
@@ -189,11 +162,11 @@ namespace TwinCat_Motion_ADS
         /// <param name="bRate"></param>
         public void UpdateBaudRate(string bRate)
         {
-            if (DeviceType == DeviceType.DigimaticIndicator)
+            if (DeviceType == DeviceTypes.DigimaticIndicator)
             {
                 if (!Connected) dti.BaudRate = Convert.ToInt32(bRate);
             }
-            if (DeviceType == DeviceType.KeyenceTm3000)
+            if (DeviceType == DeviceTypes.KeyenceTM3000)
             {
                 if (!Connected) keyence.BaudRate = Convert.ToInt32(bRate);
             }
@@ -203,34 +176,10 @@ namespace TwinCat_Motion_ADS
         /// Change the measurement device type
         /// </summary>
         /// <param name="deviceType"></param>
-        public void changeDeviceType(string deviceType)
+        public void changeDeviceType(DeviceTypes dtype)
         {
             if (Connected) return;  //Don't change device type if connected to something
-            if (deviceType == "DigimaticIndicator")
-            {
-                DeviceType = DeviceType.DigimaticIndicator;
-
-            }
-            else if (deviceType == "KeyenceTM3000")
-            {
-                DeviceType = DeviceType.KeyenceTm3000;
-            }
-            else if (deviceType == "Beckhoff")
-            {
-                DeviceType = DeviceType.Beckhoff;
-            }
-            else if (deviceType == "MotionChannel")
-            {
-                DeviceType = DeviceType.MotionChannel;
-            }
-            else if(deviceType == "Timestamp")
-            {
-                DeviceType = DeviceType.Timestamp;
-            }
-            else
-            {
-                DeviceType = DeviceType.NoneSelected;
-            }
+            DeviceType = dtype;
             ChannelList.Clear();
         }
 
@@ -260,7 +209,7 @@ namespace TwinCat_Motion_ADS
             }
             switch (DeviceType)
             {
-                case DeviceType.DigimaticIndicator:
+                case DeviceTypes.DigimaticIndicator:
                     dti.Portname = PortName;
                     if(dti.OpenPort())
                     {
@@ -268,7 +217,7 @@ namespace TwinCat_Motion_ADS
                     }
                     break;
 
-                case DeviceType.KeyenceTm3000:
+                case DeviceTypes.KeyenceTM3000:
                     keyence.Portname = PortName;                   
                     if(keyence.OpenPort())
                     {
@@ -276,7 +225,7 @@ namespace TwinCat_Motion_ADS
                     }
                     break;
 
-                case DeviceType.Beckhoff:
+                case DeviceTypes.Beckhoff:
                     if(beckhoffPlc.Connect())
                     {
                         if(beckhoffPlc.IsStateRun())
@@ -290,13 +239,13 @@ namespace TwinCat_Motion_ADS
                         }
                     }
                     break;
-                case DeviceType.MotionChannel:
+                case DeviceTypes.MotionChannel:
                     if(motionChannel.Connect())
                     {
                         Connected = true;
                     }
                     break;
-                case DeviceType.Timestamp:
+                case DeviceTypes.Timestamp:
                     if(Timestamp.Connect())
                     {
                         Connected = true;
@@ -309,7 +258,6 @@ namespace TwinCat_Motion_ADS
             {
                 return Connected;
             }
-            Console.WriteLine("No compatible device type selected");
             return false;
         }
 
@@ -331,7 +279,7 @@ namespace TwinCat_Motion_ADS
             }
             switch (DeviceType)
             {
-                case DeviceType.DigimaticIndicator:                   
+                case DeviceTypes.DigimaticIndicator:                   
                     if(dti.ClosePort())                         //Try to close the port
                     {
                         Console.WriteLine("Port closed");
@@ -351,7 +299,7 @@ namespace TwinCat_Motion_ADS
                         return true;
                     }
 
-                case DeviceType.KeyenceTm3000:
+                case DeviceTypes.KeyenceTM3000:
 
                     if (keyence.ClosePort())
                     {
@@ -372,7 +320,7 @@ namespace TwinCat_Motion_ADS
                         return true;
                     }
 
-                case DeviceType.Beckhoff:
+                case DeviceTypes.Beckhoff:
                     if(beckhoffPlc.Disconnect())
                     {
                         Console.WriteLine("Disconnected");
@@ -391,7 +339,7 @@ namespace TwinCat_Motion_ADS
                         UpdateChannelList();
                         return true;
                     }
-                case DeviceType.MotionChannel:
+                case DeviceTypes.MotionChannel:
                     if(motionChannel.Disconnect())
                     {
                         Console.WriteLine("Disconnected");
@@ -404,7 +352,7 @@ namespace TwinCat_Motion_ADS
                         return false;
                     }
 
-                case DeviceType.Timestamp:
+                case DeviceTypes.Timestamp:
                     if(Timestamp.Disconnect())
                     {
                         Console.WriteLine("Disconnected");
@@ -431,20 +379,20 @@ namespace TwinCat_Motion_ADS
             }
             switch (DeviceType)
             {
-                case DeviceType.DigimaticIndicator:                   
+                case DeviceTypes.DigimaticIndicator:                   
                     return await dti.GetMeasurementAsync();
 
-                case DeviceType.KeyenceTm3000:
+                case DeviceTypes.KeyenceTM3000:
                     List<string> measures = await keyence.GetAllMeasures();
                     var retstr = String.Join(",", measures);    //Keyence returns a string list so we can convert to a single CSV string
                     return retstr;
 
-                case DeviceType.Beckhoff:
+                case DeviceTypes.Beckhoff:
                     return await beckhoff.ReadChannel(1);
 
-                case DeviceType.MotionChannel:
+                case DeviceTypes.MotionChannel:
                     return await motionChannel.GetMeasurementAsync();
-                case DeviceType.Timestamp:
+                case DeviceTypes.Timestamp:
                     return Timestamp.GetMeasurement();
                 default:
                     break;
@@ -467,27 +415,27 @@ namespace TwinCat_Motion_ADS
             string measurement;
             switch (DeviceType)
             {
-                case DeviceType.DigimaticIndicator:
+                case DeviceTypes.DigimaticIndicator:
                     measurement = await dti.GetMeasurementAsync();
                     ReadInProgress = false;
                     return measurement;
 
-                case DeviceType.Beckhoff:
+                case DeviceTypes.Beckhoff:
                     measurement = await beckhoff.ReadChannel(channelNumber);
                     ReadInProgress = false;
                     return measurement;
 
-                case DeviceType.KeyenceTm3000:
+                case DeviceTypes.KeyenceTM3000:
                     measurement = await keyence.GetMeasureAsync(channelNumber);
                     ReadInProgress = false;
                     return measurement;
 
-                case DeviceType.MotionChannel:
+                case DeviceTypes.MotionChannel:
                     measurement = await motionChannel.GetMeasurementAsync();
                     ReadInProgress = false;
                     return measurement;
 
-                case DeviceType.Timestamp:
+                case DeviceTypes.Timestamp:
                     measurement = Timestamp.GetMeasurement();
                     ReadInProgress = false;
                     return measurement;
@@ -509,31 +457,31 @@ namespace TwinCat_Motion_ADS
                           
             switch (DeviceType)
             {
-                case DeviceType.DigimaticIndicator:    //Single channel device              
+                case DeviceTypes.DigimaticIndicator:    //Single channel device              
                     Tuple<string, int> t1 = (Name, 1).ToTuple();
                     ChannelList.Add(t1);
                     NumberOfChannels = ChannelList.Count;
                     break;
 
-                case DeviceType.KeyenceTm3000: //Multi Channel device
+                case DeviceTypes.KeyenceTM3000: //Multi Channel device
                     keyence.UpdateChannelList();
                     ChannelList = keyence.ChannelList;
                     NumberOfChannels = ChannelList.Count;
                     break;       
                     
-                case DeviceType.Beckhoff:   //Multi-channel device                    
+                case DeviceTypes.Beckhoff:   //Multi-channel device                    
                     beckhoff.UpdateChannelList();
                     ChannelList = beckhoff.ChannelList;
                     NumberOfChannels = ChannelList.Count;
                     break;
 
-                case DeviceType.MotionChannel:  //Single channel device
+                case DeviceTypes.MotionChannel:  //Single channel device
                     Tuple<string, int> t2 = (Name, 1).ToTuple();
                     ChannelList.Add(t2);
                     NumberOfChannels = ChannelList.Count;
                     break;
 
-                case DeviceType.Timestamp: //Single channel device
+                case DeviceTypes.Timestamp: //Single channel device
                     Tuple<string, int> t3 = (Name, 1).ToTuple();
                     ChannelList.Add(t3);
                     NumberOfChannels = ChannelList.Count;
@@ -560,28 +508,23 @@ namespace TwinCat_Motion_ADS
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
-        
-        
-        public ObservableCollection<string> DeviceTypeList = new ObservableCollection<string>()
-        {
-            "",
-        "DigimaticIndicator",
-        "KeyenceTM3000",
-        "Beckhoff",
-        "MotionChannel",
-        "Timestamp"
-        };
+        }     
     }
 
 
-    public enum DeviceType
+    public enum DeviceTypes
     {
+        [StringValue("")]
         NoneSelected,
+        [StringValue("DigimaticIndicator")]
         DigimaticIndicator,
-        KeyenceTm3000,
+        [StringValue("KeyenceTM3000")]
+        KeyenceTM3000,
+        [StringValue("Beckhoff")]
         Beckhoff,
+        [StringValue("MotionChannel")]
         MotionChannel,
+        [StringValue("Timestamp")]
         Timestamp
     }
     

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,14 +8,6 @@ using System.Threading.Tasks.Dataflow;
 
 namespace TwinCat_Motion_ADS
 {
-    //Need to remove all the current DTI logic and add new DigimaticIndicator class
-    /*
-     * Probably have some generic fields for DTI1/2/3/4 then a method that initialises them (so each test axis has access to it through inheritance)
-     * Then prep the method that it actually reads with
-     * Maybe implement some "if selected but null" methods to check and initialise them
-     * 
-     */
-
     //abstract defines this as an inheritance only class
     public abstract class TestAdmin : INotifyPropertyChanged
     {
@@ -85,6 +78,193 @@ namespace TwinCat_Motion_ADS
                 OnPropertyChanged();
             }
         }
+        protected bool ValidCommand() //always going to check if PLC is valid or not
+        {
+            if (!Plc.IsStateRun())
+            {
+                Console.WriteLine("Incorrect PLC configuration");
+                Valid = false;
+                return false;
+            }
+            //check some motion parameters???
 
+            Valid = true;
+            return true;
+        }
+
+    }
+
+    //Class to handle UI elements of setting elements of type string - not strictly necessary, more for standardisation of rest of code.
+    public class SettingString : INotifyPropertyChanged
+    {
+        PropertyDescriptor pd;
+        public event PropertyChangedEventHandler PropertyChanged;
+        private string _uiVal;
+        private string _val;
+
+        public SettingString(string settingName)
+        {
+            pd = TypeDescriptor.GetProperties(Properties.Settings.Default)[settingName];
+        }
+
+        public string UiVal
+        {
+            get { return _uiVal; }
+            set
+            {
+                _uiVal = value;
+                _val = value;
+                pd.SetValue(Properties.Settings.Default, value);
+                OnPropertyChanged();
+            }
+        }
+        public string Val
+        {
+            get { return _val; }
+            set
+            {
+                _val = value;
+                UiVal = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+    }
+    //Class to handle UI elements of setting elements of type double
+    public class SettingDouble : INotifyPropertyChanged
+    {
+        PropertyDescriptor pd;
+        public SettingDouble(string settingName)
+        {
+            pd = TypeDescriptor.GetProperties(Properties.Settings.Default)[settingName];
+        }
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private string _uiVal; //textSetting
+        public string UiVal
+        {
+            get { return _uiVal; }
+            set
+            {
+                if (double.TryParse(value, out _))
+                {
+                    _val = Convert.ToDouble(value);
+                    _uiVal = value;
+
+                    pd.SetValue(Properties.Settings.Default, value);
+                    OnPropertyChanged();
+                }
+            }
+        }
+        private double _val;
+        public double Val
+        {
+            get { return _val; }
+            set
+            {
+                _val = value;
+                UiVal = value.ToString();
+                OnPropertyChanged();
+            }
+        }
+
+    }
+    //Class to handle UI elements of setting elements of type Uint
+    public class SettingUint : INotifyPropertyChanged
+    {
+        PropertyDescriptor pd;
+        private string _uiVal; //User interface element
+        private uint _val;  //Logic element
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public SettingUint(string settingName)
+        {
+            pd = TypeDescriptor.GetProperties(Properties.Settings.Default)[settingName];
+        }
+
+        public string UiVal
+        {
+            get { return _uiVal; }
+            set
+            {
+                if (uint.TryParse(value, out _))
+                {
+                    _val = Convert.ToUInt32(value);
+                    _uiVal = value;
+
+                    pd.SetValue(Properties.Settings.Default, value);
+                    OnPropertyChanged();
+                }
+            }
+        }
+        public uint Val
+        {
+            get { return _val; }
+            set
+            {
+                _val = value;
+                UiVal = value.ToString();
+                OnPropertyChanged();
+            }
+        }
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+    }
+
+    public class StringValueAttribute : Attribute
+    {
+
+        #region Properties
+
+        /// <summary>
+        /// Holds the stringvalue for a value in an enum.
+        /// </summary>
+        public string StringValue { get; protected set; }
+
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Constructor used to init a StringValue Attribute
+        /// </summary>
+        /// <param name="value"></param>
+        public StringValueAttribute(string value)
+        {
+            this.StringValue = value;
+        }
+
+        #endregion
+
+    }
+    public static class Extension
+    {
+        public static string GetStringValue(this Enum value)
+        {
+            // Get the type
+            Type type = value.GetType();
+
+            // Get fieldinfo for this type
+            FieldInfo fieldInfo = type.GetField(value.ToString());
+
+            // Get the stringvalue attributes
+            StringValueAttribute[] attribs = fieldInfo.GetCustomAttributes(
+                typeof(StringValueAttribute), false) as StringValueAttribute[];
+
+            // Return the first if there was a match.
+            return attribs.Length > 0 ? attribs[0].StringValue : null;
+        }
     }
 }

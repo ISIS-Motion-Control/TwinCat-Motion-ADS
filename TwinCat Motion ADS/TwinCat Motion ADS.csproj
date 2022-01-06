@@ -12,16 +12,16 @@
   <ItemGroup>
     <Compile Remove="Fonts\**" />
     <Compile Remove="Images\**" />
-    <Compile Remove="MVVM\Model\**" />
+    <Compile Remove="APPLICATION WINDOWS\Model\**" />
     <EmbeddedResource Remove="Fonts\**" />
     <EmbeddedResource Remove="Images\**" />
-    <EmbeddedResource Remove="MVVM\Model\**" />
+    <EmbeddedResource Remove="APPLICATION WINDOWS\Model\**" />
     <None Remove="Fonts\**" />
     <None Remove="Images\**" />
-    <None Remove="MVVM\Model\**" />
+    <None Remove="APPLICATION WINDOWS\Model\**" />
     <Page Remove="Fonts\**" />
     <Page Remove="Images\**" />
-    <Page Remove="MVVM\Model\**" />
+    <Page Remove="APPLICATION WINDOWS\Model\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,12 +44,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="babyIbex.jpg" />
-    <Resource Include="ibexHead.jpg" />
+    <Resource Include="ImageAssets\babyIbex.jpg" />
+    <Resource Include="ImageAssets\ibexHead.jpg" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="MVVM\View\measurementDeviceWindow.xaml.cs">
+    <Compile Update="APPLICATION WINDOWS\measurementDeviceWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Properties\Settings.Designer.cs">
@@ -67,7 +67,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Update="MVVM\View\measurementDeviceWindow.xaml">
+    <Page Update="APPLICATION WINDOWS\measurementDeviceWindow.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>

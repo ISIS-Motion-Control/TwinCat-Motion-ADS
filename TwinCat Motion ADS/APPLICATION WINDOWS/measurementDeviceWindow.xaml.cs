@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
-namespace TwinCat_Motion_ADS.MVVM.View
+namespace TwinCat_Motion_ADS
 {
     /// <summary>
     /// Interaction logic for accessing measurement devices
@@ -13,7 +13,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
     public partial class measurementDeviceWindow : Window
     {
         int DeviceIndex;
-        public ObservableCollection<string> DeviceTypeList;
+        public ObservableCollection<DeviceTypes> DeviceTypeList;
         public ObservableCollection<string> BaudRateList = new ObservableCollection<string>()
         {
             "9600", "19200","38400","57600","115200"
@@ -42,8 +42,9 @@ namespace TwinCat_Motion_ADS.MVVM.View
         private void ConstructDeviceSettingsScreen()
         {
 
-            XamlUI.TextboxBinding(deviceName, MDevice, "Name");                                 //Bind the name field
-            XamlUI.ComboBoxBinding(DeviceTypeList, DeviceType, MDevice, "DeviceTypeString");    //Bind the combobox to device types            
+            XamlUI.TextboxBinding(deviceName, MDevice, "Name");                                 //Bind the name field          
+            DeviceTypeComboBox.ItemsSource = DeviceTypeList;
+            DeviceTypeComboBox.SelectedItem = MDevice.DeviceType;
             deviceSettings.Children.Clear();                                                    //Clear the settings stackpanel
 
             //Create button stack panel
@@ -104,10 +105,10 @@ namespace TwinCat_Motion_ADS.MVVM.View
             statusStackPanel.Children.Add(numberOfChannels);
             statusStackPanel.Children.Add(connected);
 
-            if (MDevice.DeviceTypeString == "DigimaticIndicator" || MDevice.DeviceTypeString == "KeyenceTM3000")
+            if (MDevice.DeviceType == DeviceTypes.DigimaticIndicator || MDevice.DeviceType == DeviceTypes.KeyenceTM3000)
             {
                 CommonRs232Window();                                                    //Settings common to all RS232 devices
-                if (MDevice.DeviceTypeString == "KeyenceTM3000")                           //Extra settings for keyence TM 3000
+                if (MDevice.DeviceType == DeviceTypes.KeyenceTM3000)                           //Extra settings for keyence TM 3000
                 {
                     //Create stack panels to show the channel settings
                     StackPanel allChannels = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
@@ -139,7 +140,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                     }
                 }
             }
-            else if (MDevice.DeviceTypeString == "Beckhoff")
+            else if (MDevice.DeviceType == DeviceTypes.Beckhoff)
             {
                 //Create stack panel for 1st setting
                 StackPanel setting1 = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
@@ -178,7 +179,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 channels.Children.Add(col2);
 
             }
-            else if (MDevice.DeviceTypeString == "MotionChannel")
+            else if (MDevice.DeviceType == DeviceTypes.MotionChannel)
             {
                 //VARIABLE TYPE
                 StackPanel setting1 = new();
@@ -208,7 +209,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 setting2.Children.Add(setting2Text);
                 setting2.Children.Add(accessPath);
             }
-            else if (MDevice.DeviceTypeString == "Timestamp")
+            else if (MDevice.DeviceType == DeviceTypes.Timestamp)
             {
                 //Don't need anything for a timestamp!
             }
@@ -332,9 +333,9 @@ namespace TwinCat_Motion_ADS.MVVM.View
         {
             if (!MDevice.Connected)
             {
-                MDevice.changeDeviceType((string)DeviceType.SelectedItem);
+                MDevice.changeDeviceType((DeviceTypes)DeviceTypeComboBox.SelectedItem);
             }
-            DeviceType.SelectedItem = MDevice.DeviceTypeString;
+            DeviceTypeComboBox.SelectedItem = MDevice.DeviceType.GetStringValue();
             ConstructDeviceSettingsScreen();
         }
 
