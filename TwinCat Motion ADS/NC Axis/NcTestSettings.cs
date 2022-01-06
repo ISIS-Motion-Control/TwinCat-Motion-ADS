@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using TwinCat_Motion_ADS.MVVM.View;
 
 
 namespace TwinCat_Motion_ADS
@@ -21,7 +20,7 @@ namespace TwinCat_Motion_ADS
          */
         public NcTestSettings()
         {
-            //Settings are initialised with current saved defaults
+            //Settings are initialised with last run values
             TestTitle.UiVal = Properties.Settings.Default.testTitle;
             Velocity.UiVal = Properties.Settings.Default.velocity;
             Timeout.UiVal = Properties.Settings.Default.timeout;
@@ -72,7 +71,7 @@ namespace TwinCat_Motion_ADS
         public SettingDouble ReversalDistance { get; set; } = new("reversalDistance");
         public SettingDouble OvershootDistance = new("overshootDistance");
 
-        //modify this to XML
+        
         public void ImportSettingsXML(string ImportSettingsFile)
         {
             XmlDocument doc = new();

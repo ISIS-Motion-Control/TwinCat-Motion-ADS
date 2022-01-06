@@ -28,9 +28,9 @@ namespace TwinCat_Motion_ADS
     {
         public PLC Plc;
         public string selectedFolder = string.Empty;
-        public MVVM.View.TestSuite TestSuiteWindow;
-        public MVVM.View.NcAxisView NcAxisView;
-        public MVVM.View.AirAxisView AirAxisView;
+        public TestSuite TestSuiteWindow;
+        public NcAxisView NcAxisView;
+        public AirAxisView AirAxisView;
         public bool windowClosing = false;
 
         public MeasurementDevices MeasurementDevices = new();
@@ -149,7 +149,7 @@ namespace TwinCat_Motion_ADS
                 i++;
             }
 
-            MVVM.View.measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
+            measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
             newMeasureWindow.Show();
         }
 
@@ -171,7 +171,7 @@ namespace TwinCat_Motion_ADS
 
             if(!suppress)
             {
-                MVVM.View.measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
+                measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
                 newMeasureWindow.Show();
             }
             

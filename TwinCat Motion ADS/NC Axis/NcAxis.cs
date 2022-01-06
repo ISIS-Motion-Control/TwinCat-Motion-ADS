@@ -1217,11 +1217,11 @@ namespace TwinCat_Motion_ADS
             XmlNode rootNode = doc.CreateElement("Settings");
             doc.AppendChild(rootNode);
 
-            MVVM.View.TestListItem tli = new("1");
+            TestListItem tli = new("1");
             tli.AxisID = AxisID.ToString();
             tli.TestSettings = testSettings;
             
-            MVVM.View.TestSuite.AddFields(doc,tli, rootNode);
+            TestSuite.AddFields(doc,tli, rootNode);
             rootNode.SelectSingleNode("testType").InnerText = testType; //Need to manually go in and change what test type was run
             doc.Save(filePath);
         }
