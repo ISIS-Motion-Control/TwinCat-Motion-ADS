@@ -106,6 +106,7 @@ namespace TwinCat_Motion_ADS
 
         private void ConnectToPlc_Click(object sender, RoutedEventArgs e)
         {
+            Console.WriteLine("Connecting to PLC...");
             Plc = new PLC(amsNetIdTb.Text, 852);
             Plc.setupPLC();
             if (Plc.AdsState == AdsState.Invalid)
@@ -144,12 +145,11 @@ namespace TwinCat_Motion_ADS
                 if(mI == device)
                 {
                     deviceIndex = i;
-                    //Console.WriteLine("That's a match on " + deviceIndex); //debugging line to check we can find item based on menuItemList
                 }
                 i++;
             }
 
-            TwinCat_Motion_ADS.MVVM.View.measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
+            MVVM.View.measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
             newMeasureWindow.Show();
         }
 
@@ -244,12 +244,19 @@ namespace TwinCat_Motion_ADS
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
+            //bit of a 'hacky' method. Due to the test suite window being hidden and not actually closed I need a way for that window to check if the whole application is closing
             windowClosing = true;
             //Because I hide the window
             if(TestSuiteWindow !=null)
             {
                 TestSuiteWindow.Close();
             }
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine(NcAxisView.NcTestSettings.OvershootDistance.UiVal);
+            NcAxisView.NcTestSettings.OvershootDistance.Val += 5;
         }
     }
 
@@ -398,43 +405,4 @@ namespace TwinCat_Motion_ADS
             }
         }
     }
-
-    internal static class ConsoleAllocator
-    {
-        [DllImport(@"kernel32.dll", SetLastError = true)]
-        static extern bool AllocConsole();
-
-        [DllImport(@"kernel32.dll")]
-        static extern IntPtr GetConsoleWindow();
-
-        [DllImport(@"user32.dll")]
-        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-        const int SwHide = 0;
-        const int SwShow = 5;
-
-
-        public static void ShowConsoleWindow()
-        {
-            var handle = GetConsoleWindow();
-
-            if (handle == IntPtr.Zero)
-            {
-                AllocConsole();
-            }
-            else
-            {
-                ShowWindow(handle, SwShow);
-            }
-        }
-
-        public static void HideConsoleWindow()
-        {
-            var handle = GetConsoleWindow();
-
-            ShowWindow(handle, SwHide);
-        }
-        
-    }
-
 }

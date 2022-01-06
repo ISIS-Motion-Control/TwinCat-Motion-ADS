@@ -60,9 +60,11 @@ namespace TwinCat_Motion_ADS.MVVM.View
             XamlUI.TextBlockBinding(currentAxis, testAxis, "AxisID","D");
             XamlUI.CheckBoxBinding((string)testCancelledCheck.Content, testCancelledCheck, testAxis, "CancelTest", BindingMode.OneWay);
             XamlUI.CheckBoxBinding((string)testPausedCheck.Content, testPausedCheck, testAxis, "PauseTest", BindingMode.OneWay);
-            XamlUI.TextboxBinding(timeoutTB, NcTestSettings, "StrTimeout",UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(testTitleTB, NcTestSettings, "StrTestTitle", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(velocityTB, NcTestSettings, "StrVelocity", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(timeoutTB, NcTestSettings.Timeout, "UiVal", UpdateSourceTrigger.LostFocus);
+
+            XamlUI.TextboxBinding(testTitleTB, NcTestSettings.TestTitle, "UiVal", UpdateSourceTrigger.LostFocus);
+
+            XamlUI.TextboxBinding(velocityTB, NcTestSettings.Velocity, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(cycleTB, NcTestSettings, "StrCycles", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(cycleDelayTB, NcTestSettings, "StrCycleDelaySeconds", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(revVelTB, NcTestSettings, "StrReversalVelocity", UpdateSourceTrigger.LostFocus);
@@ -73,7 +75,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             XamlUI.TextboxBinding(stepSizeTB, NcTestSettings, "StrStepSize", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(settleTimeTB, NcTestSettings, "StrSettleTimeSeconds", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(revDistanceTB, NcTestSettings, "StrReversalDistance", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(overshootDistanceTB, NcTestSettings, "StrOvershootDistance", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(overshootDistanceTB, NcTestSettings.OvershootDistance, "UiVal", UpdateSourceTrigger.LostFocus);
         }
 
         private void SelectFolderDirectory_Click(object sender, RoutedEventArgs e)

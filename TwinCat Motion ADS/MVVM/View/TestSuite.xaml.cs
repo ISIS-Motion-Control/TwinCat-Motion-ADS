@@ -173,13 +173,13 @@ namespace TwinCat_Motion_ADS.MVVM.View
                     break;
             }
 
-            XamlUI.TextboxBinding(SettingTitle.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrTestTitle");
+            XamlUI.TextboxBinding(SettingTitle.SettingValue, testItems[TestList.SelectedIndex].TestSettings.TestTitle, "UiVal");
             XamlUI.TextboxBinding(SettingAxisNumber.SettingValue, testItems[TestList.SelectedIndex], "AxisID");
 
             XamlUI.TextboxBinding(SettingCycles.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrCycles");
             XamlUI.TextboxBinding(SettingCycleDelay.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrCycleDelaySeconds");
-            XamlUI.TextboxBinding(SettingVelocity.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrVelocity");
-            XamlUI.TextboxBinding(SettingTimeout.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrTimeout");
+            XamlUI.TextboxBinding(SettingVelocity.SettingValue, testItems[TestList.SelectedIndex].TestSettings.Velocity, "UiVal");
+            XamlUI.TextboxBinding(SettingTimeout.SettingValue, testItems[TestList.SelectedIndex].TestSettings.Timeout, "UiVal");
 
 
             XamlUI.TextboxBinding(SettingReversalVelocity.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrReversalVelocity");
@@ -192,7 +192,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             XamlUI.TextboxBinding(SettingSettlingTime.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrSettleTimeSeconds");
             XamlUI.TextboxBinding(SettingReversalDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrReversalDistance");
 
-            XamlUI.TextboxBinding(SettingOvershootDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrOvershootDistance");
+            XamlUI.TextboxBinding(SettingOvershootDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings.OvershootDistance, "UiVal");
 
             UpdateEnabledUIElements();
         }
@@ -234,7 +234,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
         private void DeleteTestButton_Click(object sender, RoutedEventArgs e)
         {
             if (TestList.SelectedIndex == -1) return;
-            MessageBoxResult result = MessageBox.Show("Are you sure you want to delete selected item: " + testItems[TestList.SelectedIndex].TestSettings.StrTestTitle,"Confirm deletion",MessageBoxButton.YesNo);
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to delete selected item: " + testItems[TestList.SelectedIndex].TestSettings.TestTitle.UiVal,"Confirm deletion",MessageBoxButton.YesNo);
             
             if (result == MessageBoxResult.Yes)
             {
@@ -276,10 +276,10 @@ namespace TwinCat_Motion_ADS.MVVM.View
         public static void AddFields(XmlDocument xmlDoc, TestListItem test, XmlNode parentNode)
         {
             CreateAndAppendXmlNode(parentNode, xmlDoc, "testType", test.TestType.ToString());
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "testTitle", test.TestSettings.StrTestTitle);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "testTitle", test.TestSettings.TestTitle.UiVal);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "axisId", test.AxisID);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "velocity", test.TestSettings.StrVelocity);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "timeout", test.TestSettings.StrTimeout);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "velocity", test.TestSettings.Velocity.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "timeout", test.TestSettings.Timeout.UiVal);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "cycles", test.TestSettings.StrCycles);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "cycleDelaySeconds", test.TestSettings.StrCycleDelaySeconds);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalVelocity", test.TestSettings.StrReversalVelocity);
@@ -290,7 +290,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             CreateAndAppendXmlNode(parentNode, xmlDoc, "stepSize", test.TestSettings.StrStepSize);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "settleTime", test.TestSettings.StrSettleTimeSeconds);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalDistance", test.TestSettings.StrReversalDistance);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "overshootDistance", test.TestSettings.StrOvershootDistance);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "overshootDistance", test.TestSettings.OvershootDistance.UiVal);
         }
 
         public static void CreateAndAppendXmlNode(XmlNode parentNode, XmlDocument doc, string ndName, string ndValue)
@@ -352,10 +352,10 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 }
 
                 //Import all the settings
-                testItems[testCounter].TestSettings.StrTestTitle = test.SelectSingleNode("testTitle").InnerText;
+                testItems[testCounter].TestSettings.TestTitle.UiVal = test.SelectSingleNode("testTitle").InnerText;
                 testItems[testCounter].AxisID = test.SelectSingleNode("axisId").InnerText;
-                testItems[testCounter].TestSettings.StrVelocity = test.SelectSingleNode("velocity").InnerText;
-                testItems[testCounter].TestSettings.StrTimeout = test.SelectSingleNode("timeout").InnerText;
+                testItems[testCounter].TestSettings.Velocity.UiVal = test.SelectSingleNode("velocity").InnerText;
+                testItems[testCounter].TestSettings.Timeout.UiVal = test.SelectSingleNode("timeout").InnerText;
                 testItems[testCounter].TestSettings.StrCycles = test.SelectSingleNode("cycles").InnerText;
                 testItems[testCounter].TestSettings.StrCycleDelaySeconds = test.SelectSingleNode("cycleDelaySeconds").InnerText;
                 testItems[testCounter].TestSettings.StrReversalVelocity = test.SelectSingleNode("reversalVelocity").InnerText;
@@ -366,7 +366,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 testItems[testCounter].TestSettings.StrStepSize = test.SelectSingleNode("stepSize").InnerText;
                 testItems[testCounter].TestSettings.StrSettleTimeSeconds = test.SelectSingleNode("settleTime").InnerText;
                 testItems[testCounter].TestSettings.StrReversalDistance = test.SelectSingleNode("reversalDistance").InnerText;
-                testItems[testCounter].TestSettings.StrOvershootDistance = test.SelectSingleNode("overshootDistance").InnerText;
+                testItems[testCounter].TestSettings.OvershootDistance.UiVal = test.SelectSingleNode("overshootDistance").InnerText;
                 
                 //increment the list counter
                 testCounter++;
@@ -389,7 +389,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             foreach(TestListItem test in testItems)
             {
                 
-                statusListItems.Add("Running test " + testCounter + ": " + test.TestSettings.StrTestTitle);
+                statusListItems.Add("Running test " + testCounter + ": " + test.TestSettings.TestTitle.UiVal);
                 //foreach test we initialise the axis, pass the settings, pass the measurement devices
 
                 //Update axis ID
@@ -431,7 +431,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                         }
                         break;
                     case TestType.UserPrompt:
-                        MessageBoxResult result = MessageBox.Show(test.TestSettings.StrTestTitle + "\nSelect 'cancel' to exit test sequence.", "User breakpoint", MessageBoxButton.OKCancel);
+                        MessageBoxResult result = MessageBox.Show(test.TestSettings.TestTitle.UiVal + "\nSelect 'cancel' to exit test sequence.", "User breakpoint", MessageBoxButton.OKCancel);
                         if(result == MessageBoxResult.Cancel)
                         {
                             //exit the sequence

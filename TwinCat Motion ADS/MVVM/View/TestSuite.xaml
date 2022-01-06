@@ -80,7 +80,8 @@
                                         <Run Text="Axis: "/>
                                         <Run Text="{Binding AxisID}"/>
                                         </TextBlock>
-                                        <TextBlock Grid.Column="1" Text="{Binding TestSettings.StrTestTitle}" Margin="20,0,0,0"/>
+                                        <TextBlock Grid.Column="1" DataContext="{Binding TestSettings.TestTitle}" Text="{Binding UiVal}" Margin="20,0,0,0"/>
+
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>

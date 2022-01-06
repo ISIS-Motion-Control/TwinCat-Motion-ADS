@@ -7,14 +7,6 @@ using System.Threading.Tasks.Dataflow;
 
 namespace TwinCat_Motion_ADS
 {
-    //Need to remove all the current DTI logic and add new DigimaticIndicator class
-    /*
-     * Probably have some generic fields for DTI1/2/3/4 then a method that initialises them (so each test axis has access to it through inheritance)
-     * Then prep the method that it actually reads with
-     * Maybe implement some "if selected but null" methods to check and initialise them
-     * 
-     */
-
     //abstract defines this as an inheritance only class
     public abstract class TestAdmin : INotifyPropertyChanged
     {

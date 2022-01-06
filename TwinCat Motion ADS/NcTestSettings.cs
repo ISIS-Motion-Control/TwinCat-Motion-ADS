@@ -18,9 +18,12 @@ namespace TwinCat_Motion_ADS
          */
         public NcTestSettings()
         {
-            StrTestTitle = Properties.Settings.Default.testTitle;
-            StrVelocity = Properties.Settings.Default.velocity;
-            StrTimeout = Properties.Settings.Default.timeout;
+
+            TestTitle.UiVal = Properties.Settings.Default.testTitle;
+
+            Velocity.UiVal = Properties.Settings.Default.velocity;
+
+            Timeout.UiVal = Properties.Settings.Default.timeout;
             StrCycles = Properties.Settings.Default.cycles;
             StrCycleDelaySeconds = Properties.Settings.Default.cycleDelaySeconds;
             StrReversalVelocity = Properties.Settings.Default.reversalVelocity;
@@ -31,14 +34,16 @@ namespace TwinCat_Motion_ADS
             StrStepSize = Properties.Settings.Default.stepSize;
             StrSettleTimeSeconds = Properties.Settings.Default.settleTimeSeconds;
             StrReversalDistance = Properties.Settings.Default.reversalDistance;
-            StrOvershootDistance = Properties.Settings.Default.overshootDistance;
+
+            //Test code
+            OvershootDistance.UiVal = Properties.Settings.Default.overshootDistance;
         }
 
         public void ResetSettings()
         {
-            StrTestTitle = "New Test";
-            StrVelocity = "0";
-            StrTimeout = "0";
+            TestTitle.UiVal = "New Test";
+            Velocity.UiVal = "0";
+            Timeout.UiVal = "0";
             StrCycles = "1";
             StrCycleDelaySeconds = "0";
             StrReversalVelocity = "0";
@@ -49,83 +54,23 @@ namespace TwinCat_Motion_ADS
             StrStepSize = "0";
             StrSettleTimeSeconds = "0";
             StrReversalDistance = "0";
-            StrOvershootDistance = "0";
+            OvershootDistance.UiVal = "0";
         }
 
         //Method to import and export test settings
-        private string _strTestTitle;
-        public string StrTestTitle
-        {
-            get { return _strTestTitle; }
-            set
-            {
-                _strTestTitle = value;
-                Properties.Settings.Default.testTitle = value;
-                OnPropertyChanged();   
-            }
-        }
+        public SettingString TestTitle { get; set; } = new("testTitle");
+        public SettingDouble Velocity { get; set; } = new("velocity");
+        public SettingUint Timeout { get; set; } = new("timeout");
 
-        private string _strVelocity;
-        public string StrVelocity
-        {
-            get { return _strVelocity; }
-            set 
-            {
-                if(double.TryParse(value, out _))
-                {
-                    _velocity = Convert.ToDouble(value);
-                    _strVelocity = value;
-                    Properties.Settings.Default.velocity = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        private double _velocity;
-        public double Velocity
-        {
-            get { return _velocity; }
-            set
-            {
-                _velocity = value;
-                StrVelocity = value.ToString();
-                OnPropertyChanged();
-            }
-        }
 
-        private string _strTimeout;
-        public string StrTimeout
-        {
-            get { return _strTimeout; }
-            set
-            {
-                if(uint.TryParse(value, out _))
-                {
-                    _timeout = Convert.ToUInt32(value);
-                    _strTimeout = value;
-                    Properties.Settings.Default.timeout = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        private uint _timeout;
-        public uint Timeout
-        {
-            get { return _timeout; }
-            set
-            {
-                _timeout = value;
-                StrTimeout = value.ToString();
-                OnPropertyChanged();
-            }
-        }
 
         private string _strCycles;
         public string StrCycles
         {
             get { return _strCycles; }
-            set 
-            { 
-                if(uint.TryParse(value, out _))
+            set
+            {
+                if (uint.TryParse(value, out _))
                 {
                     _cycles = Convert.ToUInt32(value);
                     _strCycles = value;
@@ -138,8 +83,8 @@ namespace TwinCat_Motion_ADS
         public uint Cycles
         {
             get { return _cycles; }
-            set 
-            { 
+            set
+            {
                 _cycles = value;
                 StrCycles = value.ToString();
                 OnPropertyChanged();
@@ -179,7 +124,7 @@ namespace TwinCat_Motion_ADS
             get { return _strReversalVelocity; }
             set
             {
-                if(double.TryParse(value, out _))
+                if (double.TryParse(value, out _))
                 {
                     _reversalVelocity = Convert.ToDouble(value);
                     _strReversalVelocity = value;
@@ -193,12 +138,12 @@ namespace TwinCat_Motion_ADS
         {
             get { return _reversalVelocity; }
             set
-            { 
+            {
                 _reversalVelocity = value;
                 StrReversalVelocity = value.ToString();
                 OnPropertyChanged();
             }
-        }       
+        }
 
         private string _strReversalExtraTimeSeconds;
         public string StrReversalExtraTimeSeconds
@@ -206,7 +151,7 @@ namespace TwinCat_Motion_ADS
             get { return _strReversalExtraTimeSeconds; }
             set
             {
-                if(uint.TryParse(value, out _))
+                if (uint.TryParse(value, out _))
                 {
                     _reversalExtraTimeSeconds = Convert.ToUInt32(value);
                     _strReversalExtraTimeSeconds = value;
@@ -307,7 +252,7 @@ namespace TwinCat_Motion_ADS
                 OnPropertyChanged();
             }
         }
-        
+
         private string _strStepSize;
         public string StrStepSize
         {
@@ -389,35 +334,11 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        private string _strOvershootDistance;
-        public string StrOvershootDistance
-        {
-            get { return _strOvershootDistance; }
-            set
-            {
-                if (double.TryParse(value, out _))
-                {
-                    _overshootDistance = Convert.ToDouble(value);
-                    _strOvershootDistance = value;
-                    Properties.Settings.Default.overshootDistance = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        private double _overshootDistance;
-        public double OvershootDistance
-        {
-            get { return _overshootDistance; }
-            set
-            {
-                _overshootDistance = value;
-                StrOvershootDistance = value.ToString();
-                OnPropertyChanged();
-            }
-        }
+
+        public SettingDouble OvershootDistance = new("overshootDistance");
 
 
-
+        //modify this to XML
         public void ImportSettings(string ImportSettingsFile)
         {
             if (!File.Exists(ImportSettingsFile)) { return; }   //Check the selected file exists
@@ -427,13 +348,13 @@ namespace TwinCat_Motion_ADS
             string line = File.ReadLines(ImportSettingsFile).Skip(2).Take(1).First();
             int charStartIndex = line.IndexOf(": ") + 2;
             string valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
-            StrVelocity = valStr;
+            Velocity.UiVal = valStr;
 
             //Import timeout string
             line = File.ReadLines(ImportSettingsFile).Skip(3).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
-            StrTimeout = valStr;
+            Timeout.UiVal = valStr;
 
             //Import number of cycles string
             line = File.ReadLines(ImportSettingsFile).Skip(4).Take(1).First();
@@ -499,10 +420,140 @@ namespace TwinCat_Motion_ADS
             line = File.ReadLines(ImportSettingsFile).Skip(14).Take(1).First();
             charStartIndex = line.IndexOf(": ") + 2;
             valStr = line.Substring(charStartIndex, line.Length - charStartIndex);
-            StrOvershootDistance = valStr;
+            OvershootDistance.UiVal = valStr;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+    }
+
+    //Class to handle UI elements of setting elements of type string - not strictly necessary, more for standardisation of rest of code.
+    public class SettingString : INotifyPropertyChanged
+    {
+        PropertyDescriptor pd;
+        public event PropertyChangedEventHandler PropertyChanged;
+        private string _uiVal;
+        private string _val;
+
+        public SettingString(string settingName)
+        {
+            pd = TypeDescriptor.GetProperties(Properties.Settings.Default)[settingName];
+        }
+
+        public string UiVal
+        {
+            get { return _uiVal; }
+            set
+            {
+                _uiVal = value;
+                _val = value;
+                pd.SetValue(Properties.Settings.Default, value);
+                OnPropertyChanged();
+            }
+        }
+        public string Val
+        {
+            get { return _val; }
+            set
+            {
+                _val = value;
+                UiVal = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+    }
+
+    //Class to handle UI elements of setting elements of type double
+    public class SettingDouble : INotifyPropertyChanged
+    {
+        PropertyDescriptor pd;
+        public SettingDouble(string settingName)
+        {
+            pd = TypeDescriptor.GetProperties(Properties.Settings.Default)[settingName];
+        }
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private string _uiVal; //textSetting
+        public string UiVal
+        {
+            get { return _uiVal; }
+            set
+            {
+                if (double.TryParse(value,out _))
+                {
+                    _val = Convert.ToDouble(value);
+                    _uiVal = value;
+
+                    pd.SetValue(Properties.Settings.Default, value);
+                    OnPropertyChanged();
+                }
+            }
+        }
+        private double _val;
+        public double Val
+        {
+            get { return _val; }
+            set
+            {
+                _val = value;
+                UiVal = value.ToString();
+                OnPropertyChanged();
+            }
+        }
+
+    }
+    //Class to handle UI elements of setting elements of type Uint
+    public class SettingUint : INotifyPropertyChanged
+    {
+        PropertyDescriptor pd;
+        private string _uiVal; //User interface element
+        private uint _val;  //Logic element
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public SettingUint(string settingName)
+        {
+            pd = TypeDescriptor.GetProperties(Properties.Settings.Default)[settingName];
+        }
+                
+        public string UiVal
+        {
+            get { return _uiVal; }
+            set
+            {
+                if (uint.TryParse(value, out _))
+                {
+                    _val = Convert.ToUInt32(value);
+                    _uiVal = value;
+
+                    pd.SetValue(Properties.Settings.Default, value);
+                    OnPropertyChanged();
+                }
+            }
+        }      
+        public uint Val
+        {
+            get { return _val; }
+            set
+            {
+                _val = value;
+                UiVal = value.ToString();
+                OnPropertyChanged();
+            }
+        }
+
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
