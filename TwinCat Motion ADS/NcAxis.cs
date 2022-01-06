@@ -6,6 +6,7 @@ using System.Diagnostics;
 using CsvHelper;
 using System.IO;
 using System.Globalization;
+using System.Windows;
 
 namespace TwinCat_Motion_ADS
 {
@@ -416,6 +417,7 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("Command rejected");
                 return false;
             };
+
             //Start a task to check the FwEnabled bool that only returns when flag is hit (fwEnabled == false)
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckFwLimitTask(true,ct.Token);
@@ -486,7 +488,7 @@ namespace TwinCat_Motion_ADS
 
             if (await Task.WhenAny(waitingTask) == limitTask)
             {
-                Console.WriteLine("Lower limit hit");
+                Console.WriteLine("Low limit hit");
                 ct.Cancel();
                 return true;
             }
@@ -678,11 +680,16 @@ namespace TwinCat_Motion_ADS
 
 
 
-        /*
-         * 
-         * 
-         * Tests
-         */
+        /* 
+         *       _________    _______       ________       _________    ________      
+                |\___   ___\ |\  ___ \     |\   ____\     |\___   ___\ |\   ____\     
+                \|___ \  \_| \ \   __/|    \ \  \___|_    \|___ \  \_| \ \  \___|_    
+                     \ \  \   \ \  \_|/__   \ \_____  \        \ \  \   \ \_____  \   
+                      \ \  \   \ \  \_|\ \   \|____|\  \        \ \  \   \|____|\  \  
+                       \ \__\   \ \_______\    ____\_\  \        \ \__\    ____\_\  \ 
+                        \|__|    \|_______|   |\_________\        \|__|   |\_________\
+                                              \|_________|                \|_________|
+                                                                     */
 
 
         public async Task<bool> LimitToLimitTestwithReversingSequence(NcTestSettings testSettings, MeasurementDevices devices = null)
@@ -705,33 +712,13 @@ namespace TwinCat_Motion_ADS
             }
 
             var currentTime = DateTime.Now;
-            string newTitle = string.Format(@"{0:yyMMdd} {0:HH};{0:mm};{0:ss} Axis {1}~ " + testSettings.StrTestTitle, currentTime, AxisID);
+            string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.StrTestTitle, currentTime, AxisID);
             Console.WriteLine(newTitle);
             string settingFileFullPath = TestDirectory + @"\" + newTitle + ".settingsfile";
             string csvFileFullPath = TestDirectory + @"\" + newTitle + ".csv";
             SaveSettingsFile(testSettings, settingFileFullPath, "Limit to Limit Test");
 
-            var stream = File.Open(csvFileFullPath, FileMode.Append);
-            StreamWriter writer = new(stream);
-            CsvWriter csv = new(writer, CultureInfo.InvariantCulture);
-            using (stream)
-            using (writer)
-            using (csv)
-            {
-                csv.WriteHeader<End2endCSV>();
-                if (devices != null)    //populate CSV headers with device names
-                {
-                    foreach (var device in devices.MeasurementDeviceList)
-                    {
-                        if (device.Connected)
-                        {
-                            csv.WriteField(device.Name);
-                        }
-                    }
-
-                }
-                csv.NextRecord();
-            }
+            StartCSV(csvFileFullPath, devices);
 
             Stopwatch stopWatch = new(); //Create stopwatch for rough end to end timing
             testSettings.Velocity = Math.Abs(testSettings.Velocity);
@@ -742,16 +729,19 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
 
+            await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));
+
             CancellationTokenSource ctToken = new();
             CancellationTokenSource ptToken = new();
             Task<bool> cancelRequestTask = CheckCancellationRequestTask(ctToken.Token);
 
-
             //Start running test cycles
-            End2endCSV record1;
-            End2endCSV record2;
-            List<string> measurementsHigh = new();
-            List<string> measurementsLow = new();
+
+            stopWatch.Reset();
+            stopWatch.Start();  //Clear and start the stopwatch
+            
+
+
             for (int i = 1; i <= testSettings.Cycles; i++)
             {
                 Task<bool> pauseTaskRequest = CheckPauseRequestTask(ptToken.Token);
@@ -764,40 +754,23 @@ namespace TwinCat_Motion_ADS
                     Console.WriteLine("Test cancelled");
                     return false;
                 }
-
-                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds)); //inter-cycle delay wait
-
-                stopWatch.Reset();
-                stopWatch.Start();  //Clear and start the stopwatch
-
+                
                 if (await MoveToHighLimit(testSettings.Velocity, (int)testSettings.Timeout))
                 {
-                    stopWatch.Stop();
                     await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));//Allow axis to settle before reversal
                     if (await HighLimitReversal(testSettings.ReversalVelocity, (int)testSettings.Timeout, (int)testSettings.ReversalExtraTimeSeconds, (int)testSettings.ReversalSettleTimeSeconds))
                     {
 
-                        ///READ MEASUREMENT DEVICES///
-                        ///
-                        if (devices != null)    //If devices input, check for connected
+                        StandardCSVData tmpCSV = new StandardCSVData((uint)i, 0, "Moving to high limit", 0, AxisPosition);
+                        if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
                         {
-                            measurementsHigh.Clear();
-                            foreach(var device in devices.MeasurementDeviceList)
-                            {
-                                if (device.Connected)
-                                {
-                                    string measure = string.Empty;
-                                    measure = await device.GetMeasurement();
-                                    measurementsHigh.Add(measure);
-                                    Console.WriteLine(device.Name + ": " + measure);
-                                }
-                            }
-
+                            Console.WriteLine("Failed to write data to file, exiting test");
+                            stopWatch.Stop();
+                            ctToken.Cancel();
+                            ptToken.Cancel();
+                            return false;
                         }
-
-                        double tmpAxisPosition = AxisPosition;
-                        record1 = new End2endCSV(i, "Low limit to high limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition);
-                        Console.WriteLine("Cycle " + i + "- Low limit to high limit: " + stopWatch.ElapsedMilliseconds + "ms. High limit triggered at " + tmpAxisPosition);
+                        Console.WriteLine("Cycle " + i + "- Low limit to high limit: " + "ms. High limit triggered at " + AxisPosition);
                     }
                     else
                     {
@@ -816,38 +789,24 @@ namespace TwinCat_Motion_ADS
                     return false;
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds));
-                stopWatch.Reset();
-                stopWatch.Start();
+
                 if (await MoveToLowLimit(-testSettings.Velocity, (int)testSettings.Timeout))
                 {
-                    stopWatch.Stop();
+
                     await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds));//Allow axis to settle before reversal
                     if (await LowLimitReversal(testSettings.ReversalVelocity, (int)testSettings.Timeout, (int)testSettings.ReversalExtraTimeSeconds, (int)testSettings.ReversalSettleTimeSeconds))
                     {
-                        
-
-                        ///READ MEASUREMENT DEVICES///
-                        ///
-                        if (devices != null)    //If devices input, check for connected
+                        StandardCSVData tmpCSV = new StandardCSVData((uint)i, 0, "Moving to low limit", 0, AxisPosition);
+                        if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
                         {
-                            measurementsLow.Clear();
-                            foreach (var device in devices.MeasurementDeviceList)
-                            {
-                                if (device.Connected)
-                                {
-                                    string measure = string.Empty;
-                                    measure = await device.GetMeasurement();
-                                    measurementsLow.Add(measure);
-                                    Console.WriteLine(device.Name + ": " + measure);
-                                }
-                            }
+                            Console.WriteLine("Failed to write data to file, exiting test");
+                            stopWatch.Stop();
+                            ctToken.Cancel();
+                            ptToken.Cancel();
+                            return false;
                         }
-                        double tmpAxisPosition = AxisPosition;
-                        record2 = new End2endCSV(i, "High limit to low limit", stopWatch.ElapsedMilliseconds, tmpAxisPosition);
+                        Console.WriteLine("Cycle " + i + "- High limit to low limit: " + "ms. Low limit triggered at " + AxisPosition);
 
-                        Console.WriteLine("Cycle " + i + "- High limit to low limit: " + stopWatch.ElapsedMilliseconds + "ms. Low limit triggered at " + tmpAxisPosition);
-                        
                     }
                     else
                     {
@@ -865,23 +824,7 @@ namespace TwinCat_Motion_ADS
                     ptToken.Cancel();
                     return false;
                 }
-                using (stream = File.Open(csvFileFullPath, FileMode.Append))
-                using (writer = new StreamWriter(stream))
-                using (csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-                {
-                    csv.WriteRecord(record1);
-                    foreach(var m in measurementsHigh)
-                    {
-                        csv.WriteField(m);
-                    }
-                    csv.NextRecord();
-                    csv.WriteRecord(record2);
-                    foreach (var m in measurementsLow)
-                    {
-                        csv.WriteField(m);
-                    }
-                    csv.NextRecord();
-                }
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds)); //inter-cycle delay wait
             }
             ctToken.Cancel();
             return true;
@@ -1259,8 +1202,9 @@ namespace TwinCat_Motion_ADS
                         return false;
                     }
                     retryCounter += 1;
-                    Console.WriteLine("File not accesible. Press any key to retry...");
-                    Console.ReadLine();
+                    MessageBox.Show("File not accesible. Press OK to retry.\n"+ (3-retryCounter) + " attempt(s) remaining.");
+                    //Console.WriteLine("File not accesible. Press any key to retry...");
+                    //Console.ReadLine();
                 }
             }
 
