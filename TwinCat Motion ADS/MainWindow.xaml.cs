@@ -252,12 +252,6 @@ namespace TwinCat_Motion_ADS
                 TestSuiteWindow.Close();
             }
         }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            Console.WriteLine(NcAxisView.NcTestSettings.OvershootDistance.UiVal);
-            NcAxisView.NcTestSettings.OvershootDistance.Val += 5;
-        }
     }
 
     public class ListBoxStatusItem

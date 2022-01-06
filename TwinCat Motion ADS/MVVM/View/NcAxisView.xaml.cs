@@ -65,16 +65,16 @@ namespace TwinCat_Motion_ADS.MVVM.View
             XamlUI.TextboxBinding(testTitleTB, NcTestSettings.TestTitle, "UiVal", UpdateSourceTrigger.LostFocus);
 
             XamlUI.TextboxBinding(velocityTB, NcTestSettings.Velocity, "UiVal", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(cycleTB, NcTestSettings, "StrCycles", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(cycleDelayTB, NcTestSettings, "StrCycleDelaySeconds", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(revVelTB, NcTestSettings, "StrReversalVelocity", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(revExtraTB, NcTestSettings, "StrReversalExtraTimeSeconds", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(revSettleTB, NcTestSettings, "StrReversalSettleTimeSeconds", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(initSetpointTB, NcTestSettings, "StrInitialSetpoint", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(NumberOfStepsTB, NcTestSettings, "StrNumberOfSteps", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(stepSizeTB, NcTestSettings, "StrStepSize", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(settleTimeTB, NcTestSettings, "StrSettleTimeSeconds", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(revDistanceTB, NcTestSettings, "StrReversalDistance", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(cycleTB, NcTestSettings.Cycles, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(cycleDelayTB, NcTestSettings.CycleDelaySeconds, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(revVelTB, NcTestSettings.ReversalVelocity, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(revExtraTB, NcTestSettings.ReversalExtraTimeSeconds, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(revSettleTB, NcTestSettings.ReversalSettleTimeSeconds, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(initSetpointTB, NcTestSettings.InitialSetpoint, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(NumberOfStepsTB, NcTestSettings.NumberOfSteps, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(stepSizeTB, NcTestSettings.StepSize, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(settleTimeTB, NcTestSettings.SettleTimeSeconds, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(revDistanceTB, NcTestSettings.ReversalDistance, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(overshootDistanceTB, NcTestSettings.OvershootDistance, "UiVal", UpdateSourceTrigger.LostFocus);
         }
 
@@ -255,15 +255,15 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         
 
-        private void TestButton_Click(object sender, RoutedEventArgs e)
+        private void LoadSettingsFile_Click(object sender, RoutedEventArgs e)
         {
             VistaOpenFileDialog fbd = new();
-            fbd.Filter = "*.settingsfile|*.*";
+            fbd.Filter = "*.xml|*.XML*";
             string selectedFile;
             if (fbd.ShowDialog() == true)
             {
                 selectedFile = fbd.FileName;
-                NcTestSettings.ImportSettings(selectedFile);
+                NcTestSettings.ImportSettingsXML(selectedFile);
             }
             Console.WriteLine(selectedFolder);
             

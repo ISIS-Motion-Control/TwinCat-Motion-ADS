@@ -175,23 +175,18 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
             XamlUI.TextboxBinding(SettingTitle.SettingValue, testItems[TestList.SelectedIndex].TestSettings.TestTitle, "UiVal");
             XamlUI.TextboxBinding(SettingAxisNumber.SettingValue, testItems[TestList.SelectedIndex], "AxisID");
-
-            XamlUI.TextboxBinding(SettingCycles.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrCycles");
-            XamlUI.TextboxBinding(SettingCycleDelay.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrCycleDelaySeconds");
+            XamlUI.TextboxBinding(SettingCycles.SettingValue, testItems[TestList.SelectedIndex].TestSettings.Cycles, "UiVal");
+            XamlUI.TextboxBinding(SettingCycleDelay.SettingValue, testItems[TestList.SelectedIndex].TestSettings.CycleDelaySeconds, "UiVal");
             XamlUI.TextboxBinding(SettingVelocity.SettingValue, testItems[TestList.SelectedIndex].TestSettings.Velocity, "UiVal");
             XamlUI.TextboxBinding(SettingTimeout.SettingValue, testItems[TestList.SelectedIndex].TestSettings.Timeout, "UiVal");
-
-
-            XamlUI.TextboxBinding(SettingReversalVelocity.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrReversalVelocity");
-            XamlUI.TextboxBinding(SettingReversalExtraSeconds.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrReversalExtraTimeSeconds");
-            XamlUI.TextboxBinding(SettingReversalSettlingSeconds.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrReversalSettleTimeSeconds");
-
-            XamlUI.TextboxBinding(SettingInitialSetpoint.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrInitialSetpoint");
-            XamlUI.TextboxBinding(SettingAccuracySteps.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrNumberOfSteps");
-            XamlUI.TextboxBinding(SettingStepSize.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrStepSize");
-            XamlUI.TextboxBinding(SettingSettlingTime.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrSettleTimeSeconds");
-            XamlUI.TextboxBinding(SettingReversalDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrReversalDistance");
-
+            XamlUI.TextboxBinding(SettingReversalVelocity.SettingValue, testItems[TestList.SelectedIndex].TestSettings.ReversalVelocity, "UiVal");
+            XamlUI.TextboxBinding(SettingReversalExtraSeconds.SettingValue, testItems[TestList.SelectedIndex].TestSettings.ReversalExtraTimeSeconds, "UiVal");
+            XamlUI.TextboxBinding(SettingReversalSettlingSeconds.SettingValue, testItems[TestList.SelectedIndex].TestSettings.ReversalSettleTimeSeconds, "UiVal");
+            XamlUI.TextboxBinding(SettingInitialSetpoint.SettingValue, testItems[TestList.SelectedIndex].TestSettings.InitialSetpoint, "UiVal");
+            XamlUI.TextboxBinding(SettingAccuracySteps.SettingValue, testItems[TestList.SelectedIndex].TestSettings.NumberOfSteps, "UiVal");
+            XamlUI.TextboxBinding(SettingStepSize.SettingValue, testItems[TestList.SelectedIndex].TestSettings.StepSize, "UiVal");
+            XamlUI.TextboxBinding(SettingSettlingTime.SettingValue, testItems[TestList.SelectedIndex].TestSettings.SettleTimeSeconds, "UiVal");
+            XamlUI.TextboxBinding(SettingReversalDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings.ReversalDistance, "UiVal");
             XamlUI.TextboxBinding(SettingOvershootDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings.OvershootDistance, "UiVal");
 
             UpdateEnabledUIElements();
@@ -280,16 +275,16 @@ namespace TwinCat_Motion_ADS.MVVM.View
             CreateAndAppendXmlNode(parentNode, xmlDoc, "axisId", test.AxisID);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "velocity", test.TestSettings.Velocity.UiVal);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "timeout", test.TestSettings.Timeout.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "cycles", test.TestSettings.StrCycles);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "cycleDelaySeconds", test.TestSettings.StrCycleDelaySeconds);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalVelocity", test.TestSettings.StrReversalVelocity);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalExtraTime", test.TestSettings.StrReversalExtraTimeSeconds);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalSettleTime", test.TestSettings.StrReversalSettleTimeSeconds);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "initialSetpoint", test.TestSettings.StrInitialSetpoint);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "numberOfSteps", test.TestSettings.StrNumberOfSteps);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "stepSize", test.TestSettings.StrStepSize);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "settleTime", test.TestSettings.StrSettleTimeSeconds);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalDistance", test.TestSettings.StrReversalDistance);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "cycles", test.TestSettings.Cycles.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "cycleDelaySeconds", test.TestSettings.CycleDelaySeconds.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalVelocity", test.TestSettings.ReversalVelocity.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalExtraTime", test.TestSettings.ReversalExtraTimeSeconds.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalSettleTime", test.TestSettings.ReversalSettleTimeSeconds.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "initialSetpoint", test.TestSettings.InitialSetpoint.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "numberOfSteps", test.TestSettings.NumberOfSteps.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "stepSize", test.TestSettings.StepSize.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "settleTime", test.TestSettings.SettleTimeSeconds.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalDistance", test.TestSettings.ReversalDistance.UiVal);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "overshootDistance", test.TestSettings.OvershootDistance.UiVal);
         }
 
@@ -352,25 +347,29 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 }
 
                 //Import all the settings
-                testItems[testCounter].TestSettings.TestTitle.UiVal = test.SelectSingleNode("testTitle").InnerText;
-                testItems[testCounter].AxisID = test.SelectSingleNode("axisId").InnerText;
-                testItems[testCounter].TestSettings.Velocity.UiVal = test.SelectSingleNode("velocity").InnerText;
-                testItems[testCounter].TestSettings.Timeout.UiVal = test.SelectSingleNode("timeout").InnerText;
-                testItems[testCounter].TestSettings.StrCycles = test.SelectSingleNode("cycles").InnerText;
-                testItems[testCounter].TestSettings.StrCycleDelaySeconds = test.SelectSingleNode("cycleDelaySeconds").InnerText;
-                testItems[testCounter].TestSettings.StrReversalVelocity = test.SelectSingleNode("reversalVelocity").InnerText;
-                testItems[testCounter].TestSettings.StrReversalExtraTimeSeconds = test.SelectSingleNode("reversalExtraTime").InnerText;
-                testItems[testCounter].TestSettings.StrReversalSettleTimeSeconds = test.SelectSingleNode("reversalSettleTime").InnerText;
-                testItems[testCounter].TestSettings.StrInitialSetpoint = test.SelectSingleNode("initialSetpoint").InnerText;
-                testItems[testCounter].TestSettings.StrNumberOfSteps = test.SelectSingleNode("numberOfSteps").InnerText;
-                testItems[testCounter].TestSettings.StrStepSize = test.SelectSingleNode("stepSize").InnerText;
-                testItems[testCounter].TestSettings.StrSettleTimeSeconds = test.SelectSingleNode("settleTime").InnerText;
-                testItems[testCounter].TestSettings.StrReversalDistance = test.SelectSingleNode("reversalDistance").InnerText;
-                testItems[testCounter].TestSettings.OvershootDistance.UiVal = test.SelectSingleNode("overshootDistance").InnerText;
+                ImportSingleTestSettings(testItems[testCounter], test);
                 
                 //increment the list counter
                 testCounter++;
             }
+        }
+         public static void ImportSingleTestSettings(TestListItem tli, XmlNode testNode)
+        {
+            tli.TestSettings.TestTitle.UiVal = testNode.SelectSingleNode("testTitle").InnerText;
+            tli.AxisID = testNode.SelectSingleNode("axisId").InnerText;
+            tli.TestSettings.Velocity.UiVal = testNode.SelectSingleNode("velocity").InnerText;
+            tli.TestSettings.Timeout.UiVal = testNode.SelectSingleNode("timeout").InnerText;
+            tli.TestSettings.Cycles.UiVal = testNode.SelectSingleNode("cycles").InnerText;
+            tli.TestSettings.CycleDelaySeconds.UiVal = testNode.SelectSingleNode("cycleDelaySeconds").InnerText;
+            tli.TestSettings.ReversalVelocity.UiVal = testNode.SelectSingleNode("reversalVelocity").InnerText;
+            tli.TestSettings.ReversalExtraTimeSeconds.UiVal = testNode.SelectSingleNode("reversalExtraTime").InnerText;
+            tli.TestSettings.ReversalSettleTimeSeconds.UiVal = testNode.SelectSingleNode("reversalSettleTime").InnerText;
+            tli.TestSettings.InitialSetpoint.UiVal = testNode.SelectSingleNode("initialSetpoint").InnerText;
+            tli.TestSettings.NumberOfSteps.UiVal = testNode.SelectSingleNode("numberOfSteps").InnerText;
+            tli.TestSettings.StepSize.UiVal = testNode.SelectSingleNode("stepSize").InnerText;
+            tli.TestSettings.SettleTimeSeconds.UiVal = testNode.SelectSingleNode("settleTime").InnerText;
+            tli.TestSettings.ReversalDistance.UiVal = testNode.SelectSingleNode("reversalDistance").InnerText;
+            tli.TestSettings.OvershootDistance.UiVal = testNode.SelectSingleNode("overshootDistance").InnerText;
         }
 
         private async void RunTestButton_Click(object sender, RoutedEventArgs e)
