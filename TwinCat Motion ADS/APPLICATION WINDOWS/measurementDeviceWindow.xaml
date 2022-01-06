@@ -13,7 +13,7 @@
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
             <TextBlock Text="Device Type:" HorizontalAlignment="Right" VerticalAlignment="Center" Width="100" TextAlignment="Right"/>
-            <ComboBox Name="DeviceType" Margin="10,0,0,0" Width="150" Height="20" DropDownClosed="DeviceType_DropDownClosed">
+            <ComboBox x:Name="DeviceTypeComboBox" Margin="10,0,0,0" Width="150" Height="20" DropDownClosed="DeviceType_DropDownClosed">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">

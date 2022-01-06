@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"       
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
-        Title="IBEX Lite" WindowState="Maximized" Icon="/ibexHead.jpg" WindowStartupLocation="CenterScreen"
+        Title="IBEX Lite" WindowState="Maximized" Icon="ImageAssets/ibexHead.jpg" WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
         Width="1920"
         Height="1000"
