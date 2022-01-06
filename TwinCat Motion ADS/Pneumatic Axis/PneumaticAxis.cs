@@ -17,7 +17,6 @@ namespace TwinCat_Motion_ADS
         private readonly uint bExtendedLimit_Handle;
         private readonly uint bRetractedLimit_Handle;
 
-
         private bool _extendedLimit;
         public bool ExtendedLimit
         {
@@ -209,7 +208,7 @@ namespace TwinCat_Motion_ADS
             Stopwatch testStopwatch = new();
             testStopwatch.Start();
             //Start the test retracted
-            if (await RetractCylinderAndWait(ts.RetractTimeout) == false)
+            if (await RetractCylinderAndWait(ts.RetractTimeout.Val) == false)
             {
                 Console.WriteLine("TEST STATUS: Retract init failed");
                 testStopwatch.Stop();
@@ -256,7 +255,7 @@ namespace TwinCat_Motion_ADS
             CancellationTokenSource ptToken = new();
             Task<bool> cancelRequestTask = CheckCancellationRequestTask(ctToken.Token);
 
-            for (int i = 0; i < ts.Cycles; i++)
+            for (int i = 0; i < ts.Cycles.Val; i++)
             {
                 measurements.Clear();
                 cycleMeasurements.Clear();
@@ -276,9 +275,9 @@ namespace TwinCat_Motion_ADS
                 stopwatch.Reset();
 
                 //Wait the allotted delay time
-                await Task.Delay(TimeSpan.FromSeconds(ts.DelayAfterRetract));
+                await Task.Delay(TimeSpan.FromSeconds(ts.DelayAfterRetract.Val));
                 stopwatch.Start();
-                if (await ExtendCylinderAndWait(ts.ExtendTimeout) == false)
+                if (await ExtendCylinderAndWait(ts.ExtendTimeout.Val) == false)
                 {
                     Console.WriteLine("TEST STATUS: Extension failed");
                     stopwatch.Stop();
@@ -286,7 +285,7 @@ namespace TwinCat_Motion_ADS
                     return false;
                 }
                 stopwatch.Stop();
-                for (int j = 0; j < ts.SettlingReads; j++)
+                for (int j = 0; j < ts.SettlingReads.Val; j++)
                 {
                     //do a read of DTIs (both should be in extend position)
                     //These will not be highly synchronised reads, very low "read rate".
@@ -312,17 +311,17 @@ namespace TwinCat_Motion_ADS
                         }
                     }
                     
-                    await Task.Delay((int)ts.ReadDelayMs);
+                    await Task.Delay((int)ts.ReadDelayMs.Val);
                     //log a record
                     recordList.Add(new PneumaticEnd2EndCSVv2((uint)i, (uint)j, "Extending", ExtendedLimit, RetractedLimit, stopwatch.Elapsed));
                     cycleMeasurements.Add(measurements);
                 }
                 //Settling reads finished
                 //User delay before retracting cylinder
-                await Task.Delay(TimeSpan.FromSeconds(ts.DelayAfterExtend));
+                await Task.Delay(TimeSpan.FromSeconds(ts.DelayAfterExtend.Val));
                 stopwatch.Reset();
                 stopwatch.Start();
-                if (await RetractCylinderAndWait(ts.RetractTimeout) == false)
+                if (await RetractCylinderAndWait(ts.RetractTimeout.Val) == false)
                 {
                     Console.WriteLine("TEST STATUS: Retraction failed");
                     stopwatch.Stop();
@@ -405,22 +404,5 @@ namespace TwinCat_Motion_ADS
             RetractedLimit = false;
             return;
         }
-
-
-        private bool ValidCommand() //always going to check if PLC is valid or not
-        {
-            if (!Plc.IsStateRun())
-            {
-                Console.WriteLine("Incorrect PLC configuration");
-                Valid = false;
-                return false;
-            }
-            //check some motion parameters???
-
-            Valid = true;
-            return true;
-        }
-
-
     }
 }

@@ -32,9 +32,9 @@ namespace TwinCat_Motion_ADS
             MeasurementDeviceList.Clear();
         }
 
-        public void AddDevice(string deviceType)
+        public void AddDevice(DeviceTypes dType = DeviceTypes.NoneSelected)
         {
-            MeasurementDevice newDevice = new MeasurementDevice(deviceType);
+            MeasurementDevice newDevice = new MeasurementDevice(dType);
             MeasurementDeviceList.Add(newDevice);
         }
 
@@ -59,7 +59,7 @@ namespace TwinCat_Motion_ADS
             {
                 if(MeasurementDeviceList[i].Connected)
                 {
-                    measurementString += "Device " + i + ":" + MeasurementDeviceList[i].DeviceTypeString + ": " + MeasurementDeviceList[i].GetMeasurement() + " ";
+                    measurementString += "Device " + i + ":" + MeasurementDeviceList[i].DeviceType.GetStringValue() + ": " + MeasurementDeviceList[i].GetMeasurement() + " ";
                 }
             }
             return measurementString;
@@ -76,13 +76,15 @@ namespace TwinCat_Motion_ADS
             foreach(XmlNode device in devices)  //for every device in the measurement devices
             {
 
-                string DeviceType = device.SelectSingleNode("DeviceType").InnerText;
-                AddDevice(DeviceType);
+                string DeviceTypeXml = device.SelectSingleNode("DeviceType").InnerText;
+                DeviceTypes importedType;
+                Enum.TryParse(DeviceTypeXml, out importedType);
+                AddDevice(importedType);
                 MeasurementDeviceList[deviceCounter].Name = device.SelectSingleNode("Name").InnerText;
                 
-                switch(DeviceType)
+                switch(importedType)
                 {
-                    case "DigimaticIndicator":
+                    case DeviceTypes.DigimaticIndicator:
                         Console.WriteLine("Importing DigimaticIndicator");
                         //Comm port
                         MeasurementDeviceList[deviceCounter].PortName = device.SelectSingleNode("Port").InnerText;
@@ -90,7 +92,7 @@ namespace TwinCat_Motion_ADS
                         MeasurementDeviceList[deviceCounter].UpdateBaudRate(device.SelectSingleNode("BaudRate").InnerText);
                         break;
 
-                    case "KeyenceTM3000":
+                    case DeviceTypes.KeyenceTM3000:
                         Console.WriteLine("Importing KeyenceTm3000");
                         //Comm port
                         MeasurementDeviceList[deviceCounter].PortName = device.SelectSingleNode("Port").InnerText;
@@ -121,7 +123,7 @@ namespace TwinCat_Motion_ADS
                         }
                         break;
 
-                    case "Beckhoff":
+                    case DeviceTypes.Beckhoff:
                         Console.WriteLine("Importing Beckhoff");
                         //AMS Net ID
                         MeasurementDeviceList[deviceCounter].AmsNetId = device.SelectSingleNode("AmsNetID").InnerText;
@@ -166,13 +168,13 @@ namespace TwinCat_Motion_ADS
                         }
                         break;
 
-                    case "MotionChannel":
+                    case DeviceTypes.MotionChannel:
                         Console.WriteLine("Importing Motion Channel");
                         MeasurementDeviceList[deviceCounter].motionChannel.VariableType = device.SelectSingleNode("VariableType").InnerText;
                         MeasurementDeviceList[deviceCounter].motionChannel.VariableString = device.SelectSingleNode("VariablePath").InnerText;
                         break;
 
-                    case "Timestamp":
+                    case DeviceTypes.Timestamp:
                         break;
 
                     default:
@@ -203,15 +205,15 @@ namespace TwinCat_Motion_ADS
                 
                 //Common setup to all types
                 nameNode.InnerText = md.Name;
-                deviceTypeNode.InnerText = md.DeviceTypeString;
+                deviceTypeNode.InnerText = md.DeviceType.GetStringValue();
                 deviceNode.AppendChild(nameNode);
                 deviceNode.AppendChild(deviceTypeNode);
                 rootNode.AppendChild(deviceNode);
 
                 //Unique settings
-                switch(md.DeviceTypeString)
+                switch(md.DeviceType)
                 {
-                    case "DigimaticIndicator":
+                    case DeviceTypes.DigimaticIndicator:
                         XmlNode commNode = xmlDoc.CreateElement("Port");
                         commNode.InnerText = md.PortName;
                         XmlNode baudNode = xmlDoc.CreateElement("BaudRate");
@@ -220,7 +222,7 @@ namespace TwinCat_Motion_ADS
                         deviceNode.AppendChild(baudNode);
                         break;
 
-                    case "KeyenceTM3000":
+                    case DeviceTypes.KeyenceTM3000:
                         commNode = xmlDoc.CreateElement("Port");
                         commNode.InnerText = md.PortName;
                         baudNode = xmlDoc.CreateElement("BaudRate");
@@ -242,7 +244,7 @@ namespace TwinCat_Motion_ADS
                         }
                         break;
 
-                    case "Beckhoff":
+                    case DeviceTypes.Beckhoff:
                         XmlNode amsNode = xmlDoc.CreateElement("AmsNetID");
                         amsNode.InnerText = md.AmsNetId;
                         deviceNode.AppendChild(amsNode);
@@ -267,7 +269,7 @@ namespace TwinCat_Motion_ADS
                         }
                         break;
 
-                    case "MotionChannel":
+                    case DeviceTypes.MotionChannel:
                         XmlNode varTypeNode = xmlDoc.CreateElement("VariableType");
                         XmlNode varPathNode = xmlDoc.CreateElement("VariablePath");
                         varTypeNode.InnerText = md.motionChannel.VariableType;
@@ -276,7 +278,7 @@ namespace TwinCat_Motion_ADS
                         deviceNode.AppendChild(varPathNode);
                         break;
 
-                    case "Timestamp":
+                    case DeviceTypes.Timestamp:
                         //No settings to export
                         break;
 
@@ -284,14 +286,6 @@ namespace TwinCat_Motion_ADS
 
 
             }
-
-            
-            
-
-            
-            
-
-
             xmlDoc.Save(selectedFile);
         }
 

@@ -4,20 +4,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Xml;
 
-namespace TwinCat_Motion_ADS.MVVM.View
+namespace TwinCat_Motion_ADS
 {
     /// <summary>
     /// Interaction logic for TestSuite.xaml
@@ -37,7 +30,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
             TestList.ItemsSource = testItems;
             statusList.ItemsSource = statusListItems;
-            SettingTestType.ItemsSource = Enum.GetValues(typeof(TestType)).Cast<TestType>();
+            SettingTestType.ItemsSource = Enum.GetValues(typeof(TestTypes)).Cast<TestTypes>();
 
             UpdateEnabledUIElements();
         }
@@ -81,7 +74,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
             if(TestList.SelectedIndex != -1)
             {
-                if(testItems[TestList.SelectedIndex].TestType == TestType.NoneSelected || testItems[TestList.SelectedIndex].TestType == TestType.UserPrompt)
+                if(testItems[TestList.SelectedIndex].TestType == TestTypes.NoneSelected || testItems[TestList.SelectedIndex].TestType == TestTypes.UserPrompt)
                 {
                     enableFlag = false;
                 }
@@ -99,7 +92,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
             if (TestList.SelectedIndex != -1)
             {
-                if (testItems[TestList.SelectedIndex].TestType == TestType.EndToEnd)
+                if (testItems[TestList.SelectedIndex].TestType == TestTypes.EndToEnd)
                 {
                     enableFlag = true;
                 }
@@ -115,7 +108,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
             if (TestList.SelectedIndex != -1)
             {
-                if (testItems[TestList.SelectedIndex].TestType == TestType.UnidirectionalAccuracy || testItems[TestList.SelectedIndex].TestType == TestType.BidirectionalAccuracy)
+                if (testItems[TestList.SelectedIndex].TestType == TestTypes.UnidirectionalAccuracy || testItems[TestList.SelectedIndex].TestType == TestTypes.BidirectionalAccuracy)
                 {
                     enableFlag = true;
                 }
@@ -133,7 +126,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
             if (TestList.SelectedIndex != -1)
             {
-                if (testItems[TestList.SelectedIndex].TestType == TestType.BidirectionalAccuracy)
+                if (testItems[TestList.SelectedIndex].TestType == TestTypes.BidirectionalAccuracy)
                 {
                     enableFlag = true;
                 }
@@ -154,45 +147,23 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 UpdateEnabledUIElements();
                 return;
             }
-            switch (testItems[TestList.SelectedIndex].TestType)
-            {
-                case TestType.NoneSelected:
-                    SettingTestType.SelectedItem = TestType.NoneSelected;
-                    break;
-                case TestType.UserPrompt:
-                    SettingTestType.SelectedItem = TestType.UserPrompt;
-                    break;
-                case TestType.EndToEnd:
-                    SettingTestType.SelectedItem = TestType.EndToEnd;
-                    break;
-                case TestType.UnidirectionalAccuracy:
-                    SettingTestType.SelectedItem = TestType.UnidirectionalAccuracy;
-                    break;
-                case TestType.BidirectionalAccuracy:
-                    SettingTestType.SelectedItem = TestType.BidirectionalAccuracy;
-                    break;
-            }
+            SettingTestType.SelectedItem = testItems[TestList.SelectedIndex].TestType;
 
-            XamlUI.TextboxBinding(SettingTitle.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrTestTitle");
+            XamlUI.TextboxBinding(SettingTitle.SettingValue, testItems[TestList.SelectedIndex].TestSettings.TestTitle, "UiVal");
             XamlUI.TextboxBinding(SettingAxisNumber.SettingValue, testItems[TestList.SelectedIndex], "AxisID");
-
-            XamlUI.TextboxBinding(SettingCycles.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrCycles");
-            XamlUI.TextboxBinding(SettingCycleDelay.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrCycleDelaySeconds");
-            XamlUI.TextboxBinding(SettingVelocity.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrVelocity");
-            XamlUI.TextboxBinding(SettingTimeout.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrTimeout");
-
-
-            XamlUI.TextboxBinding(SettingReversalVelocity.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrReversalVelocity");
-            XamlUI.TextboxBinding(SettingReversalExtraSeconds.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrReversalExtraTimeSeconds");
-            XamlUI.TextboxBinding(SettingReversalSettlingSeconds.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrReversalSettleTimeSeconds");
-
-            XamlUI.TextboxBinding(SettingInitialSetpoint.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrInitialSetpoint");
-            XamlUI.TextboxBinding(SettingAccuracySteps.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrNumberOfSteps");
-            XamlUI.TextboxBinding(SettingStepSize.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrStepSize");
-            XamlUI.TextboxBinding(SettingSettlingTime.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrSettleTimeSeconds");
-            XamlUI.TextboxBinding(SettingReversalDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrReversalDistance");
-
-            XamlUI.TextboxBinding(SettingOvershootDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings, "StrOvershootDistance");
+            XamlUI.TextboxBinding(SettingCycles.SettingValue, testItems[TestList.SelectedIndex].TestSettings.Cycles, "UiVal");
+            XamlUI.TextboxBinding(SettingCycleDelay.SettingValue, testItems[TestList.SelectedIndex].TestSettings.CycleDelaySeconds, "UiVal");
+            XamlUI.TextboxBinding(SettingVelocity.SettingValue, testItems[TestList.SelectedIndex].TestSettings.Velocity, "UiVal");
+            XamlUI.TextboxBinding(SettingTimeout.SettingValue, testItems[TestList.SelectedIndex].TestSettings.Timeout, "UiVal");
+            XamlUI.TextboxBinding(SettingReversalVelocity.SettingValue, testItems[TestList.SelectedIndex].TestSettings.ReversalVelocity, "UiVal");
+            XamlUI.TextboxBinding(SettingReversalExtraSeconds.SettingValue, testItems[TestList.SelectedIndex].TestSettings.ReversalExtraTimeSeconds, "UiVal");
+            XamlUI.TextboxBinding(SettingReversalSettlingSeconds.SettingValue, testItems[TestList.SelectedIndex].TestSettings.ReversalSettleTimeSeconds, "UiVal");
+            XamlUI.TextboxBinding(SettingInitialSetpoint.SettingValue, testItems[TestList.SelectedIndex].TestSettings.InitialSetpoint, "UiVal");
+            XamlUI.TextboxBinding(SettingAccuracySteps.SettingValue, testItems[TestList.SelectedIndex].TestSettings.NumberOfSteps, "UiVal");
+            XamlUI.TextboxBinding(SettingStepSize.SettingValue, testItems[TestList.SelectedIndex].TestSettings.StepSize, "UiVal");
+            XamlUI.TextboxBinding(SettingSettlingTime.SettingValue, testItems[TestList.SelectedIndex].TestSettings.SettleTimeSeconds, "UiVal");
+            XamlUI.TextboxBinding(SettingReversalDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings.ReversalDistance, "UiVal");
+            XamlUI.TextboxBinding(SettingOvershootDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings.OvershootDistance, "UiVal");
 
             UpdateEnabledUIElements();
         }
@@ -200,7 +171,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
         private void SettingTestType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             //Update testItem Test type from combo box
-            testItems[TestList.SelectedIndex].TestType = (TestType)SettingTestType.SelectedItem;
+            testItems[TestList.SelectedIndex].TestType = (TestTypes)SettingTestType.SelectedItem;
             UpdateEnabledUIElements();
         }
 
@@ -234,7 +205,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
         private void DeleteTestButton_Click(object sender, RoutedEventArgs e)
         {
             if (TestList.SelectedIndex == -1) return;
-            MessageBoxResult result = MessageBox.Show("Are you sure you want to delete selected item: " + testItems[TestList.SelectedIndex].TestSettings.StrTestTitle,"Confirm deletion",MessageBoxButton.YesNo);
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to delete selected item: " + testItems[TestList.SelectedIndex].TestSettings.TestTitle.UiVal,"Confirm deletion",MessageBoxButton.YesNo);
             
             if (result == MessageBoxResult.Yes)
             {
@@ -275,22 +246,22 @@ namespace TwinCat_Motion_ADS.MVVM.View
 
         public static void AddFields(XmlDocument xmlDoc, TestListItem test, XmlNode parentNode)
         {
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "testType", test.TestType.ToString());
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "testTitle", test.TestSettings.StrTestTitle);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "testType", test.TestType.GetStringValue());
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "testTitle", test.TestSettings.TestTitle.UiVal);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "axisId", test.AxisID);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "velocity", test.TestSettings.StrVelocity);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "timeout", test.TestSettings.StrTimeout);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "cycles", test.TestSettings.StrCycles);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "cycleDelaySeconds", test.TestSettings.StrCycleDelaySeconds);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalVelocity", test.TestSettings.StrReversalVelocity);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalExtraTime", test.TestSettings.StrReversalExtraTimeSeconds);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalSettleTime", test.TestSettings.StrReversalSettleTimeSeconds);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "initialSetpoint", test.TestSettings.StrInitialSetpoint);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "numberOfSteps", test.TestSettings.StrNumberOfSteps);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "stepSize", test.TestSettings.StrStepSize);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "settleTime", test.TestSettings.StrSettleTimeSeconds);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalDistance", test.TestSettings.StrReversalDistance);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "overshootDistance", test.TestSettings.StrOvershootDistance);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "velocity", test.TestSettings.Velocity.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "timeout", test.TestSettings.Timeout.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "cycles", test.TestSettings.Cycles.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "cycleDelaySeconds", test.TestSettings.CycleDelaySeconds.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalVelocity", test.TestSettings.ReversalVelocity.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalExtraTime", test.TestSettings.ReversalExtraTimeSeconds.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalSettleTime", test.TestSettings.ReversalSettleTimeSeconds.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "initialSetpoint", test.TestSettings.InitialSetpoint.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "numberOfSteps", test.TestSettings.NumberOfSteps.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "stepSize", test.TestSettings.StepSize.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "settleTime", test.TestSettings.SettleTimeSeconds.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalDistance", test.TestSettings.ReversalDistance.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "overshootDistance", test.TestSettings.OvershootDistance.UiVal);
         }
 
         public static void CreateAndAppendXmlNode(XmlNode parentNode, XmlDocument doc, string ndName, string ndValue)
@@ -330,47 +301,54 @@ namespace TwinCat_Motion_ADS.MVVM.View
             {
                 
                 testItems.Add(new("1"));    //temp axis ID
+                TestTypes importedType;
+                string testTypeXml = test.SelectSingleNode("testType").InnerText;
+                Enum.TryParse(testTypeXml, out importedType);
 
                 //Select the test type
-                switch(test.SelectSingleNode("testType").InnerText)
+                switch(importedType)
                 {
-                    case "EndToEnd":
-                        testItems[testCounter].TestType = TestType.EndToEnd;
+                    case TestTypes.EndToEnd:
+                        testItems[testCounter].TestType = TestTypes.EndToEnd;
                         break;
-                    case "UnidirectionalAccuracy":
-                        testItems[testCounter].TestType = TestType.UnidirectionalAccuracy;
+                    case TestTypes.UnidirectionalAccuracy:
+                        testItems[testCounter].TestType = TestTypes.UnidirectionalAccuracy;
                         break;
-                    case "BidirectionalAccuracy":
-                        testItems[testCounter].TestType = TestType.BidirectionalAccuracy;
+                    case TestTypes.BidirectionalAccuracy:
+                        testItems[testCounter].TestType = TestTypes.BidirectionalAccuracy;
                         break;
-                    case "UserPrompt":
-                        testItems[testCounter].TestType = TestType.UserPrompt;
+                    case TestTypes.UserPrompt:
+                        testItems[testCounter].TestType = TestTypes.UserPrompt;
                         break;
                     default:
-                        testItems[testCounter].TestType = TestType.NoneSelected;
+                        testItems[testCounter].TestType = TestTypes.NoneSelected;
                         break;
                 }
 
                 //Import all the settings
-                testItems[testCounter].TestSettings.StrTestTitle = test.SelectSingleNode("testTitle").InnerText;
-                testItems[testCounter].AxisID = test.SelectSingleNode("axisId").InnerText;
-                testItems[testCounter].TestSettings.StrVelocity = test.SelectSingleNode("velocity").InnerText;
-                testItems[testCounter].TestSettings.StrTimeout = test.SelectSingleNode("timeout").InnerText;
-                testItems[testCounter].TestSettings.StrCycles = test.SelectSingleNode("cycles").InnerText;
-                testItems[testCounter].TestSettings.StrCycleDelaySeconds = test.SelectSingleNode("cycleDelaySeconds").InnerText;
-                testItems[testCounter].TestSettings.StrReversalVelocity = test.SelectSingleNode("reversalVelocity").InnerText;
-                testItems[testCounter].TestSettings.StrReversalExtraTimeSeconds = test.SelectSingleNode("reversalExtraTime").InnerText;
-                testItems[testCounter].TestSettings.StrReversalSettleTimeSeconds = test.SelectSingleNode("reversalSettleTime").InnerText;
-                testItems[testCounter].TestSettings.StrInitialSetpoint = test.SelectSingleNode("initialSetpoint").InnerText;
-                testItems[testCounter].TestSettings.StrNumberOfSteps = test.SelectSingleNode("numberOfSteps").InnerText;
-                testItems[testCounter].TestSettings.StrStepSize = test.SelectSingleNode("stepSize").InnerText;
-                testItems[testCounter].TestSettings.StrSettleTimeSeconds = test.SelectSingleNode("settleTime").InnerText;
-                testItems[testCounter].TestSettings.StrReversalDistance = test.SelectSingleNode("reversalDistance").InnerText;
-                testItems[testCounter].TestSettings.StrOvershootDistance = test.SelectSingleNode("overshootDistance").InnerText;
+                ImportSingleTestSettings(testItems[testCounter], test);
                 
                 //increment the list counter
                 testCounter++;
             }
+        }
+         public static void ImportSingleTestSettings(TestListItem tli, XmlNode testNode)
+        {
+            tli.TestSettings.TestTitle.UiVal = testNode.SelectSingleNode("testTitle").InnerText;
+            tli.AxisID = testNode.SelectSingleNode("axisId").InnerText;
+            tli.TestSettings.Velocity.UiVal = testNode.SelectSingleNode("velocity").InnerText;
+            tli.TestSettings.Timeout.UiVal = testNode.SelectSingleNode("timeout").InnerText;
+            tli.TestSettings.Cycles.UiVal = testNode.SelectSingleNode("cycles").InnerText;
+            tli.TestSettings.CycleDelaySeconds.UiVal = testNode.SelectSingleNode("cycleDelaySeconds").InnerText;
+            tli.TestSettings.ReversalVelocity.UiVal = testNode.SelectSingleNode("reversalVelocity").InnerText;
+            tli.TestSettings.ReversalExtraTimeSeconds.UiVal = testNode.SelectSingleNode("reversalExtraTime").InnerText;
+            tli.TestSettings.ReversalSettleTimeSeconds.UiVal = testNode.SelectSingleNode("reversalSettleTime").InnerText;
+            tli.TestSettings.InitialSetpoint.UiVal = testNode.SelectSingleNode("initialSetpoint").InnerText;
+            tli.TestSettings.NumberOfSteps.UiVal = testNode.SelectSingleNode("numberOfSteps").InnerText;
+            tli.TestSettings.StepSize.UiVal = testNode.SelectSingleNode("stepSize").InnerText;
+            tli.TestSettings.SettleTimeSeconds.UiVal = testNode.SelectSingleNode("settleTime").InnerText;
+            tli.TestSettings.ReversalDistance.UiVal = testNode.SelectSingleNode("reversalDistance").InnerText;
+            tli.TestSettings.OvershootDistance.UiVal = testNode.SelectSingleNode("overshootDistance").InnerText;
         }
 
         private async void RunTestButton_Click(object sender, RoutedEventArgs e)
@@ -389,7 +367,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
             foreach(TestListItem test in testItems)
             {
                 
-                statusListItems.Add("Running test " + testCounter + ": " + test.TestSettings.StrTestTitle);
+                statusListItems.Add("Running test " + testCounter + ": " + test.TestSettings.TestTitle.UiVal);
                 //foreach test we initialise the axis, pass the settings, pass the measurement devices
 
                 //Update axis ID
@@ -397,7 +375,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                 bool testResult;
                 switch (test.TestType)
                 {
-                    case TestType.EndToEnd:
+                    case TestTypes.EndToEnd:
                         testResult = await NcAxis.LimitToLimitTestwithReversingSequence(test.TestSettings, wd.MeasurementDevices);
                         if(testResult)
                         {
@@ -408,7 +386,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                             statusListItems.Add("Failed");
                         }
                         break;
-                    case TestType.UnidirectionalAccuracy:
+                    case TestTypes.UnidirectionalAccuracy:
                         testResult = await NcAxis.UniDirectionalAccuracyTest(test.TestSettings, wd.MeasurementDevices);
                         if (testResult)
                         {
@@ -419,7 +397,7 @@ namespace TwinCat_Motion_ADS.MVVM.View
                             statusListItems.Add("Failed");
                         }
                         break;
-                    case TestType.BidirectionalAccuracy:
+                    case TestTypes.BidirectionalAccuracy:
                         testResult = await NcAxis.BiDirectionalAccuracyTest(test.TestSettings, wd.MeasurementDevices);
                         if (testResult)
                         {
@@ -430,8 +408,8 @@ namespace TwinCat_Motion_ADS.MVVM.View
                             statusListItems.Add("Failed");
                         }
                         break;
-                    case TestType.UserPrompt:
-                        MessageBoxResult result = MessageBox.Show(test.TestSettings.StrTestTitle + "\nSelect 'cancel' to exit test sequence.", "User breakpoint", MessageBoxButton.OKCancel);
+                    case TestTypes.UserPrompt:
+                        MessageBoxResult result = MessageBox.Show(test.TestSettings.TestTitle.UiVal + "\nSelect 'cancel' to exit test sequence.", "User breakpoint", MessageBoxButton.OKCancel);
                         if(result == MessageBoxResult.Cancel)
                         {
                             //exit the sequence
@@ -460,8 +438,8 @@ namespace TwinCat_Motion_ADS.MVVM.View
             }
         }
 
-        private TestType _testType;
-        public TestType TestType
+        private TestTypes _testType;
+        public TestTypes TestType
         {
             get { return _testType; }
             set { _testType = value;
@@ -476,21 +454,29 @@ namespace TwinCat_Motion_ADS.MVVM.View
         {
             AxisID = axisID;
             TestSettings = new();
-            TestType = TestType.NoneSelected;
+            TestType = TestTypes.NoneSelected;
         }
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+        
     }
 
-    public enum TestType
+    public enum TestTypes 
     {
+        [StringValue("EndToEnd")]
         EndToEnd,
+        [StringValue("UnidirectionalAccuracy")]
         UnidirectionalAccuracy,
+        [StringValue("BidirectionalAccuracy")]
         BidirectionalAccuracy,
+        [StringValue("UserPrompt")]
         UserPrompt,
+        [StringValue("NoneSelected")]
         NoneSelected
     }
+
+
 }
