@@ -144,13 +144,13 @@
             </StackPanel>
         
         <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
-            <StackPanel Orientation="Horizontal">
-                <TextBox x:Name="amsNetIdTb"  
+                <StackPanel Orientation="Horizontal">
+                    <TextBox x:Name="amsNetIdTb"  
                              Height="20"
                          Width="150"
                              VerticalAlignment="Top"
                              Margin="10,5,0,0"/>
-                <Button x:Name="connect2PlcButton" 
+                    <Button x:Name="connect2PlcButton" 
                             Focusable="False" 
                             Content="Connect to PLC" 
                             Click="ConnectToPlc_Click" 
@@ -158,21 +158,8 @@
                             VerticalAlignment="Top"
                             Margin="10,5,0,0"
                         Style="{StaticResource myDefaultButton}"/>
+                </StackPanel>
             </StackPanel>
-                
-            
-
-
-
-
-                <StackPanel Orientation="Horizontal" Margin="0,5,0,0"/>
-
-
-
-            </StackPanel>
-
-
-
 
         <StackPanel x:Name="StackPanel___MainWindow" Orientation="Vertical" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" Grid.RowSpan="2" Focusable="True">
                 <ContentControl x:Name="tabbedWindow" d:IsHidden="True"/>
