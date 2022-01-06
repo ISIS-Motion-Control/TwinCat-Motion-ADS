@@ -14,6 +14,20 @@ namespace TwinCat_Motion_ADS
         //PLC object to which the test axis belongs
         public PLC Plc { get; set; }
 
+        //Progress and completion
+        private double _testProgress;
+        public double TestProgress  //between 0 and 1
+        {
+            get { return _testProgress; }
+            set
+            {
+                _testProgress = value;
+                OnPropertyChanged();
+            }
+        }
+        protected double progScaler;
+        protected double stepScaler;
+
         //Directory for saving test csv
         public string TestDirectory { get; set; } = string.Empty;
         public event PropertyChangedEventHandler PropertyChanged;

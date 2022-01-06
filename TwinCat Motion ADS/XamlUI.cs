@@ -7,6 +7,16 @@ namespace TwinCat_Motion_ADS
 {
     class XamlUI
     {
+        public static void ProgressBarBinding(DependencyObject item, object source, string pp)
+        {
+            Binding ProgBind = new();
+            ProgBind.Mode = BindingMode.OneWay;
+            ProgBind.Source = source;
+            ProgBind.Path = new PropertyPath(pp);
+            ProgBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(item, ProgressBar.ValueProperty, ProgBind);
+        }
+
         public static void TextboxBinding(DependencyObject item, object source, string pp, UpdateSourceTrigger ust = UpdateSourceTrigger.PropertyChanged)
         {
             Binding TextboxBind = new();

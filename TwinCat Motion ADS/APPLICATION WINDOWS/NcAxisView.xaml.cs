@@ -68,6 +68,7 @@ namespace TwinCat_Motion_ADS
             XamlUI.TextboxBinding(settleTimeTB, NcTestSettings.SettleTimeSeconds, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(revDistanceTB, NcTestSettings.ReversalDistance, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(overshootDistanceTB, NcTestSettings.OvershootDistance, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.ProgressBarBinding(testProgressBar, testAxis, "TestProgress");
         }
 
         private void SelectFolderDirectory_Click(object sender, RoutedEventArgs e)
