@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace TwinCat_Motion_ADS
 {
-    class XamlUI
+    public static class XamlUI
     {
         public static void ProgressBarBinding(DependencyObject item, object source, string pp)
         {
