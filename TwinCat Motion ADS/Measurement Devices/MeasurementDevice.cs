@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.IO.Ports;
 using System.Collections.ObjectModel;
@@ -14,10 +13,10 @@ namespace TwinCat_Motion_ADS
 {
     /*
      * This class acts as an interface to other measurement devices to provide a generic user interface.
-     * 
      */
     public class MeasurementDevice : INotifyPropertyChanged
     {
+        #region properties
         public DeviceTypes DeviceType { get; set; }
         public ObservableCollection<string> SerialPortList = new();
 
@@ -96,6 +95,7 @@ namespace TwinCat_Motion_ADS
                 OnPropertyChanged();
             }
         }
+        
         public List<Tuple<string,int>> ChannelList = new();   //Channel list contains name of channel (csv header) and channel number for access
 
         public bool ReadInProgress { get; set; }
@@ -138,6 +138,7 @@ namespace TwinCat_Motion_ADS
 
         public ObservableCollection<DeviceTypes> DeviceTypeList;
 
+        #endregion
 
         public MeasurementDevice(DeviceTypes dType = DeviceTypes.NoneSelected)
         {
@@ -289,7 +290,6 @@ namespace TwinCat_Motion_ADS
                     }
                     else if (dti.CheckConnected())              //If we failed to close, is the DTI connected
                     {
-                        Console.WriteLine("Failed to close");
                         return false;
                     }
                     else
@@ -310,7 +310,6 @@ namespace TwinCat_Motion_ADS
                     }
                     else if(keyence.CheckConnected())
                     {
-                        Console.WriteLine("Failed to close");
                         return false;
                     }
                     else
@@ -330,7 +329,6 @@ namespace TwinCat_Motion_ADS
                     }
                     else if (beckhoffPlc.checkConnection())
                     {
-                        Console.WriteLine("Disconnect failed");
                         return false;
                     }
                     else
@@ -377,28 +375,32 @@ namespace TwinCat_Motion_ADS
             {
                 return "No device connected"; //Nothing to disconnect from
             }
+            ReadInProgress = true;
+            string measurement;
             switch (DeviceType)
             {
-                case DeviceTypes.DigimaticIndicator:                   
-                    return await dti.GetMeasurementAsync();
-
+                case DeviceTypes.DigimaticIndicator:
+                    measurement= await dti.GetMeasurementAsync();
+                    break;
                 case DeviceTypes.KeyenceTM3000:
                     List<string> measures = await keyence.GetAllMeasures();
-                    var retstr = String.Join(",", measures);    //Keyence returns a string list so we can convert to a single CSV string
-                    return retstr;
-
+                    measurement = String.Join(",", measures);    //Keyence returns a string list so we can convert to a single CSV string
+                    break;
                 case DeviceTypes.Beckhoff:
-                    return await beckhoff.ReadChannel(1);
-
+                    measurement = await beckhoff.ReadChannel(1);
+                    break;
                 case DeviceTypes.MotionChannel:
-                    return await motionChannel.GetMeasurementAsync();
+                    measurement = await motionChannel.GetMeasurementAsync();
+                    break;
                 case DeviceTypes.Timestamp:
-                    return Timestamp.GetMeasurement();
+                    measurement = Timestamp.GetMeasurement();
+                    break;
                 default:
+                    measurement = "";
                     break;
             }
-            Console.WriteLine("No compatible device type selected");
-            return string.Empty;
+            ReadInProgress = false;
+            return measurement;
         }
 
         public async Task<string> GetChannelMeasurement(int channelNumber = 0)
@@ -417,35 +419,25 @@ namespace TwinCat_Motion_ADS
             {
                 case DeviceTypes.DigimaticIndicator:
                     measurement = await dti.GetMeasurementAsync();
-                    ReadInProgress = false;
-                    return measurement;
-
+                    break;
                 case DeviceTypes.Beckhoff:
                     measurement = await beckhoff.ReadChannel(channelNumber);
-                    ReadInProgress = false;
-                    return measurement;
-
+                    break;
                 case DeviceTypes.KeyenceTM3000:
                     measurement = await keyence.GetMeasureAsync(channelNumber);
-                    ReadInProgress = false;
-                    return measurement;
-
+                    break;
                 case DeviceTypes.MotionChannel:
                     measurement = await motionChannel.GetMeasurementAsync();
-                    ReadInProgress = false;
-                    return measurement;
-
+                    break;
                 case DeviceTypes.Timestamp:
                     measurement = Timestamp.GetMeasurement();
-                    ReadInProgress = false;
-                    return measurement;
+                    break;
                 default:
+                    measurement = "Fail";
                     break;
             }
-
-
-
-            return "Fail";
+            ReadInProgress = false;
+            return measurement;
         }
 
         public void UpdateChannelList()
@@ -467,7 +459,7 @@ namespace TwinCat_Motion_ADS
                     keyence.UpdateChannelList();
                     ChannelList = keyence.ChannelList;
                     NumberOfChannels = ChannelList.Count;
-                    break;       
+                    break;
                     
                 case DeviceTypes.Beckhoff:   //Multi-channel device                    
                     beckhoff.UpdateChannelList();
@@ -487,7 +479,7 @@ namespace TwinCat_Motion_ADS
                     NumberOfChannels = ChannelList.Count;
                     break;
 
-                default:    
+                default:
                     break;
             }
         }
@@ -508,13 +500,12 @@ namespace TwinCat_Motion_ADS
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }     
+        }
     }
-
 
     public enum DeviceTypes
     {
-        [StringValue("")]
+        [StringValue("NoneSelected")]
         NoneSelected,
         [StringValue("DigimaticIndicator")]
         DigimaticIndicator,
@@ -527,7 +518,4 @@ namespace TwinCat_Motion_ADS
         [StringValue("Timestamp")]
         Timestamp
     }
-    
-
-
 }

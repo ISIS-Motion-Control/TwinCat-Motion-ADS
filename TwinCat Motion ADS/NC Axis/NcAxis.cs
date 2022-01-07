@@ -1018,6 +1018,10 @@ namespace TwinCat_Motion_ADS
                 overshootPosition = testSettings.InitialSetpoint.Val + ((testSettings.NumberOfSteps.Val - 1) * testSettings.StepSize.Val) - testSettings.OvershootDistance.Val;
             }
 
+            progScaler = 1 / Convert.ToDouble(testSettings.Cycles.Val);
+            TestProgress = 0;
+            stepScaler = progScaler / (Convert.ToDouble(testSettings.NumberOfSteps.Val)*2);
+
 
             var currentTime = DateTime.Now;
             string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.TestTitle.UiVal, currentTime, AxisID);           
@@ -1079,6 +1083,8 @@ namespace TwinCat_Motion_ADS
                 //going up the steps
                 for (uint j = 0; j <= testSettings.NumberOfSteps.Val; j++)
                 {
+                    TestProgress = Convert.ToDouble(i - 1) * progScaler + Convert.ToDouble(j) * stepScaler;
+
                     Console.WriteLine(approachUp + " Move. Step: " + j);
                     
                     //Make the step
@@ -1117,6 +1123,7 @@ namespace TwinCat_Motion_ADS
                 TargetPosition -= testSettings.StepSize.Val;
                 for (int j = (int)testSettings.NumberOfSteps.Val; j >= 0; j--)
                 {
+                    TestProgress = Convert.ToDouble(i - 1) * progScaler + (Convert.ToDouble(testSettings.NumberOfSteps.Val) - Convert.ToDouble(j)) * stepScaler + stepScaler * (Convert.ToDouble(testSettings.NumberOfSteps.Val));
                     Console.WriteLine(approachDown+" Move. Step: " + j);
                     //Do the step move
                     if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
@@ -1144,6 +1151,7 @@ namespace TwinCat_Motion_ADS
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
+            TestProgress = 1;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed);
             return true;
