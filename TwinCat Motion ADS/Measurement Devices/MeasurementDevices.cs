@@ -1,23 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Configuration;
 using System.Xml;
-using System.Windows;
 
 namespace TwinCat_Motion_ADS
 {
     [SettingsSerializeAs(SettingsSerializeAs.Xml)]
     public class MeasurementDevices
-    {//TwinCat_Motion_ADS.MeasurementDevices
-        MainWindow windowData;
+    {
         public List<MeasurementDevice> MeasurementDeviceList { get; set; }
 
         public MeasurementDevices()
         {
-            windowData = (MainWindow)Application.Current.MainWindow;
             MeasurementDeviceList = new();
         }
 
@@ -25,7 +19,6 @@ namespace TwinCat_Motion_ADS
         {
             get { return MeasurementDeviceList.Count; }
         }
-
 
         public void ClearList()
         {
@@ -63,8 +56,8 @@ namespace TwinCat_Motion_ADS
                 }
             }
             return measurementString;
-        }      
-        
+        }
+
         public int ImportDevicesXML(string filepath)
         {
             //string filepath = @"C:\Users\SCoop - Work\Documents\Ads Tests\motionchannelTest\testxml.xml";
@@ -75,7 +68,6 @@ namespace TwinCat_Motion_ADS
             int deviceCounter = MeasurementDeviceList.Count;
             foreach(XmlNode device in devices)  //for every device in the measurement devices
             {
-
                 string DeviceTypeXml = device.SelectSingleNode("DeviceType").InnerText;
                 DeviceTypes importedType;
                 Enum.TryParse(DeviceTypeXml, out importedType);
@@ -91,7 +83,6 @@ namespace TwinCat_Motion_ADS
                         //Baud Rate
                         MeasurementDeviceList[deviceCounter].UpdateBaudRate(device.SelectSingleNode("BaudRate").InnerText);
                         break;
-
                     case DeviceTypes.KeyenceTM3000:
                         Console.WriteLine("Importing KeyenceTm3000");
                         //Comm port
@@ -122,7 +113,6 @@ namespace TwinCat_Motion_ADS
                             i++;
                         }
                         break;
-
                     case DeviceTypes.Beckhoff:
                         Console.WriteLine("Importing Beckhoff");
                         //AMS Net ID
@@ -130,8 +120,7 @@ namespace TwinCat_Motion_ADS
 
                         //Channle Types
                         XmlNodeList digChannels = device.SelectNodes("DigChannel");
-                        XmlNodeList pt100Channels = device.SelectNodes("PT100Channel");
-                        
+                        XmlNodeList pt100Channels = device.SelectNodes("PT100Channel");                      
                         int chCounter = 0;                       
                         foreach(XmlNode ch in digChannels)
                         {
@@ -167,22 +156,18 @@ namespace TwinCat_Motion_ADS
                             chCounter++;
                         }
                         break;
-
                     case DeviceTypes.MotionChannel:
                         Console.WriteLine("Importing Motion Channel");
                         MeasurementDeviceList[deviceCounter].motionChannel.VariableType = device.SelectSingleNode("VariableType").InnerText;
                         MeasurementDeviceList[deviceCounter].motionChannel.VariableString = device.SelectSingleNode("VariablePath").InnerText;
                         break;
-
                     case DeviceTypes.Timestamp:
                         break;
-
                     default:
                         break;
                 }
                 MeasurementDeviceList[deviceCounter].ConnectToDevice();
                 MeasurementDeviceList[deviceCounter].UpdateChannelList();
-
                 deviceCounter ++;
             }
             return devices.Count;
@@ -196,7 +181,6 @@ namespace TwinCat_Motion_ADS
             xmlDoc.AppendChild(rootNode);   //Root of the xml
 
             //Now create settings for each device
-
             foreach(MeasurementDevice md in MeasurementDeviceList)
             {
                 XmlNode deviceNode = xmlDoc.CreateElement("MeasurementDevice");
@@ -221,7 +205,6 @@ namespace TwinCat_Motion_ADS
                         deviceNode.AppendChild(commNode);
                         deviceNode.AppendChild(baudNode);
                         break;
-
                     case DeviceTypes.KeyenceTM3000:
                         commNode = xmlDoc.CreateElement("Port");
                         commNode.InnerText = md.PortName;
@@ -243,7 +226,6 @@ namespace TwinCat_Motion_ADS
                             deviceNode.AppendChild(channelNode);
                         }
                         break;
-
                     case DeviceTypes.Beckhoff:
                         XmlNode amsNode = xmlDoc.CreateElement("AmsNetID");
                         amsNode.InnerText = md.AmsNetId;
@@ -268,7 +250,6 @@ namespace TwinCat_Motion_ADS
                             deviceNode.AppendChild(channelNode);
                         }
                         break;
-
                     case DeviceTypes.MotionChannel:
                         XmlNode varTypeNode = xmlDoc.CreateElement("VariableType");
                         XmlNode varPathNode = xmlDoc.CreateElement("VariablePath");
@@ -277,17 +258,12 @@ namespace TwinCat_Motion_ADS
                         deviceNode.AppendChild(varTypeNode);
                         deviceNode.AppendChild(varPathNode);
                         break;
-
                     case DeviceTypes.Timestamp:
                         //No settings to export
                         break;
-
                 }
-
-
             }
             xmlDoc.Save(selectedFile);
         }
-
     }
 }

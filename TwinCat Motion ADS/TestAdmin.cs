@@ -14,6 +14,22 @@ namespace TwinCat_Motion_ADS
         //PLC object to which the test axis belongs
         public PLC Plc { get; set; }
 
+        //Progress and completion
+        private double _testProgress;
+        public double TestProgress  //between 0 and 1
+        {
+            get { return _testProgress; }
+            set
+            {
+                _testProgress = value;
+                OnPropertyChanged();
+            }
+        }
+        protected double progScaler;
+        protected double stepScaler;
+        public EstimatedTime EstimatedTimeRemaining = new();
+
+
         //Directory for saving test csv
         public string TestDirectory { get; set; } = string.Empty;
         public event PropertyChangedEventHandler PropertyChanged;
@@ -91,7 +107,6 @@ namespace TwinCat_Motion_ADS
             Valid = true;
             return true;
         }
-
     }
 
     //Class to handle UI elements of setting elements of type string - not strictly necessary, more for standardisation of rest of code.
@@ -217,6 +232,103 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+    }
+
+    public class EstimatedTime : INotifyPropertyChanged
+    {
+        public EstimatedTime()
+        {           
+            StartTime = DateTime.Now;
+            EstimatedEndTime = DateTime.Now;
+            TimeRemaining = "";
+            GetTimeRemaining();
+        }
+
+        private DateTime _StartTime;
+        public DateTime StartTime
+        {
+            get { return _StartTime; }
+            set { _StartTime = value;
+                OnPropertyChanged();
+            }
+        }
+        private TimeSpan _CycleTime;
+        public TimeSpan CycleTime
+        {
+            get { return _CycleTime; }
+            set
+            {
+                _CycleTime = value;
+                OnPropertyChanged();
+            }
+        }
+        private DateTime _EstimatedEndTime;
+        public DateTime EstimatedEndTime
+        {
+            get { return _EstimatedEndTime; }
+            set
+            {
+                _EstimatedEndTime = value;
+                StrEndTime = EstimatedEndTime.ToString();
+                OnPropertyChanged();
+            }
+        }
+
+        private string _StrEndTime;
+        public string StrEndTime
+        {
+            get { return EstimatedEndTime.ToString(); }
+            set { _StrEndTime = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        private string _TimeRemaining;
+        public string TimeRemaining
+        {
+            get { return _TimeRemaining; }
+            set
+            {
+                _TimeRemaining = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public void GetTimeRemaining()
+        {
+            Task.Run(() => TimeRemainingCalc(CancellationToken.None));
+        }
+
+        private async Task<string> TimeRemainingCalc(CancellationToken ct)
+        { 
+            while(!ct.IsCancellationRequested)
+            {
+                if (EstimatedEndTime > DateTime.Now)
+                {
+                    TimeSpan temp = EstimatedEndTime - DateTime.Now;
+                    //TimeRemaining = String.Format("{d} days {hh} hours {mm} minutes {ss} seconds", temp);
+
+                    string formatted = string.Format("{0}{1}{2}{3}",
+        temp.Duration().Days > 0 ? string.Format("{0:0} day{1}, ", temp.Days, temp.Days == 1 ? string.Empty : "s") : string.Empty,
+        temp.Duration().Hours > 0 ? string.Format("{0:0} hour{1}, ", temp.Hours, temp.Hours == 1 ? string.Empty : "s") : string.Empty,
+        temp.Duration().Minutes > 0 ? string.Format("{0:0} minute{1}, ", temp.Minutes, temp.Minutes == 1 ? string.Empty : "s") : string.Empty,
+        temp.Duration().Seconds > 0 ? string.Format("{0:0} second{1}", temp.Seconds, temp.Seconds == 1 ? string.Empty : "s") : string.Empty);
+                    TimeRemaining = formatted;
+                }
+                else 
+                {
+                    TimeRemaining = "";
+                }
+            }
+            return TimeRemaining;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

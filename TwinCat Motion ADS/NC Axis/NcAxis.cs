@@ -53,20 +53,7 @@ namespace TwinCat_Motion_ADS
             Plc = plc;
             AxisID = axisID;
             UpdateAxisInstance(AxisID, Plc);
-        }
-
-        private bool ValidCommand() //always going to check if PLC is valid or not
-        {
-            if(!Plc.IsStateRun())
-            {
-                Console.WriteLine("Incorrect PLC configuration");
-                Valid = false;
-                return false;
-            }
-            //check some motion parameters???
-
-            Valid = true;
-            return true;
+            EstimatedTimeRemaining = new();
         }
 
         public void UpdateAxisInstance(uint axisID, PLC plc)
@@ -712,6 +699,10 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
 
+            progScaler = 1/Convert.ToDouble(testSettings.Cycles.Val);
+            Console.WriteLine("Progress scaler is: " + progScaler);
+            TestProgress = 0;
+
             var currentTime = DateTime.Now;
             string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.TestTitle.UiVal, currentTime, AxisID);
             Console.WriteLine(newTitle);
@@ -740,11 +731,23 @@ namespace TwinCat_Motion_ADS
 
             stopWatch.Reset();
             stopWatch.Start();  //Clear and start the stopwatch
-            
 
-
+            EstimatedTimeRemaining.StartTime = DateTime.Now;
             for (int i = 1; i <= testSettings.Cycles.Val; i++)
             {
+                //Single cycle time
+                if (i == 2)
+                {
+                    EstimatedTimeRemaining.CycleTime = DateTime.Now - EstimatedTimeRemaining.StartTime;
+                }
+                //Estimate the end time based on remaining cycles and single cycle time
+                if (i > 1)
+                {
+                    EstimatedTimeRemaining.EstimatedEndTime = DateTime.Now + EstimatedTimeRemaining.CycleTime * (testSettings.Cycles.Val - i + 1);
+                }
+
+                TestProgress = Convert.ToDouble(i-1) * progScaler;
+
                 Task<bool> pauseTaskRequest = CheckPauseRequestTask(ptToken.Token);
                 await pauseTaskRequest;
                 if (cancelRequestTask.IsCompleted)
@@ -827,6 +830,7 @@ namespace TwinCat_Motion_ADS
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
+            TestProgress = 1;
             ctToken.Cancel();
             return true;
         }
@@ -856,6 +860,9 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
 
+            progScaler = 1 / Convert.ToDouble(testSettings.Cycles.Val);
+            TestProgress = 0;
+            stepScaler = progScaler / Convert.ToDouble(testSettings.NumberOfSteps.Val);
             //Ensure positive velocity value
             testSettings.Velocity.Val = Math.Abs(testSettings.Velocity.Val);
             
@@ -888,8 +895,20 @@ namespace TwinCat_Motion_ADS
 
             //Cycles
             stopWatch.Start();
+            EstimatedTimeRemaining.StartTime = DateTime.Now;
             for (uint i = 1; i <= testSettings.Cycles.Val; i++)
             {
+                //get single cycle time
+                if(i ==2)
+                {
+                    EstimatedTimeRemaining.CycleTime = DateTime.Now - EstimatedTimeRemaining.StartTime;
+                }
+                //Estimate the end time based on remaining cycles and single cycle time
+                if(i>1)
+                {
+                    EstimatedTimeRemaining.EstimatedEndTime = DateTime.Now + EstimatedTimeRemaining.CycleTime * (testSettings.Cycles.Val - i + 1);
+                    Console.WriteLine("Predicted end time is: " + EstimatedTimeRemaining.EstimatedEndTime);
+                }
                 Console.WriteLine("Cycle " + i);
 
                 //Check for a pause or cancellation request
@@ -921,6 +940,7 @@ namespace TwinCat_Motion_ADS
                 //Steps of cycle
                 for (uint j = 0; j <= testSettings.NumberOfSteps.Val; j++)
                 {
+                    TestProgress = Convert.ToDouble(i-1)*progScaler + Convert.ToDouble(j)*stepScaler;
                     Console.WriteLine("Step: " + j);
 
                     //Absolute position move (Exit test if failure)
@@ -951,6 +971,7 @@ namespace TwinCat_Motion_ADS
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
+            TestProgress = 1;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
             ctToken.Cancel();
@@ -1006,6 +1027,10 @@ namespace TwinCat_Motion_ADS
                 overshootPosition = testSettings.InitialSetpoint.Val + ((testSettings.NumberOfSteps.Val - 1) * testSettings.StepSize.Val) - testSettings.OvershootDistance.Val;
             }
 
+            progScaler = 1 / Convert.ToDouble(testSettings.Cycles.Val);
+            TestProgress = 0;
+            stepScaler = progScaler / (Convert.ToDouble(testSettings.NumberOfSteps.Val)*2);
+
 
             var currentTime = DateTime.Now;
             string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.TestTitle.UiVal, currentTime, AxisID);           
@@ -1037,9 +1062,20 @@ namespace TwinCat_Motion_ADS
                 approachUp = "Negative";
                 approachDown = "Positive";
             }
-
+            EstimatedTimeRemaining.StartTime = DateTime.Now;
+                                       
             for (uint i = 1; i <= testSettings.Cycles.Val; i++)
             {
+                //Single cycle time   
+                if (i == 2)
+                {
+                    EstimatedTimeRemaining.CycleTime = DateTime.Now - EstimatedTimeRemaining.StartTime;
+                }
+                //Estimate the end time based on remaining cycles and single cycle time
+                if (i > 1)
+                {
+                    EstimatedTimeRemaining.EstimatedEndTime = DateTime.Now + EstimatedTimeRemaining.CycleTime * (testSettings.Cycles.Val - i + 1);
+                }
                 Console.WriteLine("Cycle " + i);
 
                 //Check for pause or cancellation
@@ -1067,6 +1103,8 @@ namespace TwinCat_Motion_ADS
                 //going up the steps
                 for (uint j = 0; j <= testSettings.NumberOfSteps.Val; j++)
                 {
+                    TestProgress = Convert.ToDouble(i - 1) * progScaler + Convert.ToDouble(j) * stepScaler;
+
                     Console.WriteLine(approachUp + " Move. Step: " + j);
                     
                     //Make the step
@@ -1105,6 +1143,7 @@ namespace TwinCat_Motion_ADS
                 TargetPosition -= testSettings.StepSize.Val;
                 for (int j = (int)testSettings.NumberOfSteps.Val; j >= 0; j--)
                 {
+                    TestProgress = Convert.ToDouble(i - 1) * progScaler + (Convert.ToDouble(testSettings.NumberOfSteps.Val) - Convert.ToDouble(j)) * stepScaler + stepScaler * (Convert.ToDouble(testSettings.NumberOfSteps.Val));
                     Console.WriteLine(approachDown+" Move. Step: " + j);
                     //Do the step move
                     if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
@@ -1132,6 +1171,7 @@ namespace TwinCat_Motion_ADS
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
+            TestProgress = 1;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed);
             return true;
