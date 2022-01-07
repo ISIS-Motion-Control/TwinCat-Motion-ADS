@@ -679,29 +679,70 @@ namespace TwinCat_Motion_ADS
                                               \|_________|                \|_________|
                                                                      */
 
+        private bool SanityCheckSettings(NcTestSettings ts, TestTypes tt)
+        {
+            bool checkValid = true;
+            if (ts.Cycles.Val <= 0)
+            {
+                checkValid = false;
+            }
+            if (ts.NumberOfSteps.Val <= 0)
+            {
+                checkValid = false;
+            }
+            ts.Velocity.Val = Math.Abs(ts.Velocity.Val);
+            if (ts.Velocity.Val == 0)
+            {
+                checkValid = false;
+            }
+            switch (tt)
+            {
+                case TestTypes.EndToEnd:
+                    break;
+                case TestTypes.UnidirectionalAccuracy:
+                case TestTypes.BidirectionalAccuracy:
+                    if (ts.NumberOfSteps.Val <= 0)
+                    {
+                        checkValid = false;
+                    }
+                    if (ts.StepSize.Val == 0)
+                    {
+                        checkValid = false;
+                    }
+                    break;
+            }
+
+            return checkValid;
+        }
+
+        private void ResetAndCalculateProgressScalers(NcTestSettings ts, TestTypes tt)
+        {
+            TestProgress = 0;
+            progScaler = 1 / Convert.ToDouble(ts.Cycles.Val);
+            switch(tt)
+            {
+                case TestTypes.EndToEnd:
+                    stepScaler = progScaler / 2;
+                    break;
+                case TestTypes.UnidirectionalAccuracy:
+                    stepScaler = progScaler / (Convert.ToDouble(ts.NumberOfSteps.Val)+1);
+                    break;
+                case TestTypes.BidirectionalAccuracy:
+                    stepScaler = progScaler / ((Convert.ToDouble(ts.NumberOfSteps.Val)+1) * 2);
+                    break;
+            }
+        }
+
+        private void CalculateCurrentProgress(uint cycle, uint step)
+        {
+            TestProgress = cycle * progScaler + step * stepScaler;
+        }
 
         public async Task<bool> LimitToLimitTestwithReversingSequence(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
             if (!ValidCommand()) return false;
-            if (testSettings.Cycles.Val == 0)
-            {
-                Console.WriteLine("0 cycle count invalid");
-                return false;
-            }
-            if (testSettings.ReversalVelocity.Val == 0)
-            {
-                Console.WriteLine("0 reversal velocity invalid");
-                return false;
-            }
-            if (testSettings.Velocity.Val == 0)
-            {
-                Console.WriteLine("0 velocity invalid");
-                return false;
-            }
-
-            progScaler = 1/Convert.ToDouble(testSettings.Cycles.Val);
-            Console.WriteLine("Progress scaler is: " + progScaler);
-            TestProgress = 0;
+            if (!SanityCheckSettings(testSettings, TestTypes.EndToEnd)) return false;
+            ResetAndCalculateProgressScalers(testSettings, TestTypes.EndToEnd);
 
             var currentTime = DateTime.Now;
             string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.TestTitle.UiVal, currentTime, AxisID);
@@ -713,7 +754,6 @@ namespace TwinCat_Motion_ADS
             StartCSV(csvFileFullPath, devices);
 
             Stopwatch stopWatch = new(); //Create stopwatch for rough end to end timing
-            testSettings.Velocity.Val = Math.Abs(testSettings.Velocity.Val);
             //Start low
             if (await MoveToLowLimit(-testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
             {
@@ -835,37 +875,15 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
+
         public async Task<bool> UniDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
             //Check settings are valid
             if (!ValidCommand()) return false;
-            if (testSettings.Cycles.Val <= 0)
-            {
-                Console.WriteLine("Cycle count invalid");
-                return false;
-            }
-            if (testSettings.NumberOfSteps.Val <= 0)
-            {
-                Console.WriteLine("Step count invalid");
-                return false;
-            }
-            if (testSettings.Velocity.Val == 0)
-            {
-                Console.WriteLine("0 velocity invalid");
-                return false;
-            }
-            if (testSettings.StepSize.Val == 0)
-            {
-                Console.WriteLine("0 step size invalid");
-                return false;
-            }
+            if (!SanityCheckSettings(testSettings, TestTypes.UnidirectionalAccuracy)) return false;
+            ResetAndCalculateProgressScalers(testSettings, TestTypes.UnidirectionalAccuracy);
 
-            progScaler = 1 / Convert.ToDouble(testSettings.Cycles.Val);
-            TestProgress = 0;
-            stepScaler = progScaler / Convert.ToDouble(testSettings.NumberOfSteps.Val);
-            //Ensure positive velocity value
-            testSettings.Velocity.Val = Math.Abs(testSettings.Velocity.Val);
-            
+
             //Establish "Reversal" position of test
             double reversalPosition;
             if (testSettings.StepSize.Val > 0)
@@ -939,7 +957,8 @@ namespace TwinCat_Motion_ADS
                 //Steps of cycle
                 for (uint j = 0; j <= testSettings.NumberOfSteps.Val; j++)
                 {
-                    TestProgress = Convert.ToDouble(i-1)*progScaler + Convert.ToDouble(j)*stepScaler;
+                    //TestProgress = Convert.ToDouble(i-1)*progScaler + Convert.ToDouble(j)*stepScaler;
+                    CalculateCurrentProgress(i - 1, j);
                     Console.WriteLine("Step: " + j);
 
                     //Absolute position move (Exit test if failure)
@@ -981,31 +1000,10 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> BiDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
-            if (!ValidCommand()) return false;           
-            if (testSettings.Cycles.Val == 0)
-            {
-                Console.WriteLine("0 cycle count invalid");
-                return false;
-            }
-            if (testSettings.NumberOfSteps.Val == 0)
-            {
-                Console.WriteLine("0 step count invalid");
-                return false;
-            }
-            if (testSettings.Velocity.Val == 0)
-            {
-                Console.WriteLine("0 velocity invalid");
-                return false;
-            }
-            if (testSettings.StepSize.Val == 0)
-            {
-                Console.WriteLine("0 step size invalid");
-                return false;
-            }
+            if (!ValidCommand()) return false;
+            if (!SanityCheckSettings(testSettings, TestTypes.BidirectionalAccuracy)) return false;
+            ResetAndCalculateProgressScalers(testSettings, TestTypes.BidirectionalAccuracy);
 
-            //Ensure positive velocity value
-            testSettings.Velocity.Val = Math.Abs(testSettings.Velocity.Val);  //Only want positive velocity
-            
             //Establish "Reversal" and "Overshoot" positions of test
             double reversalPosition;
             if (testSettings.StepSize.Val > 0)
@@ -1026,9 +1024,7 @@ namespace TwinCat_Motion_ADS
                 overshootPosition = testSettings.InitialSetpoint.Val + ((testSettings.NumberOfSteps.Val - 1) * testSettings.StepSize.Val) - testSettings.OvershootDistance.Val;
             }
 
-            progScaler = 1 / Convert.ToDouble(testSettings.Cycles.Val);
-            TestProgress = 0;
-            stepScaler = progScaler / (Convert.ToDouble(testSettings.NumberOfSteps.Val)*2);
+            
 
 
             var currentTime = DateTime.Now;
@@ -1102,8 +1098,8 @@ namespace TwinCat_Motion_ADS
                 //going up the steps
                 for (uint j = 0; j <= testSettings.NumberOfSteps.Val; j++)
                 {
-                    TestProgress = Convert.ToDouble(i - 1) * progScaler + Convert.ToDouble(j) * stepScaler;
-
+                    //TestProgress = Convert.ToDouble(i - 1) * progScaler + Convert.ToDouble(j) * stepScaler;
+                    CalculateCurrentProgress(i-1, j);
                     Console.WriteLine(approachUp + " Move. Step: " + j);
                     
                     //Make the step
@@ -1142,7 +1138,8 @@ namespace TwinCat_Motion_ADS
                 TargetPosition -= testSettings.StepSize.Val;
                 for (int j = (int)testSettings.NumberOfSteps.Val; j >= 0; j--)
                 {
-                    TestProgress = Convert.ToDouble(i - 1) * progScaler + (Convert.ToDouble(testSettings.NumberOfSteps.Val) - Convert.ToDouble(j)) * stepScaler + stepScaler * (Convert.ToDouble(testSettings.NumberOfSteps.Val));
+                    CalculateCurrentProgress(i - 1, (uint)(2 * testSettings.NumberOfSteps.Val - j));
+                    
                     Console.WriteLine(approachDown+" Move. Step: " + j);
                     //Do the step move
                     if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
