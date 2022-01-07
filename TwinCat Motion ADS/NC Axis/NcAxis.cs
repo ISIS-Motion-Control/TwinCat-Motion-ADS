@@ -53,20 +53,7 @@ namespace TwinCat_Motion_ADS
             Plc = plc;
             AxisID = axisID;
             UpdateAxisInstance(AxisID, Plc);
-        }
-
-        private bool ValidCommand() //always going to check if PLC is valid or not
-        {
-            if(!Plc.IsStateRun())
-            {
-                Console.WriteLine("Incorrect PLC configuration");
-                Valid = false;
-                return false;
-            }
-            //check some motion parameters???
-
-            Valid = true;
-            return true;
+            EstimatedTimeRemaining = new();
         }
 
         public void UpdateAxisInstance(uint axisID, PLC plc)
@@ -744,11 +731,21 @@ namespace TwinCat_Motion_ADS
 
             stopWatch.Reset();
             stopWatch.Start();  //Clear and start the stopwatch
-            
 
-
+            EstimatedTimeRemaining.StartTime = DateTime.Now;
             for (int i = 1; i <= testSettings.Cycles.Val; i++)
             {
+                //Single cycle time
+                if (i == 2)
+                {
+                    EstimatedTimeRemaining.CycleTime = DateTime.Now - EstimatedTimeRemaining.StartTime;
+                }
+                //Estimate the end time based on remaining cycles and single cycle time
+                if (i > 1)
+                {
+                    EstimatedTimeRemaining.EstimatedEndTime = DateTime.Now + EstimatedTimeRemaining.CycleTime * (testSettings.Cycles.Val - i + 1);
+                }
+
                 TestProgress = Convert.ToDouble(i-1) * progScaler;
 
                 Task<bool> pauseTaskRequest = CheckPauseRequestTask(ptToken.Token);
@@ -898,8 +895,20 @@ namespace TwinCat_Motion_ADS
 
             //Cycles
             stopWatch.Start();
+            EstimatedTimeRemaining.StartTime = DateTime.Now;
             for (uint i = 1; i <= testSettings.Cycles.Val; i++)
             {
+                //get single cycle time
+                if(i ==2)
+                {
+                    EstimatedTimeRemaining.CycleTime = DateTime.Now - EstimatedTimeRemaining.StartTime;
+                }
+                //Estimate the end time based on remaining cycles and single cycle time
+                if(i>1)
+                {
+                    EstimatedTimeRemaining.EstimatedEndTime = DateTime.Now + EstimatedTimeRemaining.CycleTime * (testSettings.Cycles.Val - i + 1);
+                    Console.WriteLine("Predicted end time is: " + EstimatedTimeRemaining.EstimatedEndTime);
+                }
                 Console.WriteLine("Cycle " + i);
 
                 //Check for a pause or cancellation request
@@ -1053,9 +1062,20 @@ namespace TwinCat_Motion_ADS
                 approachUp = "Negative";
                 approachDown = "Positive";
             }
-
+            EstimatedTimeRemaining.StartTime = DateTime.Now;
+                                       
             for (uint i = 1; i <= testSettings.Cycles.Val; i++)
             {
+                //Single cycle time   
+                if (i == 2)
+                {
+                    EstimatedTimeRemaining.CycleTime = DateTime.Now - EstimatedTimeRemaining.StartTime;
+                }
+                //Estimate the end time based on remaining cycles and single cycle time
+                if (i > 1)
+                {
+                    EstimatedTimeRemaining.EstimatedEndTime = DateTime.Now + EstimatedTimeRemaining.CycleTime * (testSettings.Cycles.Val - i + 1);
+                }
                 Console.WriteLine("Cycle " + i);
 
                 //Check for pause or cancellation

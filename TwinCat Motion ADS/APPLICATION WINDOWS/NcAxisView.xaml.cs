@@ -23,6 +23,7 @@ namespace TwinCat_Motion_ADS
         {
             InitializeComponent();
             windowData = (MainWindow)Application.Current.MainWindow;
+            //testAxis = new(1, windowData.Plc);
             SetupBinds();
         }
 
@@ -69,6 +70,12 @@ namespace TwinCat_Motion_ADS
             XamlUI.TextboxBinding(revDistanceTB, NcTestSettings.ReversalDistance, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(overshootDistanceTB, NcTestSettings.OvershootDistance, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.ProgressBarBinding(testProgressBar, testAxis, "TestProgress");
+            if(testAxis!=null)
+            {
+                XamlUI.TextBlockBinding(EstimateTime, testAxis.EstimatedTimeRemaining, "TimeRemaining");
+                XamlUI.TextBlockBinding(EstimateEndTime, testAxis.EstimatedTimeRemaining, "StrEndTime");
+
+            }
         }
 
         private void SelectFolderDirectory_Click(object sender, RoutedEventArgs e)
