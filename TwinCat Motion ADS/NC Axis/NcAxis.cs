@@ -907,7 +907,6 @@ namespace TwinCat_Motion_ADS
                 if(i>1)
                 {
                     EstimatedTimeRemaining.EstimatedEndTime = DateTime.Now + EstimatedTimeRemaining.CycleTime * (testSettings.Cycles.Val - i + 1);
-                    Console.WriteLine("Predicted end time is: " + EstimatedTimeRemaining.EstimatedEndTime);
                 }
                 Console.WriteLine("Cycle " + i);
 
