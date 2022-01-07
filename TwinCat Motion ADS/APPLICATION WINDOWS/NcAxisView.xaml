@@ -467,7 +467,15 @@
                                Style="{StaticResource defaultTB}"/>
                     </StackPanel>
                     <ProgressBar x:Name="testProgressBar" Height="25" Width="400" Minimum="0" Maximum="1" Margin="0,20,0,0"/>
-
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Estimated time remaining: " Height="25" Width="200" FontSize="16" Foreground="White" />
+                        <TextBlock x:Name="EstimateTime" Height="25" Width="200" FontSize="16" Foreground="White" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Estimated end time: " Height="25" Width="200" FontSize="16" Foreground="White" />
+                        <TextBlock x:Name="EstimateEndTime" Height="25" Width="200" FontSize="16" Foreground="White" />
+                    </StackPanel>
+                    
                 </StackPanel>
 
 

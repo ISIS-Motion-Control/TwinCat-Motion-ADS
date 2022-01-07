@@ -30,7 +30,7 @@ namespace TwinCat_Motion_ADS
         public static void TextBlockBinding(DependencyObject item, object source, string pp, string sFormat = "F3")
         {
             Binding TextBlockBind = new();
-            TextBlockBind.Mode = BindingMode.TwoWay;
+            TextBlockBind.Mode = BindingMode.OneWay;
             TextBlockBind.Source = source;
             TextBlockBind.Path = new PropertyPath(pp);
             TextBlockBind.StringFormat = sFormat;
