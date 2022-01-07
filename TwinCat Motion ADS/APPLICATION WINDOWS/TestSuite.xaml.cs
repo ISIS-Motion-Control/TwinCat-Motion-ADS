@@ -353,6 +353,7 @@ namespace TwinCat_Motion_ADS
 
         private async void RunTestButton_Click(object sender, RoutedEventArgs e)
         {
+            NcAxis = wd.NcAxisView.testAxis; //was NC axis initialised before screen opened?
             statusListItems.Clear();
             if (string.IsNullOrEmpty(saveDirectory))
             {
@@ -371,6 +372,7 @@ namespace TwinCat_Motion_ADS
                 //foreach test we initialise the axis, pass the settings, pass the measurement devices
 
                 //Update axis ID
+                
                 NcAxis.UpdateAxisInstance(Convert.ToUInt32(test.AxisID),wd.Plc);
                 bool testResult;
                 switch (test.TestType)
