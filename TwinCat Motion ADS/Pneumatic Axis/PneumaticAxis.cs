@@ -251,25 +251,12 @@ namespace TwinCat_Motion_ADS
                 csv.NextRecord();
             }
             Stopwatch stopwatch = new();
-            CancellationTokenSource ctToken = new();
-            CancellationTokenSource ptToken = new();
-            Task<bool> cancelRequestTask = CheckCancellationRequestTask(ctToken.Token);
+
 
             for (int i = 0; i < ts.Cycles.Val; i++)
             {
                 measurements.Clear();
                 cycleMeasurements.Clear();
-                Task<bool> pauseTaskRequest = CheckPauseRequestTask(ptToken.Token);
-                await pauseTaskRequest;
-                if (cancelRequestTask.IsCompleted)
-                {
-                    //Cancelled the test
-                    ptToken.Cancel();
-                    CancelTest = false;
-                    Console.WriteLine("Test cancelled");
-                    return false;
-                }
-
 
                 Console.WriteLine("Starting test cycle " + i);
                 stopwatch.Reset();
