@@ -108,7 +108,7 @@ namespace TwinCat_Motion_ADS
 
             if (TestList.SelectedIndex != -1)
             {
-                if (testItems[TestList.SelectedIndex].TestType == TestTypes.UnidirectionalAccuracy || testItems[TestList.SelectedIndex].TestType == TestTypes.BidirectionalAccuracy)
+                if (testItems[TestList.SelectedIndex].TestType == TestTypes.UnidirectionalAccuracy || testItems[TestList.SelectedIndex].TestType == TestTypes.BidirectionalAccuracy || testItems[TestList.SelectedIndex].TestType == TestTypes.ScalingTest)
                 {
                     enableFlag = true;
                 }
@@ -137,6 +137,20 @@ namespace TwinCat_Motion_ADS
             }
             if (force) enableFlag = false;
             SettingOvershootDistance.SettingValue.IsEnabled = enableFlag;
+
+            if (TestList.SelectedIndex != -1)
+            {
+                if (testItems[TestList.SelectedIndex].TestType == TestTypes.ScalingTest)
+                {
+                    enableFlag = true;
+                }
+                else
+                {
+                    enableFlag = false;
+                }
+            }
+            if (force) enableFlag = false;
+            SettingEndSetpoint.SettingValue.IsEnabled = enableFlag;
         }
 
         private void TestList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -164,6 +178,7 @@ namespace TwinCat_Motion_ADS
             XamlUI.TextboxBinding(SettingSettlingTime.SettingValue, testItems[TestList.SelectedIndex].TestSettings.SettleTimeSeconds, "UiVal");
             XamlUI.TextboxBinding(SettingReversalDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings.ReversalDistance, "UiVal");
             XamlUI.TextboxBinding(SettingOvershootDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings.OvershootDistance, "UiVal");
+            XamlUI.TextboxBinding(SettingEndSetpoint.SettingValue, testItems[TestList.SelectedIndex].TestSettings.EndSetpoint, "UiVal");
 
             UpdateEnabledUIElements();
         }
@@ -262,6 +277,7 @@ namespace TwinCat_Motion_ADS
             CreateAndAppendXmlNode(parentNode, xmlDoc, "settleTime", test.TestSettings.SettleTimeSeconds.UiVal);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalDistance", test.TestSettings.ReversalDistance.UiVal);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "overshootDistance", test.TestSettings.OvershootDistance.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "endSetpoint", test.TestSettings.EndSetpoint.UiVal);
         }
 
         public static void CreateAndAppendXmlNode(XmlNode parentNode, XmlDocument doc, string ndName, string ndValue)
@@ -306,7 +322,8 @@ namespace TwinCat_Motion_ADS
                 Enum.TryParse(testTypeXml, out importedType);
 
                 //Select the test type
-                switch(importedType)
+                testItems[testCounter].TestType = importedType;
+                /*switch(importedType)
                 {
                     case TestTypes.EndToEnd:
                         testItems[testCounter].TestType = TestTypes.EndToEnd;
@@ -323,7 +340,7 @@ namespace TwinCat_Motion_ADS
                     default:
                         testItems[testCounter].TestType = TestTypes.NoneSelected;
                         break;
-                }
+                }*/
 
                 //Import all the settings
                 ImportSingleTestSettings(testItems[testCounter], test);
@@ -349,6 +366,9 @@ namespace TwinCat_Motion_ADS
             tli.TestSettings.SettleTimeSeconds.UiVal = testNode.SelectSingleNode("settleTime").InnerText;
             tli.TestSettings.ReversalDistance.UiVal = testNode.SelectSingleNode("reversalDistance").InnerText;
             tli.TestSettings.OvershootDistance.UiVal = testNode.SelectSingleNode("overshootDistance").InnerText;
+            
+            if(testNode.SelectSingleNode("endSetpoint").InnerText != null)
+            tli.TestSettings.EndSetpoint.UiVal = testNode.SelectSingleNode("endSetpoint").InnerText;    //Enable older file compatibility
         }
 
         private async void RunTestButton_Click(object sender, RoutedEventArgs e)
@@ -401,6 +421,17 @@ namespace TwinCat_Motion_ADS
                         break;
                     case TestTypes.BidirectionalAccuracy:
                         testResult = await NcAxis.BiDirectionalAccuracyTest(test.TestSettings, wd.MeasurementDevices);
+                        if (testResult)
+                        {
+                            statusListItems.Add("Complete");
+                        }
+                        else
+                        {
+                            statusListItems.Add("Failed");
+                        }
+                        break;
+                    case TestTypes.ScalingTest:
+                        testResult = await NcAxis.ScalingTest(test.TestSettings, wd.MeasurementDevices);
                         if (testResult)
                         {
                             statusListItems.Add("Complete");
