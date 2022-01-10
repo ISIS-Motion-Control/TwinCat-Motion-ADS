@@ -51,38 +51,38 @@ namespace TwinCat_Motion_ADS
             get { return _cancelTest; }
             set { _cancelTest = value; OnPropertyChanged(); }
         }
-        public async Task<bool> CheckCancellationRequestTask(CancellationToken wToken)
+        
+        public async Task<bool> PauseTask(CancellationToken ct)
         {
-            while (CancelTest == false)
-            {
-                await Task.Delay(10, wToken);
-                if (wToken.IsCancellationRequested)
-                {
-                    throw new TaskCanceledException();
-                }
-            }
-            return true;
-        }
-        public async Task<bool> CheckPauseRequestTask(CancellationToken wToken)
-        {
-            if (PauseTest)
-            {
-                Console.WriteLine("Test Paused");
-            }
+            bool firstCycle = true;
             while (PauseTest)
             {
-                await Task.Delay(10, wToken);
-                if (CancelTest)
-                {
-                    return true;
-                }
-                if (wToken.IsCancellationRequested)
+                if (firstCycle) Console.WriteLine("Test Paused");
+                firstCycle = false;
+                await Task.Delay(10, ct);
+                if(ct.IsCancellationRequested)
                 {
                     throw new TaskCanceledException();
                 }
+                if (CancelTest) break;
             }
             return true;
         }
+        public bool IsTestCancelled()
+        {
+            if(CancelTest)
+            {
+                Console.WriteLine("Test cancelled");
+                PauseTest = false;
+                CancelTest = false;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
 
         private bool _valid;
         public bool Valid
