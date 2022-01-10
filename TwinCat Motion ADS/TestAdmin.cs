@@ -246,6 +246,7 @@ namespace TwinCat_Motion_ADS
             EstimatedEndTime = DateTime.Now;
             TimeRemaining = "";
             GetTimeRemaining();
+            lastUpdatedCycle = 0;
         }
 
         private DateTime _StartTime;
@@ -277,7 +278,6 @@ namespace TwinCat_Motion_ADS
                 OnPropertyChanged();
             }
         }
-
         private string _StrEndTime;
         public string StrEndTime
         {
@@ -286,8 +286,6 @@ namespace TwinCat_Motion_ADS
                 OnPropertyChanged();
             }
         }
-
-
         private string _TimeRemaining;
         public string TimeRemaining
         {
@@ -299,7 +297,37 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        public void GetTimeRemaining()
+        private uint lastUpdatedCycle;
+
+        private void UpdateStartTime()
+        {
+            StartTime = DateTime.Now;
+        }
+        private void UpdateCycleTime()
+        {
+            CycleTime = DateTime.Now - StartTime;
+        }
+        private void UpdateEstimatedEndTime(uint remainingCycles)
+        {
+            EstimatedEndTime = DateTime.Now + CycleTime * remainingCycles;
+        }
+
+        //Call this method at the start of each test cycle
+        public void TimeEstimateUpdate(uint currentCycle, uint totalCycles)
+        {
+            if(currentCycle == 1)
+            {
+                UpdateStartTime();
+                return;
+            }
+            UpdateCycleTime();
+            UpdateStartTime();
+            lastUpdatedCycle = currentCycle;
+            UpdateEstimatedEndTime((uint)(totalCycles-currentCycle+1));
+
+        }
+
+        private void GetTimeRemaining()
         {
             Task.Run(() => TimeRemainingCalc(CancellationToken.None));
         }
@@ -329,6 +357,8 @@ namespace TwinCat_Motion_ADS
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+        
+        
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
