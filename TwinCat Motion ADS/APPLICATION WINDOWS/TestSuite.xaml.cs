@@ -474,6 +474,8 @@ namespace TwinCat_Motion_ADS
         UnidirectionalAccuracy,
         [StringValue("BidirectionalAccuracy")]
         BidirectionalAccuracy,
+        [StringValue("ScalingTest")]
+        ScalingTest,
         [StringValue("UserPrompt")]
         UserPrompt,
         [StringValue("NoneSelected")]

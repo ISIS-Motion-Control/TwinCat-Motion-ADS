@@ -864,34 +864,9 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
 
                 //Steps of cycle
-                for (uint stepCount = 0; stepCount <= testSettings.NumberOfSteps.Val; stepCount++)
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, TargetPosition, devices, csvFileFullPath) == false)
                 {
-                    //Check for pause or cancellation request
-                    await PauseTask(CancellationToken.None);
-                    if (IsTestCancelled()) return false;
-                    CalculateCurrentProgress(cycleCount - 1, stepCount);
-                    Console.WriteLine("Step: " + stepCount);
-
-                    //Absolute position move (Exit test if failure)
-                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
-                    {
-                        Console.WriteLine("Failed to move to target position");
-                        stopWatch.Stop();
-                        return false;
-                    }
-                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
-
-                    //Log the data, if test fails to write to fail, exit test
-                    StandardCSVData tmpCSV = new StandardCSVData(cycleCount, stepCount, "Testing", TargetPosition, AxisPosition);
-                    if(await WriteToCSV(csvFileFullPath, tmpCSV, devices)== false)
-                    {
-                        Console.WriteLine("Failed to write data to file, exiting test");
-                        stopWatch.Stop();
-                        return false;
-                    }
-
-                    //Update target position for next step
-                    TargetPosition += testSettings.StepSize.Val;
+                    return false;
                 }
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
@@ -927,6 +902,7 @@ namespace TwinCat_Motion_ADS
 
             //Establish "Reversal" and "Overshoot" positions of test
             double reversalPosition;
+            double endPosition = testSettings.InitialSetpoint.Val + ((testSettings.NumberOfSteps.Val) * testSettings.StepSize.Val);
             if (testSettings.StepSize.Val > 0)
             {
                 reversalPosition = testSettings.InitialSetpoint.Val - testSettings.ReversalDistance.Val;
@@ -938,27 +914,14 @@ namespace TwinCat_Motion_ADS
             double overshootPosition;
             if (testSettings.StepSize.Val > 0)
             {
-                overshootPosition = testSettings.InitialSetpoint.Val + ((testSettings.NumberOfSteps.Val - 1) * testSettings.StepSize.Val) + testSettings.OvershootDistance.Val;
+                overshootPosition = endPosition + testSettings.OvershootDistance.Val;
             }
             else
             {
-                overshootPosition = testSettings.InitialSetpoint.Val + ((testSettings.NumberOfSteps.Val - 1) * testSettings.StepSize.Val) - testSettings.OvershootDistance.Val;
+                overshootPosition = endPosition - testSettings.OvershootDistance.Val;
             }
 
-            //Generate string values dependent on postive or negative step size
-            string approachUp;
-            string approachDown;
-            if(testSettings.StepSize.Val > 0)
-            {
-                approachUp = "Positive";
-                approachDown = "Negative";
-            }
-            else
-            {
-                approachUp = "Negative";
-                approachDown = "Positive";
-            }
-               
+
             //Test Cycles
             for (uint cycleCount = 1; cycleCount <= testSettings.Cycles.Val; cycleCount++)
             {
@@ -966,89 +929,45 @@ namespace TwinCat_Motion_ADS
                 await PauseTask(CancellationToken.None);
                 if (IsTestCancelled()) return false;
                 
+                //Update time estimate
                 EstimatedTimeRemaining.TimeEstimateUpdate(cycleCount, testSettings.Cycles.Val);
 
+                //Print current cycle to console
                 Console.WriteLine("Cycle " + cycleCount);
                 
-                double TargetPosition = testSettings.InitialSetpoint.Val;
-                //Start test at reversal position then moving to initial setpoint          
+                
+                //Move to reversal position         
                 if (await MoveAbsoluteAndWait(reversalPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
                 {
                     Console.WriteLine("Failed to move to reversal position");
                     stopWatch.Stop();
                     return false;
                 }
+                //delay
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
-
-                //going up the steps
-                for (uint stepCount = 0; stepCount <= testSettings.NumberOfSteps.Val; stepCount++)
+                
+                //First approach cycle
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, testSettings.InitialSetpoint.Val, devices, csvFileFullPath, false) == false)
                 {
-                    await PauseTask(CancellationToken.None);
-                    if (IsTestCancelled()) return false;
-                    CalculateCurrentProgress(cycleCount-1, stepCount);
-                    Console.WriteLine(approachUp + " Move. Step: " + stepCount);
-                    
-                    //Make the step
-                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
-                    {
-                        Console.WriteLine("Failed to move to target position");
-                        stopWatch.Stop();
-                        return false;
-                    }
-                    //Wait for a settle time
-                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
-
-
-                    StandardCSVData tmpCSV = new StandardCSVData(cycleCount, stepCount, approachUp+ " approach", TargetPosition, AxisPosition);
-                    if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
-                    {
-                        Console.WriteLine("Failed to write data to file, exiting test");
-                        stopWatch.Stop();
-                        return false;
-                    }
-                    //Update target position
-                    TargetPosition += testSettings.StepSize.Val;
+                    stopWatch.Stop();
+                    return false;
                 }
-                //END OF APPROACH
-                //Overshoot the final position before coming back down
+
+                //Move to overshoot position
                 if (await MoveAbsoluteAndWait(overshootPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
                 {
                     Console.WriteLine("Failed to move to overshoot position");
                     stopWatch.Stop();
                     return false;
-                }                
+                }          
+                //delay
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
                 
-                //going down the steps. Need the cast here as we require j to go negative to cancel the loop
-                TargetPosition -= testSettings.StepSize.Val;
-                for (int stepCount = (int)testSettings.NumberOfSteps.Val; stepCount >= 0; stepCount--)
+                //Second approach cycle
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, endPosition, devices, csvFileFullPath, true) == false)
                 {
-                    //Check for pause or cancellation request
-                    await PauseTask(CancellationToken.None);
-                    if (IsTestCancelled()) return false;
-                    
-                    CalculateCurrentProgress(cycleCount - 1, (uint)(2 * testSettings.NumberOfSteps.Val - stepCount));
-                    
-                    Console.WriteLine(approachDown+" Move. Step: " + stepCount);
-                    //Do the step move
-                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
-                    {
-                        Console.WriteLine("Failed to move to target position");
-                        stopWatch.Stop();
-                        return false;
-                    }
-                    //Wait for a settle time
-                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
-
-                    StandardCSVData tmpCSV = new StandardCSVData(cycleCount, (uint)stepCount, "Negative approach", TargetPosition, AxisPosition);
-                    if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
-                    {
-                        Console.WriteLine("Failed to write data to file, exiting test");
-                        stopWatch.Stop();
-                        return false;
-                    }
-                    //Update target position
-                    TargetPosition -= testSettings.StepSize.Val;
+                    stopWatch.Stop();
+                    return false;
                 }
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
@@ -1059,39 +978,157 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-
-
-
-        private async Task<bool> UniDirectionalSingleCycle(NcTestSettings ts, uint currentCycle, double TargetPosition, MeasurementDevices md, string csvFile)
+        public async Task<bool> ScalingTest(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
+            //check there is a valid plc connection
+            if (!ValidCommand()) return false;
+            //check that the current parameters are valid
+            if (!SanityCheckSettings(testSettings, TestTypes.ScalingTest)) return false;
+            //Update the progress scaler values based on current test and settings
+            ResetAndCalculateProgressScalers(testSettings, TestTypes.ScalingTest);
 
-            for (uint stepCount = 0; stepCount <= ts.NumberOfSteps.Val; stepCount++)
+            //Check for pause or cancellation request
+            await PauseTask(CancellationToken.None);
+            if (IsTestCancelled()) return false;
+
+            //Setup test CSV and setting files
+            string settingFileFullPath = GenerateSettingsPath(testSettings);
+            string csvFileFullPath = GenerateCSVPath(testSettings);
+            SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.ScalingTest.GetStringValue());
+            StartCSV(csvFileFullPath, devices);
+
+            //Start stopwatch for time of test
+            Stopwatch stopWatch = new();
+            stopWatch.Start();  //Clear and start the stopwatch
+
+            double targetPosition;
+            double reversalPosition1;
+            double reversalPosition2;
+            if (testSettings.StepSize.Val > 0)
             {
-                //Check for pause or cancellation request
-                await PauseTask(CancellationToken.None);
-                if (IsTestCancelled()) return false;
-                CalculateCurrentProgress(currentCycle - 1, stepCount);
-                Console.WriteLine("Step: " + stepCount);
-
-
-                //Absolute position move (Exit test if failure)
-                if (await MoveAbsoluteAndWait(TargetPosition, ts.Velocity.Val, (int)ts.Timeout.Val) == false)
-                {
-                    Console.WriteLine("Failed to move to target position");
-                    return false;
-                }
-                await Task.Delay(TimeSpan.FromSeconds(ts.SettleTimeSeconds.Val));
-
-                //Log the data, if test fails to write to fail, exit test
-                StandardCSVData tmpCSV = new StandardCSVData(currentCycle, stepCount, "Testing", TargetPosition, AxisPosition);
-                if (await WriteToCSV(csvFile, tmpCSV, md) == false)
-                {
-                    Console.WriteLine("Failed to write data to file, exiting test");
-                    return false;
-                }
-                TargetPosition += ts.StepSize.Val;
-
+                reversalPosition1 = testSettings.InitialSetpoint.Val - testSettings.ReversalDistance.Val;
+                reversalPosition2 = 50; //THIS IS STILL TO DO!!!
             }
+                else
+            {
+                reversalPosition1 = testSettings.InitialSetpoint.Val + testSettings.ReversalDistance.Val;
+                reversalPosition2 = 50; //THIS IS STILL TO DO!!!
+            }
+
+            for (uint cycleCount = 1; cycleCount <= testSettings.Cycles.Val; cycleCount++)
+            {
+                //Start test at reversal position then moving to initial setpoint          
+                if (await MoveAbsoluteAndWait(reversalPosition1, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
+                {
+                    Console.WriteLine("Failed to move to reversal position");
+                    stopWatch.Stop();
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
+
+                targetPosition = testSettings.InitialSetpoint.Val;
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, targetPosition, devices, csvFileFullPath) == false)
+                {
+                    return false;
+                }
+
+                if (await MoveAbsoluteAndWait(reversalPosition2, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
+                {
+                    Console.WriteLine("Failed to move to reversal position");
+                    stopWatch.Stop();
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
+                targetPosition = 55;//THIS IS STILL TO DO!!!
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, targetPosition, devices, csvFileFullPath) == false)
+                {
+                    return false;
+                }
+                //Delay between cycles
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
+            }
+            TestProgress = 1;
+            stopWatch.Stop();
+            Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
+            return true;
+        }
+
+
+        private async Task<bool> UniDirectionalSingleCycle(NcTestSettings ts, uint currentCycle, double TargetPosition, MeasurementDevices md, string csvFile, bool reverseStepCount = false)
+        {
+            string approachUp;
+            string approachDown;
+            if (ts.StepSize.Val > 0)
+            {
+                approachUp = "Positive";
+                approachDown = "Negative";
+            }
+            else
+            {
+                approachUp = "Negative";
+                approachDown = "Positive";
+            }
+
+            if (reverseStepCount==false)
+            {
+                for (uint stepCount = 0; stepCount <= ts.NumberOfSteps.Val; stepCount++)
+                {
+                    //Check for pause or cancellation request
+                    await PauseTask(CancellationToken.None);
+                    if (IsTestCancelled()) return false;
+                    CalculateCurrentProgress(currentCycle - 1, stepCount);
+                    Console.WriteLine(approachUp + " Move. Step: " + stepCount);
+
+
+                    //Absolute position move (Exit test if failure)
+                    if (await MoveAbsoluteAndWait(TargetPosition, ts.Velocity.Val, (int)ts.Timeout.Val) == false)
+                    {
+                        Console.WriteLine("Failed to move to target position");
+                        return false;
+                    }
+                    await Task.Delay(TimeSpan.FromSeconds(ts.SettleTimeSeconds.Val));
+
+                    //Log the data, if test fails to write to fail, exit test
+                    StandardCSVData tmpCSV = new StandardCSVData(currentCycle, stepCount, approachUp + " approach", TargetPosition, AxisPosition);
+                    if (await WriteToCSV(csvFile, tmpCSV, md) == false)
+                    {
+                        Console.WriteLine("Failed to write data to file, exiting test");
+                        return false;
+                    }
+                    TargetPosition += ts.StepSize.Val;
+                }
+            }
+            else
+            {
+                for(int stepCount = (int)ts.NumberOfSteps.Val;stepCount >=0;stepCount--)
+                {
+                    //Check for pause or cancellation request
+                    await PauseTask(CancellationToken.None);
+                    if (IsTestCancelled()) return false;
+
+                    CalculateCurrentProgress(currentCycle - 1, (uint)(2 * ts.NumberOfSteps.Val - stepCount));
+
+                    Console.WriteLine(approachDown + " Move. Step: " + stepCount);
+                    //Do the step move
+                    if (await MoveAbsoluteAndWait(TargetPosition, ts.Velocity.Val, (int)ts.Timeout.Val) == false)
+                    {
+                        Console.WriteLine("Failed to move to target position");
+                        return false;
+                    }
+                    //Wait for a settle time
+                    await Task.Delay(TimeSpan.FromSeconds(ts.SettleTimeSeconds.Val));
+
+                    StandardCSVData tmpCSV = new StandardCSVData(currentCycle, (uint)stepCount, approachDown+" approach", TargetPosition, AxisPosition);
+                    if (await WriteToCSV(csvFile, tmpCSV, md) == false)
+                    {
+                        Console.WriteLine("Failed to write data to file, exiting test");
+                        return false;
+                    }
+                    //Update target position
+                    TargetPosition -= ts.StepSize.Val;
+                }
+            }
+            
 
 
             return true;
