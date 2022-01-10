@@ -1060,6 +1060,44 @@ namespace TwinCat_Motion_ADS
         }
 
 
+
+
+        private async Task<bool> UniDirectionalSingleCycle(NcTestSettings ts, uint currentCycle, double TargetPosition, MeasurementDevices md, string csvFile)
+        {
+
+            for (uint stepCount = 0; stepCount <= ts.NumberOfSteps.Val; stepCount++)
+            {
+                //Check for pause or cancellation request
+                await PauseTask(CancellationToken.None);
+                if (IsTestCancelled()) return false;
+                CalculateCurrentProgress(currentCycle - 1, stepCount);
+                Console.WriteLine("Step: " + stepCount);
+
+
+                //Absolute position move (Exit test if failure)
+                if (await MoveAbsoluteAndWait(TargetPosition, ts.Velocity.Val, (int)ts.Timeout.Val) == false)
+                {
+                    Console.WriteLine("Failed to move to target position");
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(ts.SettleTimeSeconds.Val));
+
+                //Log the data, if test fails to write to fail, exit test
+                StandardCSVData tmpCSV = new StandardCSVData(currentCycle, stepCount, "Testing", TargetPosition, AxisPosition);
+                if (await WriteToCSV(csvFile, tmpCSV, md) == false)
+                {
+                    Console.WriteLine("Failed to write data to file, exiting test");
+                    return false;
+                }
+                TargetPosition += ts.StepSize.Val;
+
+            }
+
+
+            return true;
+        }
+
+
         #region Helper Methods
         private bool SanityCheckSettings(NcTestSettings ts, TestTypes tt)
         {
