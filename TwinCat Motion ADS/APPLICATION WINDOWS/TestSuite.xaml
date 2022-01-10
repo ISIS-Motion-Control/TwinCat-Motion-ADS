@@ -44,6 +44,7 @@
                     <local:SettingControl x:Name="SettingReversalSettlingSeconds" SetName="Rev. Settling Time(s):" Margin="0,2,0,0"/>
 
                     <local:SettingControl x:Name="SettingInitialSetpoint" SetName="Initial Setpoint:" Margin="0,15,0,0"/>
+                    <local:SettingControl x:Name="SettingEndSetpoint" SetName="End Setpoint:" Margin="0,2,0,0"/>
                     <local:SettingControl x:Name="SettingAccuracySteps" SetName="Steps in test:" Margin="0,2,0,0"/>
                     <local:SettingControl x:Name="SettingStepSize" SetName="Step Size:" Margin="0,2,0,0"/>
                     <local:SettingControl x:Name="SettingSettlingTime" SetName="Measurement settling time(s):" Margin="0,2,0,0"/>

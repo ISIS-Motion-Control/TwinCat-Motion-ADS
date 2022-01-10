@@ -1007,12 +1007,12 @@ namespace TwinCat_Motion_ADS
             if (testSettings.StepSize.Val > 0)
             {
                 reversalPosition1 = testSettings.InitialSetpoint.Val - testSettings.ReversalDistance.Val;
-                reversalPosition2 = 50; //THIS IS STILL TO DO!!!
+                reversalPosition2 = testSettings.EndSetpoint.Val - testSettings.ReversalDistance.Val;
             }
                 else
             {
                 reversalPosition1 = testSettings.InitialSetpoint.Val + testSettings.ReversalDistance.Val;
-                reversalPosition2 = 50; //THIS IS STILL TO DO!!!
+                reversalPosition2 = testSettings.EndSetpoint.Val + testSettings.ReversalDistance.Val;
             }
 
             for (uint cycleCount = 1; cycleCount <= testSettings.Cycles.Val; cycleCount++)
@@ -1039,7 +1039,7 @@ namespace TwinCat_Motion_ADS
                     return false;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
-                targetPosition = 55;//THIS IS STILL TO DO!!!
+                targetPosition = testSettings.EndSetpoint.Val;
                 if (await UniDirectionalSingleCycle(testSettings, cycleCount, targetPosition, devices, csvFileFullPath) == false)
                 {
                     return false;

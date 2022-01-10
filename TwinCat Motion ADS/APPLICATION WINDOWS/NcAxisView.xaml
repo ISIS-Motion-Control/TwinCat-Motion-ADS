@@ -472,6 +472,23 @@
                                VerticalAlignment="Center"
                                Style="{StaticResource defaultTB}"/>
                     </StackPanel>
+                    <StackPanel Orientation="Horizontal" Height="32">
+                        <TextBlock Width="180"
+                               HorizontalAlignment="Left"
+                               Text="End Setpoint:"
+                               Style="{StaticResource defaultTB}"/>
+                        <TextBox x:Name="endSetpointTB"
+                             HorizontalAlignment="Left"
+                             Text="0"
+                             VerticalAlignment="Top"
+                             Width="60"
+                             Margin="5,0,0,0" FontSize="20"/>
+                        <TextBlock Width="60" FontSize="16" 
+                               Text="3" 
+                               HorizontalAlignment="Left" 
+                               VerticalAlignment="Center"
+                               Style="{StaticResource defaultTB}"/>
+                    </StackPanel>
                     <ProgressBar x:Name="testProgressBar" Height="25" Width="400" Minimum="0" Maximum="1" Margin="0,20,0,0"/>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Estimated time remaining: " Height="25" Width="200" FontSize="16" Foreground="White" />
