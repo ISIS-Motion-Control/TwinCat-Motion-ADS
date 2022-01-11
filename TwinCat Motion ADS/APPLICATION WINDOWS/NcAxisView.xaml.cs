@@ -69,6 +69,8 @@ namespace TwinCat_Motion_ADS
             XamlUI.TextboxBinding(settleTimeTB, NcTestSettings.SettleTimeSeconds, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(revDistanceTB, NcTestSettings.ReversalDistance, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(overshootDistanceTB, NcTestSettings.OvershootDistance, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(endSetpointTB, NcTestSettings.EndSetpoint, "UiVal", UpdateSourceTrigger.LostFocus);
+
             XamlUI.ProgressBarBinding(testProgressBar, testAxis, "TestProgress");
             if(testAxis!=null)
             {
@@ -233,6 +235,31 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        private async void ScalingTestButton_Click(object sender, RoutedEventArgs e)
+        {
+            windowData.mainWindowGrid.Focus();
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
+            if (selectedFolder == string.Empty)
+            {
+                Console.WriteLine("No save directory selected");
+                return;
+            }
+            cancelTest.IsEnabled = true;
+            pauseTest.IsEnabled = true;
+
+            if (await testAxis.ScalingTest(NcTestSettings, windowData.MeasurementDevices))
+            { }
+            else
+            {
+                Console.WriteLine("Test did not complete");
+            }
+        }
+
+
         private void CancelTest_Click(object sender, RoutedEventArgs e)
         {
             if (testAxis == null)
@@ -273,5 +300,7 @@ namespace TwinCat_Motion_ADS
         {
             ncWindowGrid.Focus();
         }
+
+        
     }
 }

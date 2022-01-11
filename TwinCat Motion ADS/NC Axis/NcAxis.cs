@@ -14,12 +14,14 @@ namespace TwinCat_Motion_ADS
     public partial class NcAxis : TestAdmin
     {
 
-        //eCommand enumeration values
+        #region commandValues
         const byte eMoveAbsolute = 0;
         const byte eMoveRelative = 1;
         const byte eMoveVelocity = 3;
         //const byte eHome = 10;
+        #endregion
 
+        #region variableHandles
         //Motion PLC Handles - used for reading/writing PLC variables
         private uint eCommandHandle;
         private uint fVelocityHandle;
@@ -35,10 +37,10 @@ namespace TwinCat_Motion_ADS
         private uint bErrorHandle;
         private uint bEnableHandle;
         private uint bResetHandle;
-
+        #endregion
+        
         //Current axis ID
         private uint _axisID;
-
         public uint AxisID
         {
             get { return _axisID; }
@@ -91,6 +93,8 @@ namespace TwinCat_Motion_ADS
                    
 
         }
+
+        #region Basic Commands
 
         private async Task SetCommand(byte command)
         {
@@ -146,6 +150,46 @@ namespace TwinCat_Motion_ADS
             
 
             var commandTask = SetCommand(eMoveAbsolute);
+            var velocityTask = SetVelocity(velocity);
+            var positionTask = SetPosition(position);
+
+            //just for fun, want to implement the async list so stuff can complete at different times
+            var absoluteTasks = new List<Task> { commandTask, velocityTask, positionTask };
+            while (absoluteTasks.Count > 0)
+            {
+                Task finishedTask = await Task.WhenAny(absoluteTasks);
+                if (finishedTask == commandTask)
+                {
+                    //Console.WriteLine("Command set");
+                }
+                else if (finishedTask == velocityTask)
+                {
+                    //Console.WriteLine("Velocity set");
+                }
+                else if (finishedTask == positionTask)
+                {
+                    //Console.WriteLine("Position set");
+                }
+                absoluteTasks.Remove(finishedTask);
+            }
+            await Execute();
+            return true;
+        }
+        
+        public async Task<bool> MoveRelative(double position, double velocity)
+        {
+            if (!ValidCommand()) return false;
+            if (AxisBusy)
+            {
+                return false;   //command fails if axis already busy
+            }
+            if (Error)
+            {
+                return false;
+            }
+            if (velocity <= 0)
+            { return false; }
+            var commandTask = SetCommand(eMoveRelative);
             var velocityTask = SetVelocity(velocity);
             var positionTask = SetPosition(position);
 
@@ -235,7 +279,7 @@ namespace TwinCat_Motion_ADS
             return false;
         }
 
-        public async Task<bool> MoveRelative(double position, double velocity)
+        public async Task<bool> MoveVelocity(double velocity)
         {
             if (!ValidCommand()) return false;
             if (AxisBusy)
@@ -246,17 +290,16 @@ namespace TwinCat_Motion_ADS
             {
                 return false;
             }
-            if (velocity <=0)
-            { return false; }
-            var commandTask = SetCommand(eMoveRelative);
-            var velocityTask = SetVelocity(velocity);
-            var positionTask = SetPosition(position);
-
-            //just for fun, want to implement the async list so stuff can complete at different times
-            var absoluteTasks = new List<Task> { commandTask, velocityTask, positionTask };
-            while (absoluteTasks.Count > 0)
+            if (velocity == 0)
             {
-                Task finishedTask = await Task.WhenAny(absoluteTasks);
+                return false;
+            }
+            var commandTask = SetCommand(eMoveVelocity);
+            var velocityTask = SetVelocity(velocity);
+            var velocityTasks = new List<Task> { commandTask, velocityTask };
+            while (velocityTasks.Count > 0)
+            {
+                Task finishedTask = await Task.WhenAny(velocityTasks);
                 if (finishedTask == commandTask)
                 {
                     //Console.WriteLine("Command set");
@@ -265,16 +308,22 @@ namespace TwinCat_Motion_ADS
                 {
                     //Console.WriteLine("Velocity set");
                 }
-                else if (finishedTask == positionTask)
-                {
-                    //Console.WriteLine("Position set");
-                }
-                absoluteTasks.Remove(finishedTask);
+
+                velocityTasks.Remove(finishedTask);
             }
             await Execute();
             return true;
         }
 
+        public async Task MoveStop()
+        {
+            if (!ValidCommand()) return;
+            await Plc.TcAds.WriteAnyAsync(bStopHandle, true, CancellationToken.None);
+        }
+
+        #endregion
+
+        #region Advanced Commands
         public async Task<bool> MoveRelativeAndWait(double position, double velocity, int timeout=0)
         {
             if (!ValidCommand()) return false;
@@ -337,49 +386,7 @@ namespace TwinCat_Motion_ADS
             Console.WriteLine("Axis busy - command rejected");
             return false;
         }
-
-        public async Task<bool> MoveVelocity(double velocity)
-        {
-            if (!ValidCommand()) return false;
-            if (AxisBusy)
-            {
-                return false;   //command fails if axis already busy
-            }
-            if (Error)
-            {
-                return false;
-            }
-            if (velocity == 0)
-            {
-                return false;
-            }
-            var commandTask = SetCommand(eMoveVelocity);
-            var velocityTask = SetVelocity(velocity);
-            var velocityTasks = new List<Task> { commandTask, velocityTask };
-            while (velocityTasks.Count > 0)
-            {
-                Task finishedTask = await Task.WhenAny(velocityTasks);
-                if (finishedTask == commandTask)
-                {
-                    //Console.WriteLine("Command set");
-                }
-                else if (finishedTask == velocityTask)
-                {
-                    //Console.WriteLine("Velocity set");
-                }
-
-                velocityTasks.Remove(finishedTask);
-            }
-            await Execute();
-            return true;
-        }
-
-        public async Task MoveStop()
-        {
-            if (!ValidCommand()) return;
-            await Plc.TcAds.WriteAnyAsync(bStopHandle, true, CancellationToken.None);
-        }
-
+        
         public async Task<bool> MoveToHighLimit(double velocity, int timeout)
         {
             if (!ValidCommand()) return false;
@@ -664,7 +671,7 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
         }
-
+        #endregion
 
 
 
@@ -680,107 +687,73 @@ namespace TwinCat_Motion_ADS
                                                                      */
 
 
+
         public async Task<bool> LimitToLimitTestwithReversingSequence(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
+            //check there is a valid plc connection
             if (!ValidCommand()) return false;
-            if (testSettings.Cycles.Val == 0)
-            {
-                Console.WriteLine("0 cycle count invalid");
-                return false;
-            }
-            if (testSettings.ReversalVelocity.Val == 0)
-            {
-                Console.WriteLine("0 reversal velocity invalid");
-                return false;
-            }
-            if (testSettings.Velocity.Val == 0)
-            {
-                Console.WriteLine("0 velocity invalid");
-                return false;
-            }
+            //check that the current parameters are valid
+            if (!SanityCheckSettings(testSettings, TestTypes.EndToEnd)) return false;
+            //Update the progress scaler values based on current test and settings
+            ResetAndCalculateProgressScalers(testSettings, TestTypes.EndToEnd);
+            
+            //Check for pause or cancellation request
+            await PauseTask(CancellationToken.None);
+            if (IsTestCancelled()) return false;
 
-            progScaler = 1/Convert.ToDouble(testSettings.Cycles.Val);
-            Console.WriteLine("Progress scaler is: " + progScaler);
-            TestProgress = 0;
-
-            var currentTime = DateTime.Now;
-            string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.TestTitle.UiVal, currentTime, AxisID);
-            Console.WriteLine(newTitle);
-            string settingFileFullPath = TestDirectory + @"\" + newTitle + ".xml";
-            string csvFileFullPath = TestDirectory + @"\" + newTitle + ".csv";
-            SaveSettingsFile(testSettings, settingFileFullPath, "Limit to Limit Test");
-
+            //Setup test CSV and setting files
+            string settingFileFullPath = GenerateSettingsPath(testSettings);
+            string csvFileFullPath = GenerateCSVPath(testSettings);
+            SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.EndToEnd.GetStringValue());           
             StartCSV(csvFileFullPath, devices);
 
-            Stopwatch stopWatch = new(); //Create stopwatch for rough end to end timing
-            testSettings.Velocity.Val = Math.Abs(testSettings.Velocity.Val);
-            //Start low
+            //Start stopwatch for time of test
+            Stopwatch stopWatch = new();
+            stopWatch.Start();  //Clear and start the stopwatch
+            
+            //Move to the lower limit switch
             if (await MoveToLowLimit(-testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
             {
                 Console.WriteLine("Failed to move to low limit for start of test");
                 return false;
             }
-
+            //Delay start of sequence by settle time
             await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds.Val));
 
-            CancellationTokenSource ctToken = new();
-            CancellationTokenSource ptToken = new();
-            Task<bool> cancelRequestTask = CheckCancellationRequestTask(ctToken.Token);
-
-            //Start running test cycles
-
-            stopWatch.Reset();
-            stopWatch.Start();  //Clear and start the stopwatch
-
-            EstimatedTimeRemaining.StartTime = DateTime.Now;
-            for (int i = 1; i <= testSettings.Cycles.Val; i++)
+            //Test Cycles
+            for (uint cycleCount = 1; cycleCount <= testSettings.Cycles.Val; cycleCount++)
             {
-                //Single cycle time
-                if (i == 2)
-                {
-                    EstimatedTimeRemaining.CycleTime = DateTime.Now - EstimatedTimeRemaining.StartTime;
-                }
-                //Estimate the end time based on remaining cycles and single cycle time
-                if (i > 1)
-                {
-                    EstimatedTimeRemaining.EstimatedEndTime = DateTime.Now + EstimatedTimeRemaining.CycleTime * (testSettings.Cycles.Val - i + 1);
-                }
+                //Check for pause or cancellation request
+                await PauseTask(CancellationToken.None);
+                if (IsTestCancelled()) return false;
 
-                TestProgress = Convert.ToDouble(i-1) * progScaler;
-
-                Task<bool> pauseTaskRequest = CheckPauseRequestTask(ptToken.Token);
-                await pauseTaskRequest;
-                if (cancelRequestTask.IsCompleted)
-                {
-                    //Cancelled the test
-                    ptToken.Cancel();
-                    CancelTest = false;
-                    Console.WriteLine("Test cancelled");
-                    return false;
-                }
                 
+                
+                //Update the estimated time
+                EstimatedTimeRemaining.TimeEstimateUpdate(cycleCount, testSettings.Cycles.Val);
+                
+                //Move to high limit
                 if (await MoveToHighLimit(testSettings.Velocity.Val, (int)testSettings.Timeout.Val))
                 {
+                    //Calculate current test progress
+                    CalculateCurrentProgress(cycleCount - 1, 0);
+                    
                     await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds.Val));//Allow axis to settle before reversal
                     if (await HighLimitReversal(testSettings.ReversalVelocity.Val, (int)testSettings.Timeout.Val, (int)testSettings.ReversalExtraTimeSeconds.Val, (int)testSettings.ReversalSettleTimeSeconds.Val))
                     {
-
-                        StandardCSVData tmpCSV = new StandardCSVData((uint)i, 0, "Moving to high limit", 0, AxisPosition);
+                        //Write test data
+                        StandardCSVData tmpCSV = new StandardCSVData((uint)cycleCount, 0, "Moving to high limit", 0, AxisPosition);
                         if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
                         {
                             Console.WriteLine("Failed to write data to file, exiting test");
                             stopWatch.Stop();
-                            ctToken.Cancel();
-                            ptToken.Cancel();
                             return false;
                         }
-                        Console.WriteLine("Cycle " + i + "- Low limit to high limit: " + "ms. High limit triggered at " + AxisPosition);
+                        Console.WriteLine("Cycle " + cycleCount + "- Low limit to high limit: " + "ms. High limit triggered at " + AxisPosition);
                     }
                     else
                     {
                         Console.WriteLine("High limit reversal failed");
-                        ctToken.Cancel();
-                        ptToken.Cancel();
                         return false;
                     }
                 }
@@ -788,35 +761,34 @@ namespace TwinCat_Motion_ADS
                 {
                     stopWatch.Stop();
                     Console.WriteLine("Move to high failed");
-                    ctToken.Cancel();
-                    ptToken.Cancel();
                     return false;
                 }
+                //Check for pause or cancellation request
+                await PauseTask(CancellationToken.None);
+                if (IsTestCancelled()) return false;
 
-
+                //Move to low limit
                 if (await MoveToLowLimit(-testSettings.Velocity.Val, (int)testSettings.Timeout.Val))
                 {
+                    //Calculate current test progress
+                    CalculateCurrentProgress(cycleCount - 1, 1);
 
                     await Task.Delay(TimeSpan.FromSeconds(testSettings.ReversalSettleTimeSeconds.Val));//Allow axis to settle before reversal
                     if (await LowLimitReversal(testSettings.ReversalVelocity.Val, (int)testSettings.Timeout.Val, (int)testSettings.ReversalExtraTimeSeconds.Val, (int)testSettings.ReversalSettleTimeSeconds.Val))
                     {
-                        StandardCSVData tmpCSV = new StandardCSVData((uint)i, 0, "Moving to low limit", 0, AxisPosition);
+                        //Write test data
+                        StandardCSVData tmpCSV = new StandardCSVData((uint)cycleCount, 0, "Moving to low limit", 0, AxisPosition);
                         if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
                         {
                             Console.WriteLine("Failed to write data to file, exiting test");
                             stopWatch.Stop();
-                            ctToken.Cancel();
-                            ptToken.Cancel();
                             return false;
                         }
-                        Console.WriteLine("Cycle " + i + "- High limit to low limit: " + "ms. Low limit triggered at " + AxisPosition);
-
+                        Console.WriteLine("Cycle " + cycleCount + "- High limit to low limit: " + "ms. Low limit triggered at " + AxisPosition);
                     }
                     else
                     {
                         Console.WriteLine("Low limit reversal failed");
-                        ctToken.Cancel();
-                        ptToken.Cancel();
                         return false;
                     }
                 }
@@ -824,48 +796,39 @@ namespace TwinCat_Motion_ADS
                 {
                     stopWatch.Stop();
                     Console.WriteLine("Move to low failed");
-                    ctToken.Cancel();
-                    ptToken.Cancel();
                     return false;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
             TestProgress = 1;
-            ctToken.Cancel();
+            stopWatch.Stop();
+            Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
             return true;
         }
 
         public async Task<bool> UniDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
-            //Check settings are valid
+            //check there is a valid plc connection
             if (!ValidCommand()) return false;
-            if (testSettings.Cycles.Val <= 0)
-            {
-                Console.WriteLine("Cycle count invalid");
-                return false;
-            }
-            if (testSettings.NumberOfSteps.Val <= 0)
-            {
-                Console.WriteLine("Step count invalid");
-                return false;
-            }
-            if (testSettings.Velocity.Val == 0)
-            {
-                Console.WriteLine("0 velocity invalid");
-                return false;
-            }
-            if (testSettings.StepSize.Val == 0)
-            {
-                Console.WriteLine("0 step size invalid");
-                return false;
-            }
+            //check that the current parameters are valid
+            if (!SanityCheckSettings(testSettings, TestTypes.UnidirectionalAccuracy)) return false;
+            //Update the progress scaler values based on current test and settings
+            ResetAndCalculateProgressScalers(testSettings, TestTypes.UnidirectionalAccuracy);
 
-            progScaler = 1 / Convert.ToDouble(testSettings.Cycles.Val);
-            TestProgress = 0;
-            stepScaler = progScaler / Convert.ToDouble(testSettings.NumberOfSteps.Val);
-            //Ensure positive velocity value
-            testSettings.Velocity.Val = Math.Abs(testSettings.Velocity.Val);
-            
+            //Check for pause or cancellation request
+            await PauseTask(CancellationToken.None);
+            if (IsTestCancelled()) return false;
+
+            //Setup test CSV and setting files
+            string settingFileFullPath = GenerateSettingsPath(testSettings);
+            string csvFileFullPath = GenerateCSVPath(testSettings);
+            SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.UnidirectionalAccuracy.GetStringValue());
+            StartCSV(csvFileFullPath, devices);
+          
+            //Start stopwatch for time of test
+            Stopwatch stopWatch = new();
+            stopWatch.Start();  //Clear and start the stopwatch
+
             //Establish "Reversal" position of test
             double reversalPosition;
             if (testSettings.StepSize.Val > 0)
@@ -877,50 +840,16 @@ namespace TwinCat_Motion_ADS
                 reversalPosition = testSettings.InitialSetpoint.Val + testSettings.ReversalDistance.Val;
             }
 
-            //Create file name string
-            var currentTime = DateTime.Now;
-            string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.TestTitle.UiVal, currentTime, AxisID);                  
-            string settingFileFullPath = TestDirectory + @"\" + newTitle + ".xml";
-            string csvFileFullPath = TestDirectory + @"\" + newTitle + ".csv";
-            Console.WriteLine(newTitle);
-
-            //Create settings file and CSV file
-            SaveSettingsFile(testSettings, settingFileFullPath, "Unidirectional Accuracy Test");
-            StartCSV(csvFileFullPath,devices);
-
-            CancellationTokenSource ctToken = new();
-            CancellationTokenSource ptToken = new();
-            Task<bool> cancelRequestTask = CheckCancellationRequestTask(ctToken.Token);
-            Stopwatch stopWatch = new();
-
-            //Cycles
-            stopWatch.Start();
-            EstimatedTimeRemaining.StartTime = DateTime.Now;
-            for (uint i = 1; i <= testSettings.Cycles.Val; i++)
+            // Test Cycles
+            for (uint cycleCount = 1; cycleCount <= testSettings.Cycles.Val; cycleCount++)
             {
-                //get single cycle time
-                if(i ==2)
-                {
-                    EstimatedTimeRemaining.CycleTime = DateTime.Now - EstimatedTimeRemaining.StartTime;
-                }
-                //Estimate the end time based on remaining cycles and single cycle time
-                if(i>1)
-                {
-                    EstimatedTimeRemaining.EstimatedEndTime = DateTime.Now + EstimatedTimeRemaining.CycleTime * (testSettings.Cycles.Val - i + 1);
-                }
-                Console.WriteLine("Cycle " + i);
+                //Check for pause or cancellation request
+                await PauseTask(CancellationToken.None);
+                if (IsTestCancelled()) return false;
+               
+                EstimatedTimeRemaining.TimeEstimateUpdate(cycleCount, testSettings.Cycles.Val);
 
-                //Check for a pause or cancellation request
-                Task<bool> pauseTaskRequest = CheckPauseRequestTask(ptToken.Token);
-                await pauseTaskRequest;
-                if (cancelRequestTask.IsCompleted)
-                {
-                    //Cancelled the test
-                    ptToken.Cancel();
-                    CancelTest = false;
-                    Console.WriteLine("Test cancelled");
-                    return false;
-                }
+                Console.WriteLine("Cycle " + cycleCount);
 
                 //Set target position to cycle initial setpoint
                 double TargetPosition = testSettings.InitialSetpoint.Val;
@@ -930,42 +859,14 @@ namespace TwinCat_Motion_ADS
                 {
                     Console.WriteLine("Failed to move to reversal position");
                     stopWatch.Stop();
-                    ctToken.Cancel();
-                    ptToken.Cancel();
                     return false;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
 
                 //Steps of cycle
-                for (uint j = 0; j <= testSettings.NumberOfSteps.Val; j++)
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, TargetPosition, devices, csvFileFullPath) == false)
                 {
-                    TestProgress = Convert.ToDouble(i-1)*progScaler + Convert.ToDouble(j)*stepScaler;
-                    Console.WriteLine("Step: " + j);
-
-                    //Absolute position move (Exit test if failure)
-                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
-                    {
-                        Console.WriteLine("Failed to move to target position");
-                        stopWatch.Stop();
-                        ctToken.Cancel();
-                        ptToken.Cancel();
-                        return false;
-                    }
-                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
-
-                    //Log the data, if test fails to write to fail, exit test
-                    StandardCSVData tmpCSV = new StandardCSVData(i, j, "Testing", TargetPosition, AxisPosition);
-                    if(await WriteToCSV(csvFileFullPath, tmpCSV, devices)== false)
-                    {
-                        Console.WriteLine("Failed to write data to file, exiting test");
-                        stopWatch.Stop();
-                        ctToken.Cancel();
-                        ptToken.Cancel();
-                        return false;
-                    }
-
-                    //Update target position for next step
-                    TargetPosition += testSettings.StepSize.Val;
+                    return false;
                 }
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
@@ -973,41 +874,35 @@ namespace TwinCat_Motion_ADS
             TestProgress = 1;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
-            ctToken.Cancel();
-            ptToken.Cancel();
             return true;
         }
 
-
         public async Task<bool> BiDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
-            if (!ValidCommand()) return false;           
-            if (testSettings.Cycles.Val == 0)
-            {
-                Console.WriteLine("0 cycle count invalid");
-                return false;
-            }
-            if (testSettings.NumberOfSteps.Val == 0)
-            {
-                Console.WriteLine("0 step count invalid");
-                return false;
-            }
-            if (testSettings.Velocity.Val == 0)
-            {
-                Console.WriteLine("0 velocity invalid");
-                return false;
-            }
-            if (testSettings.StepSize.Val == 0)
-            {
-                Console.WriteLine("0 step size invalid");
-                return false;
-            }
+            //check there is a valid plc connection
+            if (!ValidCommand()) return false;
+            //check that the current parameters are valid
+            if (!SanityCheckSettings(testSettings, TestTypes.BidirectionalAccuracy)) return false;
+            //Update the progress scaler values based on current test and settings
+            ResetAndCalculateProgressScalers(testSettings, TestTypes.BidirectionalAccuracy);
 
-            //Ensure positive velocity value
-            testSettings.Velocity.Val = Math.Abs(testSettings.Velocity.Val);  //Only want positive velocity
-            
+            //Check for pause or cancellation request
+            await PauseTask(CancellationToken.None);
+            if (IsTestCancelled()) return false;
+
+            //Setup test CSV and setting files
+            string settingFileFullPath = GenerateSettingsPath(testSettings);
+            string csvFileFullPath = GenerateCSVPath(testSettings);
+            SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.BidirectionalAccuracy.GetStringValue());
+            StartCSV(csvFileFullPath, devices);
+
+            //Start stopwatch for time of test
+            Stopwatch stopWatch = new();
+            stopWatch.Start();  //Clear and start the stopwatch
+
             //Establish "Reversal" and "Overshoot" positions of test
             double reversalPosition;
+            double endPosition = testSettings.InitialSetpoint.Val + ((testSettings.NumberOfSteps.Val) * testSettings.StepSize.Val);
             if (testSettings.StepSize.Val > 0)
             {
                 reversalPosition = testSettings.InitialSetpoint.Val - testSettings.ReversalDistance.Val;
@@ -1019,153 +914,60 @@ namespace TwinCat_Motion_ADS
             double overshootPosition;
             if (testSettings.StepSize.Val > 0)
             {
-                overshootPosition = testSettings.InitialSetpoint.Val + ((testSettings.NumberOfSteps.Val - 1) * testSettings.StepSize.Val) + testSettings.OvershootDistance.Val;
+                overshootPosition = endPosition + testSettings.OvershootDistance.Val;
             }
             else
             {
-                overshootPosition = testSettings.InitialSetpoint.Val + ((testSettings.NumberOfSteps.Val - 1) * testSettings.StepSize.Val) - testSettings.OvershootDistance.Val;
+                overshootPosition = endPosition - testSettings.OvershootDistance.Val;
             }
 
-            progScaler = 1 / Convert.ToDouble(testSettings.Cycles.Val);
-            TestProgress = 0;
-            stepScaler = progScaler / (Convert.ToDouble(testSettings.NumberOfSteps.Val)*2);
 
-
-            var currentTime = DateTime.Now;
-            string newTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + testSettings.TestTitle.UiVal, currentTime, AxisID);           
-            string settingFileFullPath = TestDirectory + @"\" + newTitle + ".xml";
-            string csvFileFullPath = TestDirectory + @"\" + newTitle + ".csv";
-            Console.WriteLine(newTitle);
-            
-            SaveSettingsFile(testSettings, settingFileFullPath, "Bidirectional Accuracy Test");
-            StartCSV(csvFileFullPath, devices);
-
-
-            //Create an ongoing task to monitor for a cancellation request. This will only trigger on start of each test cycle.
-            CancellationTokenSource ctToken = new();
-            CancellationTokenSource ptToken = new();
-            Task<bool> cancelRequestTask = CheckCancellationRequestTask(ctToken.Token);
-            Stopwatch stopWatch = new(); //Create stopwatch for rough end to end timing
-
-            //Cycles
-            stopWatch.Start();
-            string approachUp;
-            string approachDown;
-            if(testSettings.StepSize.Val > 0)
+            //Test Cycles
+            for (uint cycleCount = 1; cycleCount <= testSettings.Cycles.Val; cycleCount++)
             {
-                approachUp = "Positive";
-                approachDown = "Negative";
-            }
-            else
-            {
-                approachUp = "Negative";
-                approachDown = "Positive";
-            }
-            EstimatedTimeRemaining.StartTime = DateTime.Now;
-                                       
-            for (uint i = 1; i <= testSettings.Cycles.Val; i++)
-            {
-                //Single cycle time   
-                if (i == 2)
-                {
-                    EstimatedTimeRemaining.CycleTime = DateTime.Now - EstimatedTimeRemaining.StartTime;
-                }
-                //Estimate the end time based on remaining cycles and single cycle time
-                if (i > 1)
-                {
-                    EstimatedTimeRemaining.EstimatedEndTime = DateTime.Now + EstimatedTimeRemaining.CycleTime * (testSettings.Cycles.Val - i + 1);
-                }
-                Console.WriteLine("Cycle " + i);
+                //Check for pause or cancellation request
+                await PauseTask(CancellationToken.None);
+                if (IsTestCancelled()) return false;
+                
+                //Update time estimate
+                EstimatedTimeRemaining.TimeEstimateUpdate(cycleCount, testSettings.Cycles.Val);
 
-                //Check for pause or cancellation
-                Task<bool> pauseTaskRequest = CheckPauseRequestTask(ptToken.Token);
-                await pauseTaskRequest;
-                if (cancelRequestTask.IsCompleted)
-                {
-                    //Cancelled the test
-                    ptToken.Cancel();
-                    CancelTest = false;
-                    Console.WriteLine("Test cancelled");
-                    return false;
-                }
-
-                double TargetPosition = testSettings.InitialSetpoint.Val;
-                //Start test at reversal position then moving to initial setpoint          
+                //Print current cycle to console
+                Console.WriteLine("Cycle " + cycleCount);
+                
+                
+                //Move to reversal position         
                 if (await MoveAbsoluteAndWait(reversalPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
                 {
                     Console.WriteLine("Failed to move to reversal position");
                     stopWatch.Stop();
                     return false;
                 }
+                //delay
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
-
-                //going up the steps
-                for (uint j = 0; j <= testSettings.NumberOfSteps.Val; j++)
+                
+                //First approach cycle
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, testSettings.InitialSetpoint.Val, devices, csvFileFullPath, false) == false)
                 {
-                    TestProgress = Convert.ToDouble(i - 1) * progScaler + Convert.ToDouble(j) * stepScaler;
-
-                    Console.WriteLine(approachUp + " Move. Step: " + j);
-                    
-                    //Make the step
-                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
-                    {
-                        Console.WriteLine("Failed to move to target position");
-                        stopWatch.Stop();
-                        return false;
-                    }
-                    //Wait for a settle time
-                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
-
-
-                    StandardCSVData tmpCSV = new StandardCSVData(i, j, approachUp+ " approach", TargetPosition, AxisPosition);
-                    if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
-                    {
-                        Console.WriteLine("Failed to write data to file, exiting test");
-                        stopWatch.Stop();
-                        ctToken.Cancel();
-                        ptToken.Cancel();
-                        return false;
-                    }
-                    //Update target position
-                    TargetPosition += testSettings.StepSize.Val;
+                    stopWatch.Stop();
+                    return false;
                 }
-                //END OF APPROACH
-                //Overshoot the final position before coming back down
+
+                //Move to overshoot position
                 if (await MoveAbsoluteAndWait(overshootPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
                 {
                     Console.WriteLine("Failed to move to overshoot position");
                     stopWatch.Stop();
                     return false;
-                }
+                }          
+                //delay
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
-                //going down the steps. Need the cast here as we require j to go negative to cancel the loop
-                TargetPosition -= testSettings.StepSize.Val;
-                for (int j = (int)testSettings.NumberOfSteps.Val; j >= 0; j--)
+                
+                //Second approach cycle
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, endPosition, devices, csvFileFullPath, true) == false)
                 {
-                    TestProgress = Convert.ToDouble(i - 1) * progScaler + (Convert.ToDouble(testSettings.NumberOfSteps.Val) - Convert.ToDouble(j)) * stepScaler + stepScaler * (Convert.ToDouble(testSettings.NumberOfSteps.Val));
-                    Console.WriteLine(approachDown+" Move. Step: " + j);
-                    //Do the step move
-                    if (await MoveAbsoluteAndWait(TargetPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
-                    {
-                        Console.WriteLine("Failed to move to target position");
-                        stopWatch.Stop();
-                        return false;
-                    }
-                    //Wait for a settle time
-                    await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
-
-                    StandardCSVData tmpCSV = new StandardCSVData(i, (uint)j, "Negative approach", TargetPosition, AxisPosition);
-                    if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
-                    {
-                        Console.WriteLine("Failed to write data to file, exiting test");
-                        stopWatch.Stop();
-                        ctToken.Cancel();
-                        ptToken.Cancel();
-                        return false;
-                    }
-                    //Update target position
-
-                    TargetPosition -= testSettings.StepSize.Val;
+                    stopWatch.Stop();
+                    return false;
                 }
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
@@ -1175,9 +977,258 @@ namespace TwinCat_Motion_ADS
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed);
             return true;
         }
-   
+
+        public async Task<bool> ScalingTest(NcTestSettings testSettings, MeasurementDevices devices = null)
+        {
+            //check there is a valid plc connection
+            if (!ValidCommand()) return false;
+            //check that the current parameters are valid
+            if (!SanityCheckSettings(testSettings, TestTypes.ScalingTest)) return false;
+            //Update the progress scaler values based on current test and settings
+            ResetAndCalculateProgressScalers(testSettings, TestTypes.ScalingTest);
+
+            //Check for pause or cancellation request
+            await PauseTask(CancellationToken.None);
+            if (IsTestCancelled()) return false;
+
+            //Setup test CSV and setting files
+            string settingFileFullPath = GenerateSettingsPath(testSettings);
+            string csvFileFullPath = GenerateCSVPath(testSettings);
+            SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.ScalingTest.GetStringValue());
+            StartCSV(csvFileFullPath, devices);
+
+            //Start stopwatch for time of test
+            Stopwatch stopWatch = new();
+            stopWatch.Start();  //Clear and start the stopwatch
+
+            double targetPosition;
+            double reversalPosition1;
+            double reversalPosition2;
+            if (testSettings.StepSize.Val > 0)
+            {
+                reversalPosition1 = testSettings.InitialSetpoint.Val - testSettings.ReversalDistance.Val;
+                reversalPosition2 = testSettings.EndSetpoint.Val - testSettings.ReversalDistance.Val;
+            }
+                else
+            {
+                reversalPosition1 = testSettings.InitialSetpoint.Val + testSettings.ReversalDistance.Val;
+                reversalPosition2 = testSettings.EndSetpoint.Val + testSettings.ReversalDistance.Val;
+            }
+
+            for (uint cycleCount = 1; cycleCount <= testSettings.Cycles.Val; cycleCount++)
+            {
+                //Start test at reversal position then moving to initial setpoint          
+                if (await MoveAbsoluteAndWait(reversalPosition1, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
+                {
+                    Console.WriteLine("Failed to move to reversal position");
+                    stopWatch.Stop();
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
+
+                targetPosition = testSettings.InitialSetpoint.Val;
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, targetPosition, devices, csvFileFullPath) == false)
+                {
+                    return false;
+                }
+
+                if (await MoveAbsoluteAndWait(reversalPosition2, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
+                {
+                    Console.WriteLine("Failed to move to reversal position");
+                    stopWatch.Stop();
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
+                targetPosition = testSettings.EndSetpoint.Val;
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, targetPosition, devices, csvFileFullPath) == false)
+                {
+                    return false;
+                }
+                //Delay between cycles
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
+            }
+            TestProgress = 1;
+            stopWatch.Stop();
+            Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
+            return true;
+        }
 
 
+        private async Task<bool> UniDirectionalSingleCycle(NcTestSettings ts, uint currentCycle, double TargetPosition, MeasurementDevices md, string csvFile, bool reverseStepCount = false)
+        {
+            string approachUp;
+            string approachDown;
+            if (ts.StepSize.Val > 0)
+            {
+                approachUp = "Positive";
+                approachDown = "Negative";
+            }
+            else
+            {
+                approachUp = "Negative";
+                approachDown = "Positive";
+            }
+
+            if (reverseStepCount==false)
+            {
+                for (uint stepCount = 0; stepCount <= ts.NumberOfSteps.Val; stepCount++)
+                {
+                    //Check for pause or cancellation request
+                    await PauseTask(CancellationToken.None);
+                    if (IsTestCancelled()) return false;
+                    CalculateCurrentProgress(currentCycle - 1, stepCount);
+                    Console.WriteLine(approachUp + " Move. Step: " + stepCount);
+
+
+                    //Absolute position move (Exit test if failure)
+                    if (await MoveAbsoluteAndWait(TargetPosition, ts.Velocity.Val, (int)ts.Timeout.Val) == false)
+                    {
+                        Console.WriteLine("Failed to move to target position");
+                        return false;
+                    }
+                    await Task.Delay(TimeSpan.FromSeconds(ts.SettleTimeSeconds.Val));
+
+                    //Log the data, if test fails to write to fail, exit test
+                    StandardCSVData tmpCSV = new StandardCSVData(currentCycle, stepCount, approachUp + " approach", TargetPosition, AxisPosition);
+                    if (await WriteToCSV(csvFile, tmpCSV, md) == false)
+                    {
+                        Console.WriteLine("Failed to write data to file, exiting test");
+                        return false;
+                    }
+                    TargetPosition += ts.StepSize.Val;
+                }
+            }
+            else
+            {
+                for(int stepCount = (int)ts.NumberOfSteps.Val;stepCount >=0;stepCount--)
+                {
+                    //Check for pause or cancellation request
+                    await PauseTask(CancellationToken.None);
+                    if (IsTestCancelled()) return false;
+
+                    CalculateCurrentProgress(currentCycle - 1, (uint)(2 * ts.NumberOfSteps.Val - stepCount));
+
+                    Console.WriteLine(approachDown + " Move. Step: " + stepCount);
+                    //Do the step move
+                    if (await MoveAbsoluteAndWait(TargetPosition, ts.Velocity.Val, (int)ts.Timeout.Val) == false)
+                    {
+                        Console.WriteLine("Failed to move to target position");
+                        return false;
+                    }
+                    //Wait for a settle time
+                    await Task.Delay(TimeSpan.FromSeconds(ts.SettleTimeSeconds.Val));
+
+                    StandardCSVData tmpCSV = new StandardCSVData(currentCycle, (uint)stepCount, approachDown+" approach", TargetPosition, AxisPosition);
+                    if (await WriteToCSV(csvFile, tmpCSV, md) == false)
+                    {
+                        Console.WriteLine("Failed to write data to file, exiting test");
+                        return false;
+                    }
+                    //Update target position
+                    TargetPosition -= ts.StepSize.Val;
+                }
+            }
+            
+
+
+            return true;
+        }
+
+
+        #region Helper Methods
+        private bool SanityCheckSettings(NcTestSettings ts, TestTypes tt)
+        {
+            bool checkValid = true;
+            if (ts.Cycles.Val <= 0)
+            {
+                checkValid = false;
+            }
+            if (ts.NumberOfSteps.Val <= 0)
+            {
+                checkValid = false;
+            }
+            ts.Velocity.Val = Math.Abs(ts.Velocity.Val);
+            if (ts.Velocity.Val == 0)
+            {
+                checkValid = false;
+            }
+            switch (tt)
+            {
+                case TestTypes.EndToEnd:
+                    if(ts.ReversalVelocity.Val<=0)
+                    {
+                        Console.WriteLine("Reversal velocity cannont be <= 0");
+                        checkValid = false;
+                    }
+                    if(ts.ReversalExtraTimeSeconds.Val<=0)
+                    {
+                        Console.WriteLine("Reversal time cannont be <= 0");
+                        checkValid = false;
+                    }
+                    if(ts.ReversalSettleTimeSeconds.Val<=0)
+                    {
+                        Console.WriteLine("Reversal settle time cannont be <= 0");
+                        checkValid = false;
+                    }
+                    break;
+                case TestTypes.UnidirectionalAccuracy:
+                case TestTypes.BidirectionalAccuracy:
+                    if (ts.NumberOfSteps.Val <= 0)
+                    {
+                        Console.WriteLine("Number of steps is invalid");
+                        checkValid = false;
+                    }
+                    if (ts.StepSize.Val == 0)
+                    {
+                        Console.WriteLine("Step size is invalid");
+                        checkValid = false;
+                    }
+                    break;
+            }
+
+            return checkValid;
+        }
+
+        private void ResetAndCalculateProgressScalers(NcTestSettings ts, TestTypes tt)
+        {
+            TestProgress = 0;
+            progScaler = 1 / Convert.ToDouble(ts.Cycles.Val);
+            switch (tt)
+            {
+                case TestTypes.EndToEnd:
+                    stepScaler = progScaler / 2;
+                    break;
+                case TestTypes.UnidirectionalAccuracy:
+                    stepScaler = progScaler / (Convert.ToDouble(ts.NumberOfSteps.Val) + 1);
+                    break;
+                case TestTypes.BidirectionalAccuracy:
+                    stepScaler = progScaler / ((Convert.ToDouble(ts.NumberOfSteps.Val) + 1) * 2);
+                    break;
+            }
+        }
+
+        private void CalculateCurrentProgress(uint cycle, uint step)
+        {
+            TestProgress = cycle * progScaler + step * stepScaler;
+        }
+
+        public string GenerateTestFileName(NcTestSettings ts)
+        {
+            DateTime currentTime = DateTime.Now;
+            string testTitle = string.Format(@"{0:yyMMdd} {0:HH}h{0:mm}m{0:ss}s Axis {1}~ " + ts.TestTitle.UiVal, currentTime, AxisID);
+            string filePath = TestDirectory + @"\" + testTitle;
+            return filePath;
+        }
+        
+        public string GenerateCSVPath(NcTestSettings ts)
+        {
+            return GenerateTestFileName(ts) + ".csv";
+        }
+       
+        public string GenerateSettingsPath(NcTestSettings ts)
+        {
+            return GenerateTestFileName(ts) + ".xml";
+        }
 
         public void StartCSV(string fp, MeasurementDevices md)
         {
@@ -1264,5 +1315,6 @@ namespace TwinCat_Motion_ADS
             rootNode.SelectSingleNode("testType").InnerText = testType; //Need to manually go in and change what test type was run
             doc.Save(filePath);
         }
+        #endregion
     }
 }
