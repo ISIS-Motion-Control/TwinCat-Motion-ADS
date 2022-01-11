@@ -80,6 +80,7 @@ namespace TwinCat_Motion_ADS
 
         private async void ShutterLimitToLimitTestButton_Click(object sender, RoutedEventArgs e)
         {
+            windowData.mainWindowGrid.Focus();
             await pneumaticAxis.End2EndTest(TestSettings,windowData.MeasurementDevices);
         }
 
