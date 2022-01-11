@@ -43,9 +43,7 @@ namespace TwinCat_Motion_ADS.MVVM.View.Tests
             TestSuite.AddFields(xmlDoc, testListItem, parentNode);
 
             XmlDocument testAgainstDoc = new();
-            testAgainstDoc.LoadXml(xmlString);
-
-            
+            testAgainstDoc.LoadXml(xmlString);           
             Assert.AreEqual(testAgainstDoc.OuterXml, xmlDoc.OuterXml);
         }
     }

@@ -298,5 +298,17 @@ namespace TwinCat_Motion_ADS.Properties {
                 this["airRetractTimeout"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string endSetpoint {
+            get {
+                return ((string)(this["endSetpoint"]));
+            }
+            set {
+                this["endSetpoint"] = value;
+            }
+        }
     }
 }

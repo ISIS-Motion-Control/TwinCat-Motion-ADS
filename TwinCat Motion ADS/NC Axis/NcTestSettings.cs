@@ -35,6 +35,7 @@ namespace TwinCat_Motion_ADS
             SettleTimeSeconds.UiVal = Properties.Settings.Default.settleTimeSeconds;
             ReversalDistance.UiVal = Properties.Settings.Default.reversalDistance;
             OvershootDistance.UiVal = Properties.Settings.Default.overshootDistance;
+            EndSetpoint.UiVal = Properties.Settings.Default.endSetpoint;
         }
 
         public void ResetSettings()
@@ -53,6 +54,7 @@ namespace TwinCat_Motion_ADS
             SettleTimeSeconds.UiVal = "0";
             ReversalDistance.UiVal = "0";
             OvershootDistance.UiVal = "0";
+            EndSetpoint.UiVal = "0";
         }
 
         //Method to import and export test settings
@@ -70,6 +72,7 @@ namespace TwinCat_Motion_ADS
         public SettingUint SettleTimeSeconds { get; set; } = new("settleTimeSeconds");
         public SettingDouble ReversalDistance { get; set; } = new("reversalDistance");
         public SettingDouble OvershootDistance = new("overshootDistance");
+        public SettingDouble EndSetpoint { get; set; } = new("endSetpoint");
 
         
         public void ImportSettingsXML(string ImportSettingsFile)
@@ -94,6 +97,8 @@ namespace TwinCat_Motion_ADS
             SettleTimeSeconds.UiVal = tli.TestSettings.SettleTimeSeconds.UiVal; ;
             ReversalDistance.UiVal = tli.TestSettings.ReversalDistance.UiVal; ;
             OvershootDistance.UiVal = tli.TestSettings.OvershootDistance.UiVal; ;
+
+            EndSetpoint.UiVal = tli.TestSettings.EndSetpoint.UiVal;
         }    
 
         public event PropertyChangedEventHandler PropertyChanged;
