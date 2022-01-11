@@ -983,7 +983,7 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
                 
                 //First approach cycle
-                if (await UniDirectionalSingleCycle(testSettings, cycleCount, testSettings.InitialSetpoint.Val, devices, csvFileFullPath, false) == false)
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, testSettings.InitialSetpoint.Val, devices, csvFileFullPath,0, false) == false)
                 {
                     testRunning = false;
                     stopWatch.Stop();
@@ -1002,7 +1002,7 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
                 
                 //Second approach cycle
-                if (await UniDirectionalSingleCycle(testSettings, cycleCount, endPosition, devices, csvFileFullPath, true) == false)
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, endPosition, devices, csvFileFullPath,0, true) == false)
                 {
                     testRunning = false;
                     stopWatch.Stop();
@@ -1086,7 +1086,7 @@ namespace TwinCat_Motion_ADS
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
                 targetPosition = testSettings.EndSetpoint.Val;
-                if (await UniDirectionalSingleCycle(testSettings, cycleCount, targetPosition, devices, csvFileFullPath) == false)
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, targetPosition, devices, csvFileFullPath, testSettings.NumberOfSteps.Val) == false)
                 {
                     testRunning = false;
                     return false;
@@ -1102,7 +1102,7 @@ namespace TwinCat_Motion_ADS
         }
 
 
-        private async Task<bool> UniDirectionalSingleCycle(NcTestSettings ts, uint currentCycle, double TargetPosition, MeasurementDevices md, string csvFile, bool reverseStepCount = false)
+        private async Task<bool> UniDirectionalSingleCycle(NcTestSettings ts, uint currentCycle, double TargetPosition, MeasurementDevices md, string csvFile, uint additionalSteps = 0, bool reverseStepCount = false)
         {
             string approachUp;
             string approachDown;
@@ -1124,7 +1124,7 @@ namespace TwinCat_Motion_ADS
                     //Check for pause or cancellation request
                     await PauseTask(CancellationToken.None);
                     if (IsTestCancelled()) return false;
-                    CalculateCurrentProgress(currentCycle - 1, stepCount);
+                    CalculateCurrentProgress(currentCycle - 1, stepCount + additionalSteps);
                     Console.WriteLine(approachUp + " Move. Step: " + stepCount);
 
 
@@ -1221,6 +1221,7 @@ namespace TwinCat_Motion_ADS
                     break;
                 case TestTypes.UnidirectionalAccuracy:
                 case TestTypes.BidirectionalAccuracy:
+                case TestTypes.ScalingTest:
                     if (ts.NumberOfSteps.Val <= 0)
                     {
                         Console.WriteLine("Number of steps is invalid");
@@ -1231,7 +1232,7 @@ namespace TwinCat_Motion_ADS
                         Console.WriteLine("Step size is invalid");
                         checkValid = false;
                     }
-                    break;
+                    break;                
             }
 
             return checkValid;
@@ -1250,6 +1251,7 @@ namespace TwinCat_Motion_ADS
                     stepScaler = progScaler / (Convert.ToDouble(ts.NumberOfSteps.Val) + 1);
                     break;
                 case TestTypes.BidirectionalAccuracy:
+                case TestTypes.ScalingTest:
                     stepScaler = progScaler / ((Convert.ToDouble(ts.NumberOfSteps.Val) + 1) * 2);
                     break;
             }
