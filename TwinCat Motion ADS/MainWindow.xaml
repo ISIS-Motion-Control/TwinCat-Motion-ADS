@@ -104,7 +104,8 @@
         <Grid x:Name="mainWindowGrid" Focusable="True">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="145*"/>
-                <ColumnDefinition Width="611*"/>
+                <ColumnDefinition Width="117*"/>
+                <ColumnDefinition Width="494*"/>
                 <ColumnDefinition Width="255*"/>
                 <ColumnDefinition Width="909*"/>
             </Grid.ColumnDefinitions>
@@ -114,8 +115,8 @@
                 <RowDefinition Height="50"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <Border Background="#005A9E" Grid.Row="0" Grid.ColumnSpan="4"/>
-            <Menu IsMainMenu="True" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
+            <Border Background="#005A9E" Grid.Row="0" Grid.ColumnSpan="5"/>
+            <Menu IsMainMenu="True" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" 
                   HorizontalAlignment="Left" Height="30" Background="{x:Null}">
                 <MenuItem x:Name="MeasureDevicesMenu" Header="Measurement Devices" Height="30" Width="195" Template="{StaticResource VsOnline}" Click="MeasureDevicesMenu_Click">
                     <MenuItem Header="Add new device..." Click="AddNewDevice" Template="{StaticResource VsMenuSub}"/>
@@ -127,7 +128,7 @@
 
                 </MenuItem>
             </Menu>
-            <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,0,909,0">
+            <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4">
                 <RadioButton x:Name="NcAxis" Content="NC Axis"
                              Foreground="White"
                              FontSize="24"
@@ -143,7 +144,7 @@
 
             </StackPanel>
 
-            <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,0,909,0">
+            <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4">
                 <StackPanel Orientation="Horizontal">
                     <TextBox x:Name="amsNetIdTb"  
                              Height="20"
@@ -157,14 +158,14 @@
                             Height="20"
                             VerticalAlignment="Top"
                             Margin="10,5,0,0"
-                        Style="{StaticResource myDefaultButton}" MouseEnter="connect2PlcButton_MouseEnter"/>
+                        Style="{StaticResource myDefaultButton}"/>
                 </StackPanel>
             </StackPanel>
 
-            <StackPanel x:Name="StackPanel___MainWindow" Orientation="Vertical" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4" Margin="0,0,909,0" Focusable="True">
+            <StackPanel x:Name="StackPanel___MainWindow" Orientation="Vertical" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4" Focusable="True">
                 <ContentControl x:Name="tabbedWindow" d:IsHidden="True"/>
             </StackPanel>
-            <ListBox x:Name="consoleListBox" Grid.Column="3" Grid.Row="2" Grid.RowSpan="2" local:ListBoxBehavior.ScrollOnNewItem="True" Margin="0,0,5,5" ScrollViewer.VerticalScrollBarVisibility="Visible">
+            <ListBox x:Name="consoleListBox" Grid.Column="4" Grid.Row="2" Grid.RowSpan="2" local:ListBoxBehavior.ScrollOnNewItem="True" Margin="0,0,5,5" ScrollViewer.VerticalScrollBarVisibility="Visible">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid Margin="0,2">
