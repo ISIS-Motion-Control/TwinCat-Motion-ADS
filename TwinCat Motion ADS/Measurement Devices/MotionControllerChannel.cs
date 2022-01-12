@@ -106,7 +106,7 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
-                Console.WriteLine("Failed to find variable string");
+                Console.WriteLine("Failed to find access path and compatible type");
                 return false;
             }
         }
