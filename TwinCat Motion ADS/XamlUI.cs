@@ -60,6 +60,24 @@ namespace TwinCat_Motion_ADS
             BindingOperations.SetBinding(item, ComboBox.SelectedValueProperty, comboBind);
         }
 
+        public static void UserSettingBinding(DependencyObject item, object testAxis, object setting)
+        {
+            Binding EnableBind = new();
+            EnableBind.Mode = BindingMode.OneWay;
+            EnableBind.Source = testAxis;
+            EnableBind.Path = new PropertyPath("TestRunning");
+            EnableBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(item,  SettingControlMain.DisabledProperty, EnableBind);
+
+            Binding TextboxBind = new();
+            TextboxBind.Mode = BindingMode.TwoWay;
+            TextboxBind.Source = setting;
+            TextboxBind.Path = new PropertyPath("UiVal");
+            TextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
+            DependencyObject temp = ((SettingControlMain)item).SettingValue;
+            BindingOperations.SetBinding(temp, TextBox.TextProperty, TextboxBind);
+        }
+
         public static void SetupButton(ref Button but, string butText)
         {
             but.Content = butText;

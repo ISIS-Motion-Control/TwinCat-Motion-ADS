@@ -150,7 +150,6 @@
                             <Button x:Name="moveVelButton"
                             Focusable="False"  
                             Content="MoveVel" 
-                            
                             Margin="0,10,0,0"
                                 Style="{StaticResource myDefaultButton}" Click="AxisCommand_Click"/>
                             <Button x:Name="move2High" 
