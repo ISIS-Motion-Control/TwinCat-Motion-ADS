@@ -35,12 +35,7 @@ namespace TwinCat_Motion_ADS
 
         public MeasurementDevices MeasurementDevices = new();
         public List<MenuItem> measurementMenuItems = new();
-        public ObservableCollection<string> DeviceTypeList = new()
-        {
-            "",
-        "DigimaticIndicator",
-        "KeyenceTM3000"
-        };
+
         private string _amsNetID;
         public string AmsNetID
         {
