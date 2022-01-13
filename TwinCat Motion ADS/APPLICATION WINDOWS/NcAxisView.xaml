@@ -223,6 +223,12 @@
                                 Click="ScalingTestButton_Click"
                                 Margin="0,10,0,0"
                                 Style="{StaticResource myBlueButton}"/>
+                    <Button x:Name="BacklashTestButton" 
+                                Focusable="False" 
+                                Content="BacklashTest" 
+                                Click="BacklashTestButton_Click"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource myBlueButton}"/>
                     <Button x:Name="cancelTest" 
                                     Focusable="False" 
                                     Content="Cancel Test" 
