@@ -35,12 +35,7 @@ namespace TwinCat_Motion_ADS
 
         public MeasurementDevices MeasurementDevices = new();
         public List<MenuItem> measurementMenuItems = new();
-        public ObservableCollection<string> DeviceTypeList = new()
-        {
-            "",
-        "DigimaticIndicator",
-        "KeyenceTM3000"
-        };
+
         private string _amsNetID;
         public string AmsNetID
         {
@@ -244,13 +239,25 @@ namespace TwinCat_Motion_ADS
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
+            if(NcAxisView.testAxis!=null)
+            {
+                if(NcAxisView.testAxis.testRunning)
+                {
+                    MessageBoxResult dialogResult = MessageBox.Show("You have a test running do you want to exit?", "Please Don't Leave Me", MessageBoxButton.YesNo);
+                    if(dialogResult == MessageBoxResult.No)
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
+                }
+            }
             //bit of a 'hacky' method. Due to the test suite window being hidden and not actually closed I need a way for that window to check if the whole application is closing
             windowClosing = true;
             //Because I hide the window
-            if(TestSuiteWindow !=null)
+            if (TestSuiteWindow != null)
             {
                 TestSuiteWindow.Close();
-            }
+            }           
         }
     }
 
