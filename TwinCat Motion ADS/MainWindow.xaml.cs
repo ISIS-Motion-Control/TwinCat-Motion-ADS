@@ -241,7 +241,7 @@ namespace TwinCat_Motion_ADS
         {
             if(NcAxisView.testAxis!=null)
             {
-                if(NcAxisView.testAxis.testRunning)
+                if(NcAxisView.testAxis.TestRunning)
                 {
                     MessageBoxResult dialogResult = MessageBox.Show("You have a test running do you want to exit?", "Please Don't Leave Me", MessageBoxButton.YesNo);
                     if(dialogResult == MessageBoxResult.No)

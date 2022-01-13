@@ -349,7 +349,7 @@ namespace TwinCat_Motion_ADS
             tli.TestSettings.ReversalDistance.UiVal = testNode.SelectSingleNode("reversalDistance").InnerText;
             tli.TestSettings.OvershootDistance.UiVal = testNode.SelectSingleNode("overshootDistance").InnerText;
             
-            if(testNode.SelectSingleNode("endSetpoint").InnerText != null)
+            if(testNode.SelectSingleNode("endSetpoint")!= null)
             tli.TestSettings.EndSetpoint.UiVal = testNode.SelectSingleNode("endSetpoint").InnerText;    //Enable older file compatibility
         }
 

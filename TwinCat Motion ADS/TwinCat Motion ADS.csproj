@@ -52,6 +52,9 @@
     <Compile Update="APPLICATION WINDOWS\measurementDeviceWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="APPLICATION WINDOWS\User Controls\SettingControlMain.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Properties\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
@@ -68,6 +71,10 @@
 
   <ItemGroup>
     <Page Update="APPLICATION WINDOWS\measurementDeviceWindow.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="APPLICATION WINDOWS\User Controls\SettingControlMain.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>

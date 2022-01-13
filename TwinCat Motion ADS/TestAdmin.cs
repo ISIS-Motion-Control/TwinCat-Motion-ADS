@@ -51,7 +51,18 @@ namespace TwinCat_Motion_ADS
             get { return _cancelTest; }
             set { _cancelTest = value; OnPropertyChanged(); }
         }
-        
+
+        private bool _testRunning = false;
+        public bool TestRunning
+        {
+            get { return _testRunning; }
+            set
+            {
+                _testRunning = value;
+                OnPropertyChanged();
+            }
+        }
+
         public async Task<bool> PauseTask(CancellationToken ct)
         {
             bool firstCycle = true;
