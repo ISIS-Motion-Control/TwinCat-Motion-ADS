@@ -13,6 +13,7 @@ namespace TwinCat_Motion_ADS
 {
     public partial class NcAxis : TestAdmin
     {
+        public bool testRunning = false;
 
         #region commandValues
         const byte eMoveAbsolute = 0;
@@ -707,6 +708,9 @@ namespace TwinCat_Motion_ADS
             SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.EndToEnd.GetStringValue());           
             StartCSV(csvFileFullPath, devices);
 
+            //Set the test is running flag
+            testRunning = true;
+
             //Start stopwatch for time of test
             Stopwatch stopWatch = new();
             stopWatch.Start();  //Clear and start the stopwatch
@@ -715,6 +719,7 @@ namespace TwinCat_Motion_ADS
             if (await MoveToLowLimit(-testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
             {
                 Console.WriteLine("Failed to move to low limit for start of test");
+                testRunning = false;
                 return false;
             }
             //Delay start of sequence by settle time
@@ -725,12 +730,14 @@ namespace TwinCat_Motion_ADS
             {
                 //Check for pause or cancellation request
                 await PauseTask(CancellationToken.None);
-                if (IsTestCancelled()) return false;
+                if (IsTestCancelled())
+                {
+                    testRunning = false;
+                    return false;
+                }
 
-                
-                
-                //Update the estimated time
-                EstimatedTimeRemaining.TimeEstimateUpdate(cycleCount, testSettings.Cycles.Val);
+                    //Update the estimated time
+                    EstimatedTimeRemaining.TimeEstimateUpdate(cycleCount, testSettings.Cycles.Val);
                 
                 //Move to high limit
                 if (await MoveToHighLimit(testSettings.Velocity.Val, (int)testSettings.Timeout.Val))
@@ -746,6 +753,7 @@ namespace TwinCat_Motion_ADS
                         if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
                         {
                             Console.WriteLine("Failed to write data to file, exiting test");
+                            testRunning = false;
                             stopWatch.Stop();
                             return false;
                         }
@@ -754,18 +762,24 @@ namespace TwinCat_Motion_ADS
                     else
                     {
                         Console.WriteLine("High limit reversal failed");
+                        testRunning = false;
                         return false;
                     }
                 }
                 else
                 {
+                    testRunning = false;
                     stopWatch.Stop();
-                    Console.WriteLine("Move to high failed");
+                    Console.WriteLine("Move to high limit failed");
                     return false;
                 }
                 //Check for pause or cancellation request
                 await PauseTask(CancellationToken.None);
-                if (IsTestCancelled()) return false;
+                if (IsTestCancelled())
+                {
+                    testRunning = false;
+                    return false;
+                }
 
                 //Move to low limit
                 if (await MoveToLowLimit(-testSettings.Velocity.Val, (int)testSettings.Timeout.Val))
@@ -781,6 +795,7 @@ namespace TwinCat_Motion_ADS
                         if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
                         {
                             Console.WriteLine("Failed to write data to file, exiting test");
+                            testRunning = false;
                             stopWatch.Stop();
                             return false;
                         }
@@ -789,18 +804,21 @@ namespace TwinCat_Motion_ADS
                     else
                     {
                         Console.WriteLine("Low limit reversal failed");
+                        testRunning = false;
                         return false;
                     }
                 }
                 else
                 {
+                    testRunning = false;
                     stopWatch.Stop();
-                    Console.WriteLine("Move to low failed");
+                    Console.WriteLine("Move to low limit failed");
                     return false;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
             TestProgress = 1;
+            testRunning = false;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
             return true;
@@ -824,7 +842,10 @@ namespace TwinCat_Motion_ADS
             string csvFileFullPath = GenerateCSVPath(testSettings);
             SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.UnidirectionalAccuracy.GetStringValue());
             StartCSV(csvFileFullPath, devices);
-          
+
+            //Set the test is running flag
+            testRunning = true;
+
             //Start stopwatch for time of test
             Stopwatch stopWatch = new();
             stopWatch.Start();  //Clear and start the stopwatch
@@ -845,7 +866,11 @@ namespace TwinCat_Motion_ADS
             {
                 //Check for pause or cancellation request
                 await PauseTask(CancellationToken.None);
-                if (IsTestCancelled()) return false;
+                if (IsTestCancelled())
+                {
+                    testRunning = false;
+                    return false;
+                }
                
                 EstimatedTimeRemaining.TimeEstimateUpdate(cycleCount, testSettings.Cycles.Val);
 
@@ -858,6 +883,7 @@ namespace TwinCat_Motion_ADS
                 if (await MoveAbsoluteAndWait(reversalPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
                 {
                     Console.WriteLine("Failed to move to reversal position");
+                    testRunning = false;
                     stopWatch.Stop();
                     return false;
                 }
@@ -866,12 +892,14 @@ namespace TwinCat_Motion_ADS
                 //Steps of cycle
                 if (await UniDirectionalSingleCycle(testSettings, cycleCount, TargetPosition, devices, csvFileFullPath) == false)
                 {
+                    testRunning = false;
                     return false;
                 }
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
             TestProgress = 1;
+            testRunning = false;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
             return true;
@@ -895,6 +923,9 @@ namespace TwinCat_Motion_ADS
             string csvFileFullPath = GenerateCSVPath(testSettings);
             SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.BidirectionalAccuracy.GetStringValue());
             StartCSV(csvFileFullPath, devices);
+
+            //Set the test is running flag
+            testRunning = true;
 
             //Start stopwatch for time of test
             Stopwatch stopWatch = new();
@@ -927,7 +958,11 @@ namespace TwinCat_Motion_ADS
             {
                 //Check for pause or cancellation request
                 await PauseTask(CancellationToken.None);
-                if (IsTestCancelled()) return false;
+                if (IsTestCancelled())
+                {
+                    testRunning = false;
+                    return false;
+                }
                 
                 //Update time estimate
                 EstimatedTimeRemaining.TimeEstimateUpdate(cycleCount, testSettings.Cycles.Val);
@@ -940,6 +975,7 @@ namespace TwinCat_Motion_ADS
                 if (await MoveAbsoluteAndWait(reversalPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
                 {
                     Console.WriteLine("Failed to move to reversal position");
+                    testRunning = false;
                     stopWatch.Stop();
                     return false;
                 }
@@ -949,6 +985,7 @@ namespace TwinCat_Motion_ADS
                 //First approach cycle
                 if (await UniDirectionalSingleCycle(testSettings, cycleCount, testSettings.InitialSetpoint.Val, devices, csvFileFullPath,0, false) == false)
                 {
+                    testRunning = false;
                     stopWatch.Stop();
                     return false;
                 }
@@ -957,6 +994,7 @@ namespace TwinCat_Motion_ADS
                 if (await MoveAbsoluteAndWait(overshootPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
                 {
                     Console.WriteLine("Failed to move to overshoot position");
+                    testRunning = false;
                     stopWatch.Stop();
                     return false;
                 }          
@@ -966,6 +1004,7 @@ namespace TwinCat_Motion_ADS
                 //Second approach cycle
                 if (await UniDirectionalSingleCycle(testSettings, cycleCount, endPosition, devices, csvFileFullPath,0, true) == false)
                 {
+                    testRunning = false;
                     stopWatch.Stop();
                     return false;
                 }
@@ -973,6 +1012,7 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
             TestProgress = 1;
+            testRunning = false;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed);
             return true;
@@ -996,6 +1036,9 @@ namespace TwinCat_Motion_ADS
             string csvFileFullPath = GenerateCSVPath(testSettings);
             SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.ScalingTest.GetStringValue());
             StartCSV(csvFileFullPath, devices);
+
+            //Set the test is running flag
+            testRunning = true;
 
             //Start stopwatch for time of test
             Stopwatch stopWatch = new();
@@ -1024,6 +1067,7 @@ namespace TwinCat_Motion_ADS
                 if (await MoveAbsoluteAndWait(reversalPosition1, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
                 {
                     Console.WriteLine("Failed to move to reversal position");
+                    testRunning = false;
                     stopWatch.Stop();
                     return false;
                 }
@@ -1032,12 +1076,14 @@ namespace TwinCat_Motion_ADS
                 targetPosition = testSettings.InitialSetpoint.Val;
                 if (await UniDirectionalSingleCycle(testSettings, cycleCount, targetPosition, devices, csvFileFullPath) == false)
                 {
+                    testRunning = false;
                     return false;
                 }
 
                 if (await MoveAbsoluteAndWait(reversalPosition2, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
                 {
                     Console.WriteLine("Failed to move to reversal position");
+                    testRunning = false;
                     stopWatch.Stop();
                     return false;
                 }
@@ -1045,12 +1091,14 @@ namespace TwinCat_Motion_ADS
                 targetPosition = testSettings.EndSetpoint.Val;
                 if (await UniDirectionalSingleCycle(testSettings, cycleCount, targetPosition, devices, csvFileFullPath, testSettings.NumberOfSteps.Val) == false)
                 {
+                    testRunning = false;
                     return false;
                 }
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
             }
             TestProgress = 1;
+            testRunning = false;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
             return true;
