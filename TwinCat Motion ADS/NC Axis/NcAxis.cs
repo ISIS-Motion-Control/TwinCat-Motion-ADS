@@ -1060,6 +1060,9 @@ namespace TwinCat_Motion_ADS
 
             for (uint cycleCount = 1; cycleCount <= testSettings.Cycles.Val; cycleCount++)
             {
+                //Update the estimated time
+                EstimatedTimeRemaining.TimeEstimateUpdate(cycleCount, testSettings.Cycles.Val);
+
                 //Start test at reversal position then moving to initial setpoint          
                 if (await MoveAbsoluteAndWait(reversalPosition1, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
                 {
@@ -1096,6 +1099,77 @@ namespace TwinCat_Motion_ADS
             }
             TestProgress = 1;
             testRunning = false;
+            stopWatch.Stop();
+            Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
+            return true;
+        }
+
+        public async Task<bool> BacklashDetectionTest(NcTestSettings testSettings, MeasurementDevices devices = null)
+        {
+            //check there is a valid plc connection
+            if (!ValidCommand()) return false;
+            //check that the current parameters are valid
+            if (!SanityCheckSettings(testSettings, TestTypes.BacklashDetection)) return false;
+            //Update the progress scaler values based on current test and settings
+            ResetAndCalculateProgressScalers(testSettings, TestTypes.BacklashDetection);
+
+            //Check for pause or cancellation request
+            await PauseTask(CancellationToken.None);
+            if (IsTestCancelled()) return false;
+
+            //Setup test CSV and setting files
+            string settingFileFullPath = GenerateSettingsPath(testSettings);
+            string csvFileFullPath = GenerateCSVPath(testSettings);
+            SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.BacklashDetection.GetStringValue());
+            StartCSV(csvFileFullPath, devices);
+
+            //Start stopwatch for time of test
+            Stopwatch stopWatch = new();
+            stopWatch.Start();  //Clear and start the stopwatch
+
+            //Establish "Reversal" position of test
+            double reversalPosition;
+            if (testSettings.StepSize.Val > 0)
+            {
+                reversalPosition = testSettings.InitialSetpoint.Val + testSettings.ReversalDistance.Val;
+            }
+            else
+            {
+                reversalPosition = testSettings.InitialSetpoint.Val - testSettings.ReversalDistance.Val;
+            }
+
+            // Test Cycles
+            for (uint cycleCount = 1; cycleCount <= testSettings.Cycles.Val; cycleCount++)
+            {
+                //Check for pause or cancellation request
+                await PauseTask(CancellationToken.None);
+                if (IsTestCancelled()) return false;
+
+                EstimatedTimeRemaining.TimeEstimateUpdate(cycleCount, testSettings.Cycles.Val);
+
+                Console.WriteLine("Cycle " + cycleCount);
+
+                //Set target position to cycle initial setpoint
+                double TargetPosition = testSettings.InitialSetpoint.Val;
+
+                //Start test at reversal position then moving to initial setpoint          
+                if (await MoveAbsoluteAndWait(reversalPosition, testSettings.Velocity.Val, (int)testSettings.Timeout.Val) == false)
+                {
+                    Console.WriteLine("Failed to move to reversal position");
+                    stopWatch.Stop();
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
+
+                //Steps of cycle
+                if (await UniDirectionalSingleCycle(testSettings, cycleCount, TargetPosition, devices, csvFileFullPath) == false)
+                {
+                    return false;
+                }
+                //Delay between cycles
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
+            }
+            TestProgress = 1;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
             return true;
@@ -1222,6 +1296,7 @@ namespace TwinCat_Motion_ADS
                 case TestTypes.UnidirectionalAccuracy:
                 case TestTypes.BidirectionalAccuracy:
                 case TestTypes.ScalingTest:
+                case TestTypes.BacklashDetection:
                     if (ts.NumberOfSteps.Val <= 0)
                     {
                         Console.WriteLine("Number of steps is invalid");
@@ -1238,6 +1313,7 @@ namespace TwinCat_Motion_ADS
             return checkValid;
         }
 
+
         private void ResetAndCalculateProgressScalers(NcTestSettings ts, TestTypes tt)
         {
             TestProgress = 0;
@@ -1248,6 +1324,7 @@ namespace TwinCat_Motion_ADS
                     stepScaler = progScaler / 2;
                     break;
                 case TestTypes.UnidirectionalAccuracy:
+                case TestTypes.BacklashDetection:
                     stepScaler = progScaler / (Convert.ToDouble(ts.NumberOfSteps.Val) + 1);
                     break;
                 case TestTypes.BidirectionalAccuracy:
@@ -1347,7 +1424,7 @@ namespace TwinCat_Motion_ADS
 
                 }
             }
-
+            
             
         }
 

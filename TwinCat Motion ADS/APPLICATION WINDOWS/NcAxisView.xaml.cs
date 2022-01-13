@@ -202,7 +202,6 @@ namespace TwinCat_Motion_ADS
             }
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
-
             if (await testAxis.UniDirectionalAccuracyTest(NcTestSettings, windowData.MeasurementDevices))
             {}
             else
@@ -252,6 +251,30 @@ namespace TwinCat_Motion_ADS
             pauseTest.IsEnabled = true;
 
             if (await testAxis.ScalingTest(NcTestSettings, windowData.MeasurementDevices))
+            { }
+            else
+            {
+                Console.WriteLine("Test did not complete");
+            }
+        }
+
+        private async void BacklashTestButton_Click(object sender, RoutedEventArgs e)
+        {
+            windowData.mainWindowGrid.Focus();
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
+            if (selectedFolder == string.Empty)
+            {
+                Console.WriteLine("No save directory selected");
+                return;
+            }
+            cancelTest.IsEnabled = true;
+            pauseTest.IsEnabled = true;
+
+            if (await testAxis.BacklashDetectionTest(NcTestSettings, windowData.MeasurementDevices))
             { }
             else
             {
