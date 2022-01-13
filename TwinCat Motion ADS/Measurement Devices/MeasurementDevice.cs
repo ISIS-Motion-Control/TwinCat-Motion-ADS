@@ -236,7 +236,7 @@ namespace TwinCat_Motion_ADS
                             {
                                 Connected = false;
                                 beckhoffPlc.Disconnect();
-                            }                         
+                            }
                         }
                     }
                     break;
