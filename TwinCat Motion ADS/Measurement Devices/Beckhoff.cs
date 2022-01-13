@@ -121,6 +121,7 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
+                Console.WriteLine("Failed");
                 return false;
             }
         }

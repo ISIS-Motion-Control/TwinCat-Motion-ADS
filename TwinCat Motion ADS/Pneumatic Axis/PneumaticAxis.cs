@@ -221,7 +221,7 @@ namespace TwinCat_Motion_ADS
             List<string> measurements = new();
             List<List<string>> cycleMeasurements = new();
             var currentTime = DateTime.Now;
-            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-PneumaticAxis-end2end-settlingReads({1}) settlingReadDelay({2}) ext2retDelay({3}) re2extDelay({4}) - {5} cycles", currentTime, ts.SettlingReads, ts.ReadDelayMs, ts.DelayAfterExtend, ts.DelayAfterRetract, ts.Cycles);
+            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-PneumaticAxis-end2end-settlingReads({1}) settlingReadDelay({2}) ext2retDelay({3}) re2extDelay({4}) - {5} cycles", currentTime, ts.SettlingReads.UiVal, ts.ReadDelayMs.UiVal, ts.DelayAfterExtend.UiVal, ts.DelayAfterRetract.UiVal, ts.Cycles.UiVal);
 
             string fileName = @"\" + formattedTitle + ".csv";
             var stream = File.Open(TestDirectory + fileName, FileMode.Append);
@@ -243,7 +243,7 @@ namespace TwinCat_Motion_ADS
                         if (device.Connected)
                         {
                             csv.WriteField(device.Name);
-                            csv.WriteField(device.Name + "Timestamp");
+                            //csv.WriteField(device.Name + "Timestamp");
                         }
                     }
 
@@ -287,13 +287,13 @@ namespace TwinCat_Motion_ADS
                             if(device.Connected)
                             {
                                 string measure = string.Empty;
-                                string timestamp = string.Empty;
-                                measure = await device.GetMeasurement();
-                                timestamp = testStopwatch.Elapsed.ToString();
-                                measurements.Add(measure);
-                                measurements.Add(timestamp);
 
-                                Console.WriteLine(device.Name + ": " + measure + "@" + timestamp);
+                                measure = await device.GetMeasurement();
+                                //timestamp = testStopwatch.Elapsed.ToString();
+                                measurements.Add(measure);
+
+
+                                Console.WriteLine(device.Name + ": " + measure);
                             }
                         }
                     }
