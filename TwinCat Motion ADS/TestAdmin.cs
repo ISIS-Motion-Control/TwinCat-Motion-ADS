@@ -1,10 +1,14 @@
-﻿using System;
+﻿using CsvHelper;
+using System;
 using System.ComponentModel;
+using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using System.Windows;
 
 namespace TwinCat_Motion_ADS
 {
@@ -107,6 +111,85 @@ namespace TwinCat_Motion_ADS
             Valid = true;
             return true;
         }
+
+
+        #region CSV STUFf
+
+
+        public void StartCSVAIR(string fp, MeasurementDevices md)
+        {
+            using (FileStream stream = File.Open(fp, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+            using (StreamWriter writer = new StreamWriter(stream))
+            using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.WriteHeader<PneumaticEnd2EndCSVv2>();
+                if (md != null)
+                {
+                    foreach (var device in md.MeasurementDeviceList) //for every device in the list
+                    {
+                        if (device.Connected)   //if the device is connected
+                        {
+                            foreach (var channel in device.ChannelList)  //for every channel on the device
+                            {
+                                csv.WriteField(channel.Item1);  //add a header for it
+                            }
+                        }
+                    }
+                }
+                csv.NextRecord();
+            }
+        }
+
+        public async Task<bool> WriteToCSVAIR(string fp, PneumaticEnd2EndCSVv2 csvData, MeasurementDevices md)
+        {
+            int retryCounter = 0;
+            while (true)
+            {
+                try
+                {
+                    using (FileStream stream = File.Open(fp, FileMode.Append, FileAccess.Write, FileShare.Read))
+                    using (StreamWriter writer = new StreamWriter(stream))
+                    using (CsvWriter csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                    {
+                        csv.WriteRecord(csvData);
+                        if (md != null)
+                        {
+
+                            foreach (var device in md.MeasurementDeviceList)
+                            {
+                                if (device.Connected)
+                                {
+                                    foreach (var channel in device.ChannelList)
+                                    {
+                                        var measurement = await device.GetChannelMeasurement(channel.Item2);
+                                        Console.WriteLine(channel.Item1 + ": " + measurement);
+                                        csv.WriteField(measurement);
+                                    }
+                                }
+                            }
+                        }
+                        csv.NextRecord();
+                    }
+                    return true;
+                }
+                catch
+                {
+                    if (retryCounter == 3)
+                    {
+                        return false;
+                    }
+                    retryCounter += 1;
+                    MessageBox.Show("File not accesible. Press OK to retry.\n" + (4 - retryCounter) + " attempt(s) remaining.");
+
+                }
+            }
+
+
+        }
+
+        #endregion
+
+
     }
 
     //Class to handle UI elements of setting elements of type string - not strictly necessary, more for standardisation of rest of code.

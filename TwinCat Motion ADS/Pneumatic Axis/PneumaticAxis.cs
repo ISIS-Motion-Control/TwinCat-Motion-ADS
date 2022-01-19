@@ -214,49 +214,17 @@ namespace TwinCat_Motion_ADS
                 testStopwatch.Stop();
                 return false;
             }
-
-            //Setup the csv file:
-            List<PneumaticEnd2EndCSVv2> recordList = new();
-            List<PneumaticEnd2EndCSVv2> retractRecord = new();
-            List<string> measurements = new();
-            List<List<string>> cycleMeasurements = new();
             var currentTime = DateTime.Now;
-            string formattedTitle = string.Format("{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-PneumaticAxis-end2end-settlingReads({1}) settlingReadDelay({2}) ext2retDelay({3}) re2extDelay({4}) - {5} cycles", currentTime, ts.SettlingReads.UiVal, ts.ReadDelayMs.UiVal, ts.DelayAfterExtend.UiVal, ts.DelayAfterRetract.UiVal, ts.Cycles.UiVal);
+            string formattedTitle3 = string.Format(@"\{0:yyyyMMdd}--{0:HH}h-{0:mm}m-{0:ss}s-PneumaticAxis-end2end-settlingReads({1}) settlingReadDelay({2}) ext2retDelay({3}) re2extDelay({4}) - {5} cycles.csv", currentTime, ts.SettlingReads.UiVal, ts.ReadDelayMs.UiVal, ts.DelayAfterExtend.UiVal, ts.DelayAfterRetract.UiVal, ts.Cycles.UiVal);
+            string formattedTitle2 = TestDirectory + formattedTitle3;
+            StartCSVAIR(formattedTitle2, md);
 
-            string fileName = @"\" + formattedTitle + ".csv";
-            var stream = File.Open(TestDirectory + fileName, FileMode.Append);
-            var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
-            { HasHeaderRecord = false, };
-
-            StreamWriter writer = new(stream);
-            CsvWriter csv = new(writer, config);
-
-            using (stream)
-            using (writer)
-            using (csv)
-            {
-                csv.WriteHeader<PneumaticEnd2EndCSVv2>();
-                if (md != null)    //populate CSV headers with device names
-                {
-                    foreach (var device in md.MeasurementDeviceList)
-                    {
-                        if (device.Connected)
-                        {
-                            csv.WriteField(device.Name);
-                            //csv.WriteField(device.Name + "Timestamp");
-                        }
-                    }
-
-                }
-                csv.NextRecord();
-            }
+            
             Stopwatch stopwatch = new();
 
 
             for (int i = 0; i < ts.Cycles.Val; i++)
             {
-                measurements.Clear();
-                cycleMeasurements.Clear();
 
                 Console.WriteLine("Starting test cycle " + i);
                 stopwatch.Reset();
@@ -277,31 +245,15 @@ namespace TwinCat_Motion_ADS
                     //do a read of DTIs (both should be in extend position)
                     //These will not be highly synchronised reads, very low "read rate".
 
-
-                    //CancellationTokenSource testToken = new();
-                    if(md != null)
+                    PneumaticEnd2EndCSVv2 tmpCSV = new PneumaticEnd2EndCSVv2((uint)i, (uint)j, "Extending", ExtendedLimit, RetractedLimit, stopwatch.Elapsed);
+                    if (await WriteToCSVAIR(formattedTitle2, tmpCSV, md) == false)
                     {
-                        measurements = new();
-                        foreach(var device in md.MeasurementDeviceList)
-                        {
-                            if(device.Connected)
-                            {
-                                string measure = string.Empty;
-
-                                measure = await device.GetMeasurement();
-                                //timestamp = testStopwatch.Elapsed.ToString();
-                                measurements.Add(measure);
-
-
-                                Console.WriteLine(device.Name + ": " + measure);
-                            }
-                        }
+                        Console.WriteLine("Failed to write data to file, exiting test");
+                        return false;
                     }
                     
+                    
                     await Task.Delay((int)ts.ReadDelayMs.Val);
-                    //log a record
-                    recordList.Add(new PneumaticEnd2EndCSVv2((uint)i, (uint)j, "Extending", ExtendedLimit, RetractedLimit, stopwatch.Elapsed));
-                    cycleMeasurements.Add(measurements);
                 }
                 //Settling reads finished
                 //User delay before retracting cylinder
@@ -316,34 +268,15 @@ namespace TwinCat_Motion_ADS
                     return false;
                 }
                 stopwatch.Stop();
-                retractRecord.Add(new PneumaticEnd2EndCSVv2((uint)i, 0, "Retracting", ExtendedLimit, RetractedLimit, stopwatch.Elapsed));
-                //Retract finished and logged. Write to csv
-                //Write the cycle data
-                using (stream = File.Open(TestDirectory + fileName, FileMode.Append))
-                using (writer = new StreamWriter(stream))
-                
-                
-                using (csv = new CsvWriter(writer, config))
+                PneumaticEnd2EndCSVv2 tmpCSVretract = new PneumaticEnd2EndCSVv2((uint)i, 0, "Retracting", ExtendedLimit, RetractedLimit, stopwatch.Elapsed);
+                if (await WriteToCSVAIR(formattedTitle2, tmpCSVretract, md) == false)
                 {
-                    //csv.WriteRecords(recordList);
-                    int loopIndex = 0;
-                    foreach(var record in recordList)
-                    {
-                        csv.WriteRecord(record);
-                        if (md != null)
-                        {
-                            foreach (var measure in cycleMeasurements[loopIndex])
-                            {
-                                csv.WriteField(measure);
-                            }
-                        }
-                        loopIndex++;
-                        csv.NextRecord();
-                    }
-                    csv.WriteRecords(retractRecord);
+                    Console.WriteLine("Failed to write data to file, exiting test");
+                    return false;
                 }
-                recordList.Clear();
-                retractRecord.Clear();
+            //Retract finished and logged. Write to csv
+            //Write the cycle data
+            
             }
             testStopwatch.Stop();
             Console.WriteLine("Test complete. Time taken: " + testStopwatch.Elapsed);
