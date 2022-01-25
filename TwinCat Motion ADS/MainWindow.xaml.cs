@@ -29,6 +29,7 @@ namespace TwinCat_Motion_ADS
         public PLC Plc;
         public string selectedFolder = string.Empty;
         public TestSuite TestSuiteWindow;
+        public DataAnalysisWindow DataAnalysisWindow;
         public NcAxisView NcAxisView;
         public AirAxisView AirAxisView;
         public bool windowClosing = false;
@@ -225,13 +226,22 @@ namespace TwinCat_Motion_ADS
             TestSuiteWindow.Show();
         }
 
+        private void DataAnalysis_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataAnalysisWindow == null)
+            {
+                DataAnalysisWindow = new();
+            }
+            DataAnalysisWindow.Show();
+        }
+
         private void RadioButton_Click(object sender, RoutedEventArgs e)
         {
             if(((RadioButton)sender) == NcAxis)
             {
                 tabbedWindow.Content = NcAxisView;
             }
-            else if(((RadioButton)sender)== AirAxis)
+            else if(((RadioButton)sender) == AirAxis)
             {
                 tabbedWindow.Content = AirAxisView;
             }
@@ -257,7 +267,11 @@ namespace TwinCat_Motion_ADS
             if (TestSuiteWindow != null)
             {
                 TestSuiteWindow.Close();
-            }           
+            }
+            if (DataAnalysisWindow != null)
+            {
+                DataAnalysisWindow.Close();
+            }
         }
     }
 

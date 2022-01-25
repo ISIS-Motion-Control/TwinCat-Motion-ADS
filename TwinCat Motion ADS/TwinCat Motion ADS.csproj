@@ -67,6 +67,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Update="APPLICATION WINDOWS\DataAnalysisWindow.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
     <Page Update="APPLICATION WINDOWS\measurementDeviceWindow.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>

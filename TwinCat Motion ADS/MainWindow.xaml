@@ -125,6 +125,9 @@
                 <MenuItem x:Name="TestSuiteMenu" Header="Test Suite" Height="30" Width="195" Template="{StaticResource VsOnline}" Click="TestSuiteMenu_Click" >
                     
                 </MenuItem>
+                <MenuItem x:Name="DataAnalysisMenu" Header="Data Analysis" Height="30" Width="195" Template="{StaticResource VsOnline}" Click="DataAnalysis_Click" >
+
+                </MenuItem>
             </Menu>
             <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
                 <RadioButton x:Name="NcAxis" Content="NC Axis"
@@ -138,8 +141,6 @@
                              FontSize="24"
                              Height="30"
                              Style="{StaticResource MenuButtonTheme}" Click="RadioButton_Click"/>
-                
-
             </StackPanel>
         
         <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
