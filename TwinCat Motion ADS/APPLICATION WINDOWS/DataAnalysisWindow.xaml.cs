@@ -20,35 +20,52 @@ using System.Runtime.CompilerServices;
 using System.Xml;
 
 namespace TwinCat_Motion_ADS
+{
+    /// <summary>
+    /// Interaction logic for TestSuite.xaml
+    /// </summary>
+    public partial class DataAnalysisWindow : Window
     {
-        /// <summary>
-        /// Interaction logic for TestSuite.xaml
-        /// </summary>
-        public partial class DataAnalysisWindow : Window
+        ObservableCollection<TestListItem> testItems = new();
+        ObservableCollection<string> statusListItems = new();
+        MainWindow wd;
+        NcAxis NcAxis;
+
+        public DataAnalysisWindow()
         {
-            ObservableCollection<TestListItem> testItems = new();
-            ObservableCollection<string> statusListItems = new();
-            MainWindow wd;
-            NcAxis NcAxis;
+            InitializeComponent();
+            wd = (MainWindow)App.Current.MainWindow;
 
-            public DataAnalysisWindow()
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (!wd.windowClosing)
             {
-                InitializeComponent();
-                wd = (MainWindow)App.Current.MainWindow;
+                e.Cancel = true;
+                this.Visibility = Visibility.Hidden;
+            }
+        }
+
+        private void EnableCheck(object sender, RoutedEventArgs e)
+        {
+            bool enableFlag;
+
+            if (enableCheck.IsChecked == true)
+            {
+                enableFlag = true;
 
             }
-
-            private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+            else
             {
-                if (!wd.windowClosing)
-                {
-                    e.Cancel = true;
-                    this.Visibility = Visibility.Hidden;
-                }
+                enableFlag = false;
             }
+            Data_A1.IsEnabled = enableFlag;
+        }
 
-            private void TestList_SelectionChanged(object sender, SelectionChangedEventArgs e)
-            {
+
+        private void TestList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
             /*
                 XamlUI.TextboxBinding(SettingTitle.SettingValue, testItems[TestList.SelectedIndex].TestSettings.TestTitle, "UiVal");
                 XamlUI.TextboxBinding(SettingAxisNumber.SettingValue, testItems[TestList.SelectedIndex], "AxisID");
@@ -67,30 +84,31 @@ namespace TwinCat_Motion_ADS
                 XamlUI.TextboxBinding(SettingOvershootDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings.OvershootDistance, "UiVal");
                 XamlUI.TextboxBinding(SettingEndSetpoint.SettingValue, testItems[TestList.SelectedIndex].TestSettings.EndSetpoint, "UiVal");
             */
-            }
-
-            public async Task<string> AddValues(string Data_A, string Data_B)
-            {
-                double Data = double.Parse(Data_A) + double.Parse(Data_B);
-                String Data_Out = Data.ToString("D");
-                return Data_Out;
-            }
-            public async Task<string> MinusValues(string Data_A, string Data_B)
-            {
-                double Data = double.Parse(Data_A) - double.Parse(Data_B);
-                String Data_Out = Data.ToString("D");
-                return Data_Out;
-            }
         }
+
+        public async Task<string> AddValues(string Data_A, string Data_B)
+        {
+            double Data = double.Parse(Data_A) + double.Parse(Data_B);
+            String Data_Out = Data.ToString("D");
+            return Data_Out;
+        }
+        public async Task<string> MinusValues(string Data_A, string Data_B)
+        {
+            double Data = double.Parse(Data_A) - double.Parse(Data_B);
+            String Data_Out = Data.ToString("D");
+            return Data_Out;
+        }
+
+    }
 
     public enum Operations
-        {
-            [StringValue("AddValues")]
-            AddValues,
-            [StringValue("MinusValues")]
-            MinusValues,
-            [StringValue("NoneSelected")]
-            NoneSelected
-        }
+    {
+        [StringValue("AddValues")]
+        AddValues,
+        [StringValue("MinusValues")]
+        MinusValues,
+        [StringValue("NoneSelected")]
+        NoneSelected
     }
+}
 

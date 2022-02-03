@@ -5,16 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
-        Title="Data Analysis" Height="460" Width="700" ResizeMode="NoResize" Closing="Window_Closing" Topmost="True">
+        Title="Data Analysis" Height="460" Width="700" ResizeMode="CanResizeWithGrip" Closing="Window_Closing" Topmost="True">
     <Grid Margin="10,10,0,0">
         <StackPanel Orientation="Horizontal">
             <CheckBox x:Name="enableCheck" 
                  Content="Enable" 
-                 IsEnabled="False" 
                  Height="20" 
                  Width="100"
                  HorizontalAlignment="Left"
-                 Margin="0,5,0,400"
+                 Margin="0,5,0,400" Click="EnableCheck"
                  />
             <StackPanel Width="130">
                 <TextBlock Text="Data A" FontSize="16" VerticalAlignment="Top" Margin="0,0,0,20"/>
