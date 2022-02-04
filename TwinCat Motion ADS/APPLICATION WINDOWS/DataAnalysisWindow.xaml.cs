@@ -26,15 +26,22 @@ namespace TwinCat_Motion_ADS
     /// </summary>
     public partial class DataAnalysisWindow : Window
     {
-        ObservableCollection<OperationsClass> OperationsCollection = new();
+        //ObservableCollection<OperationsClass> OperationsCollection = new();
         MainWindow wd;
+
+        List<DataAnalysisItem> DataAnalysisCollection = new();
 
         public DataAnalysisWindow()
         {
             InitializeComponent();
             wd = (MainWindow)App.Current.MainWindow;
 
+            //Add data to ComboBoxes
+            Data_A.ItemsSource = new double[] { 1, 2, 3, 4 };
             OpComboBox.ItemsSource = Enum.GetValues(typeof(Operations)).Cast<Operations>();
+            Data_B.ItemsSource = new double[] { 1, 2, 3, 4 };
+
+            
         }
         public void SetupBinds()
         {
@@ -65,11 +72,11 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-
-        public async Task<string> AddValues(string Data_A, string Data_B)
+        #region Operations
+        public async Task<string> AddValues(string StringA, string StringB)
         {
-            double Data = double.Parse(Data_A) + double.Parse(Data_B);
-            String Data_Out = Data.ToString("D");
+            double Data = double.Parse(StringA) + double.Parse(StringB);
+            string Data_Out = Data.ToString("D");
             return Data_Out;
         }
         public async Task<string> MinusValues(string Data_A, string Data_B)
@@ -78,11 +85,12 @@ namespace TwinCat_Motion_ADS
             String Data_Out = Data.ToString("D");
             return Data_Out;
         }
+        #endregion
 
-        private void Op_1_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void OpComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
-            OperationsCollection[1].Operation = (Operations)OpComboBox.SelectedItem;
+            //OperationsCollection[1].Operation = (Operations)OpComboBox.SelectedItem;
 
         }
 
@@ -91,8 +99,13 @@ namespace TwinCat_Motion_ADS
 
         }
 
+        
+
         private void AddBtn_Click(object sender, RoutedEventArgs e)
         {
+            var dataAnalysisItem = new DataAnalysisItem { Data_A = Data_A.Text, Operation = OpComboBox.Text, Data_B = Data_B.Text, Name = DataAnalysisName.Text };
+
+            DataAnalysisCollection.Add(dataAnalysisItem);
 
         }
 
@@ -102,6 +115,16 @@ namespace TwinCat_Motion_ADS
         }
     }
 
+    public class DataAnalysisItem
+    {
+        public string Data_A;
+        public string Operation;
+        public string Data_B;
+        public string Name;
+        public string Value;
+    }
+
+    /* Observable collection stuff
     public class OperationsClass : INotifyPropertyChanged
     {
         private Operations _operation;
@@ -126,15 +149,13 @@ namespace TwinCat_Motion_ADS
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
+    */
 
 
         public enum Operations
     {
-        //[StringValue("")]
         NoneSelected,
-        //[StringValue("AddValues")]
         AddValues,
-        //[StringValue("MinusValues")]
         MinusValues
         
     }

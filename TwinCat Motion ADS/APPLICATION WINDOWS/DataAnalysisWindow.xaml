@@ -10,6 +10,7 @@
         <Style TargetType="ComboBox">
             <Setter Property="Height" Value="20" />
             <Setter Property="Width" Value="80" />
+            <Setter Property="FontSize" Value="12" />
             <Setter Property="VerticalAlignment" Value="Top" />
             <Setter Property="Margin" Value="0,0,10,0" />
         </Style>
@@ -51,7 +52,7 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Operation"/>
-                <ComboBox x:Name="OpComboBox" SelectionChanged="Op_1_SelectionChanged" />
+                <ComboBox x:Name="OpComboBox" SelectionChanged="OpComboBox_SelectionChanged" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Data B"/>
