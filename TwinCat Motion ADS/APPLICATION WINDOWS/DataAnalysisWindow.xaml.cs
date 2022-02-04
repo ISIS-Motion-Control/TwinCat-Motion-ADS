@@ -22,20 +22,23 @@ using System.Xml;
 namespace TwinCat_Motion_ADS
 {
     /// <summary>
-    /// Interaction logic for TestSuite.xaml
+    /// Interaction logic for DataAnalysisWindow.xaml
     /// </summary>
     public partial class DataAnalysisWindow : Window
     {
-        ObservableCollection<TestListItem> testItems = new();
-        ObservableCollection<string> statusListItems = new();
+        ObservableCollection<OperationsClass> OperationsCollection = new();
         MainWindow wd;
-        NcAxis NcAxis;
 
         public DataAnalysisWindow()
         {
             InitializeComponent();
             wd = (MainWindow)App.Current.MainWindow;
 
+            OpComboBox.ItemsSource = Enum.GetValues(typeof(Operations)).Cast<Operations>();
+        }
+        public void SetupBinds()
+        {
+            
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -47,7 +50,7 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        private void EnableCheck(object sender, RoutedEventArgs e)
+        private void EnableCheck_Click(object sender, RoutedEventArgs e)
         {
             bool enableFlag;
 
@@ -60,31 +63,8 @@ namespace TwinCat_Motion_ADS
             {
                 enableFlag = false;
             }
-            Data_A1.IsEnabled = enableFlag;
         }
 
-
-        private void TestList_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            /*
-                XamlUI.TextboxBinding(SettingTitle.SettingValue, testItems[TestList.SelectedIndex].TestSettings.TestTitle, "UiVal");
-                XamlUI.TextboxBinding(SettingAxisNumber.SettingValue, testItems[TestList.SelectedIndex], "AxisID");
-                XamlUI.TextboxBinding(SettingCycles.SettingValue, testItems[TestList.SelectedIndex].TestSettings.Cycles, "UiVal");
-                XamlUI.TextboxBinding(SettingCycleDelay.SettingValue, testItems[TestList.SelectedIndex].TestSettings.CycleDelaySeconds, "UiVal");
-                XamlUI.TextboxBinding(SettingVelocity.SettingValue, testItems[TestList.SelectedIndex].TestSettings.Velocity, "UiVal");
-                XamlUI.TextboxBinding(SettingTimeout.SettingValue, testItems[TestList.SelectedIndex].TestSettings.Timeout, "UiVal");
-                XamlUI.TextboxBinding(SettingReversalVelocity.SettingValue, testItems[TestList.SelectedIndex].TestSettings.ReversalVelocity, "UiVal");
-                XamlUI.TextboxBinding(SettingReversalExtraSeconds.SettingValue, testItems[TestList.SelectedIndex].TestSettings.ReversalExtraTimeSeconds, "UiVal");
-                XamlUI.TextboxBinding(SettingReversalSettlingSeconds.SettingValue, testItems[TestList.SelectedIndex].TestSettings.ReversalSettleTimeSeconds, "UiVal");
-                XamlUI.TextboxBinding(SettingInitialSetpoint.SettingValue, testItems[TestList.SelectedIndex].TestSettings.InitialSetpoint, "UiVal");
-                XamlUI.TextboxBinding(SettingAccuracySteps.SettingValue, testItems[TestList.SelectedIndex].TestSettings.NumberOfSteps, "UiVal");
-                XamlUI.TextboxBinding(SettingStepSize.SettingValue, testItems[TestList.SelectedIndex].TestSettings.StepSize, "UiVal");
-                XamlUI.TextboxBinding(SettingSettlingTime.SettingValue, testItems[TestList.SelectedIndex].TestSettings.SettleTimeSeconds, "UiVal");
-                XamlUI.TextboxBinding(SettingReversalDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings.ReversalDistance, "UiVal");
-                XamlUI.TextboxBinding(SettingOvershootDistance.SettingValue, testItems[TestList.SelectedIndex].TestSettings.OvershootDistance, "UiVal");
-                XamlUI.TextboxBinding(SettingEndSetpoint.SettingValue, testItems[TestList.SelectedIndex].TestSettings.EndSetpoint, "UiVal");
-            */
-        }
 
         public async Task<string> AddValues(string Data_A, string Data_B)
         {
@@ -99,16 +79,64 @@ namespace TwinCat_Motion_ADS
             return Data_Out;
         }
 
+        private void Op_1_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+            OperationsCollection[1].Operation = (Operations)OpComboBox.SelectedItem;
+
+        }
+
+        private void DataAnalysisList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private void AddBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void RemoveBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 
-    public enum Operations
+    public class OperationsClass : INotifyPropertyChanged
     {
-        [StringValue("AddValues")]
+        private Operations _operation;
+        public Operations Operation
+        {
+            get { return _operation; }
+            set
+            {
+                _operation = value;
+                OnPropertyChanged();
+            }
+        }
+        public OperationsClass (string axisID)
+        {
+
+            Operation = Operations.NoneSelected;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+    }
+
+
+        public enum Operations
+    {
+        //[StringValue("")]
+        NoneSelected,
+        //[StringValue("AddValues")]
         AddValues,
-        [StringValue("MinusValues")]
-        MinusValues,
-        [StringValue("NoneSelected")]
-        NoneSelected
+        //[StringValue("MinusValues")]
+        MinusValues
+        
     }
 }
 
