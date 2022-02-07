@@ -65,24 +65,6 @@
         </StackPanel>
 
         <ListBox x:Name="DataAnalysisList" Width="auto" Height="auto" SelectionChanged="DataAnalysisList_SelectionChanged" ScrollViewer.VerticalScrollBarVisibility="Visible" Grid.Column="2" Margin="10,0,10,10" >
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Grid Margin="0,2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="auto"/>
-                            <ColumnDefinition Width="auto"/>
-                            <ColumnDefinition Width="auto"/>
-                            <ColumnDefinition Width="auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0">
-                            <Run Text="{Binding Data_A_Text}"/>
-                        </TextBlock>
-                        <TextBlock Grid.Column="1" Text="{Binding Op_Text}" Margin="20,0,0,0"/>
-                        <TextBlock Grid.Column="2" Text="{Binding Data_B_Text}" Margin="20,0,0,0"/>
-                        <TextBlock Grid.Column="3" Text="{Binding DataAnalysisName_Text}" Margin="20,0,0,0"/>
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
         </ListBox>
     </Grid>
 </Window>

@@ -26,10 +26,9 @@ namespace TwinCat_Motion_ADS
     /// </summary>
     public partial class DataAnalysisWindow : Window
     {
-        //ObservableCollection<OperationsClass> OperationsCollection = new();
         MainWindow wd;
 
-        List<DataAnalysisItem> DataAnalysisCollection = new();
+        ObservableCollection<DataAnalysisItem> DataAnalysisCollection = new();
 
         public DataAnalysisWindow()
         {
@@ -41,11 +40,7 @@ namespace TwinCat_Motion_ADS
             OpComboBox.ItemsSource = Enum.GetValues(typeof(Operations)).Cast<Operations>();
             Data_B.ItemsSource = new double[] { 1, 2, 3, 4 };
 
-            
-        }
-        public void SetupBinds()
-        {
-            
+
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -72,20 +67,7 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        #region Operations
-        public async Task<string> AddValues(string StringA, string StringB)
-        {
-            double Data = double.Parse(StringA) + double.Parse(StringB);
-            string Data_Out = Data.ToString("D");
-            return Data_Out;
-        }
-        public async Task<string> MinusValues(string Data_A, string Data_B)
-        {
-            double Data = double.Parse(Data_A) - double.Parse(Data_B);
-            String Data_Out = Data.ToString("D");
-            return Data_Out;
-        }
-        #endregion
+
 
         private void OpComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -99,7 +81,7 @@ namespace TwinCat_Motion_ADS
 
         }
 
-        
+
 
         private void AddBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -107,12 +89,19 @@ namespace TwinCat_Motion_ADS
 
             DataAnalysisCollection.Add(dataAnalysisItem);
 
+            string ListText = dataAnalysisItem.Data_A + " " + dataAnalysisItem.Operation + " " + dataAnalysisItem.Data_B + " = " + dataAnalysisItem.Name;
+
+            DataAnalysisList.Items.Add(ListText);
+
         }
 
         private void RemoveBtn_Click(object sender, RoutedEventArgs e)
         {
-
+            DataAnalysisList.Items.Remove(DataAnalysisList.SelectedItem);
         }
+
+
+        
     }
 
     public class DataAnalysisItem
@@ -124,35 +113,60 @@ namespace TwinCat_Motion_ADS
         public string Value;
     }
 
-    /* Observable collection stuff
-    public class OperationsClass : INotifyPropertyChanged
+    public partial class DataAnalsysis_Calculate
     {
-        private Operations _operation;
-        public Operations Operation
+        public string Data_A;
+        public string Data_B;
+        public Operations OperationType;
+        public string Value;
+        
+
+        public DataAnalsysis_Calculate()
         {
-            get { return _operation; }
-            set
+            switch (OperationType)
             {
-                _operation = value;
-                OnPropertyChanged();
+
+                case Operations.NoneSelected:
+                    {
+                        return;
+                    }
+                case Operations.AddValues:
+                    {
+                        Value = AddValues(Data_A, Data_B);
+
+                        return;
+                    }
+                case Operations.MinusValues:
+                    {
+                        Value = MinusValues(Data_A, Data_B);
+                        return;
+                    }
+
+                default:
+                    break;
             }
-        }
-        public OperationsClass (string axisID)
-        {
 
-            Operation = Operations.NoneSelected;
+
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
+
+        #region Operations
+        public static string AddValues(string StringA, string StringB)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            double Data = double.Parse(StringA) + double.Parse(StringB);
+            string Data_Out = Data.ToString("D");
+            return Data_Out;
         }
+        public static string MinusValues(string StringA, string StringB)
+        {
+            double Data = double.Parse(StringA) - double.Parse(StringB);
+            String Data_Out = Data.ToString("D");
+            return Data_Out;
+        }
+        #endregion
     }
-    */
 
-
-        public enum Operations
+    public enum Operations
     {
         NoneSelected,
         AddValues,
@@ -160,4 +174,3 @@ namespace TwinCat_Motion_ADS
         
     }
 }
-
