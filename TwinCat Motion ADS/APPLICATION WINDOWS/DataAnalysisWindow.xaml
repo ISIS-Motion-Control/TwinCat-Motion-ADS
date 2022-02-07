@@ -42,6 +42,7 @@
             <CheckBox x:Name="enableCheck" Content="Enable" Margin="0,10,0,15" Click="EnableCheck_Click"/>
             <Button x:Name="AddBtn" Content="Add" Click="AddBtn_Click"/>
             <Button x:Name="RemoveBtn" Content="Remove" Click="RemoveBtn_Click"/>
+            <Button x:Name="TestBtn" Content="Test" Click="TestBtn_Click"/>
         </StackPanel>
             
 

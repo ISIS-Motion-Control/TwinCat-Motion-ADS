@@ -85,7 +85,13 @@ namespace TwinCat_Motion_ADS
 
         private void AddBtn_Click(object sender, RoutedEventArgs e)
         {
-            var dataAnalysisItem = new DataAnalysisItem { Data_A = Data_A.Text, Operation = OpComboBox.Text, Data_B = Data_B.Text, Name = DataAnalysisName.Text };
+            DataAnalysisItem dataAnalysisItem = new()
+            {
+                Data_A = Data_A.Text,
+                Operation = (Operations)Enum.Parse(typeof(Operations),OpComboBox.Text),
+                Data_B = Data_B.Text,
+                Name = DataAnalysisName.Text
+            };
 
             DataAnalysisCollection.Add(dataAnalysisItem);
 
@@ -100,70 +106,72 @@ namespace TwinCat_Motion_ADS
             DataAnalysisList.Items.Remove(DataAnalysisList.SelectedItem);
         }
 
+        private void TestBtn_Click(object sender, RoutedEventArgs e)
+        {
+            for (int i = 0; i < DataAnalysisCollection.Count; i++)
+            {
 
-        
+                StringA = DataAnalysisCollection[i].Data_A;
+                StringB = DataAnalysisCollection[i].Data_B;
+                OperationType = DataAnalysisCollection[i].Operation;
+                DataAnalsysis_Calculation();
+
+                DataAnalysisCollection[i].Value = Value;
+                MessageBox.Show(DataAnalysisCollection[i].Value);
+            }
+            
+        }
+
+        public string StringA;
+        public string StringB;
+        public Operations OperationType;
+        public string Value;
+
+
+        public void DataAnalsysis_Calculation()
+        {
+            if (StringA != null && StringB != null)
+            {
+                double Data_A = double.Parse(StringA);
+                double Data_B = double.Parse(StringB);
+                double _value = 0;
+
+                switch (OperationType)
+                {
+
+                    case Operations.NoneSelected:
+                        {
+                            return;
+                        }
+                    case Operations.AddValues:
+                        {
+                            _value = Data_A + Data_B;
+                            Value = _value.ToString();
+                            return;
+                        }
+                    case Operations.MinusValues:
+                        {
+                            _value = Data_A - Data_B;
+                            Value = _value.ToString();
+                            return;
+                        }
+
+                    default:
+                        break;
+
+                }
+            }
+            else { return; };
+        }
     }
 
     public class DataAnalysisItem
     {
         public string Data_A;
-        public string Operation;
+        public Operations Operation;
         public string Data_B;
         public string Name;
         public string Value;
-    }
-
-    public partial class DataAnalsysis_Calculate
-    {
-        public string Data_A;
-        public string Data_B;
-        public Operations OperationType;
-        public string Value;
-        
-
-        public DataAnalsysis_Calculate()
-        {
-            switch (OperationType)
-            {
-
-                case Operations.NoneSelected:
-                    {
-                        return;
-                    }
-                case Operations.AddValues:
-                    {
-                        Value = AddValues(Data_A, Data_B);
-
-                        return;
-                    }
-                case Operations.MinusValues:
-                    {
-                        Value = MinusValues(Data_A, Data_B);
-                        return;
-                    }
-
-                default:
-                    break;
-            }
-
-
-        }
-
-
-        #region Operations
-        public static string AddValues(string StringA, string StringB)
-        {
-            double Data = double.Parse(StringA) + double.Parse(StringB);
-            string Data_Out = Data.ToString("D");
-            return Data_Out;
-        }
-        public static string MinusValues(string StringA, string StringB)
-        {
-            double Data = double.Parse(StringA) - double.Parse(StringB);
-            String Data_Out = Data.ToString("D");
-            return Data_Out;
-        }
-        #endregion
     }
 
     public enum Operations
