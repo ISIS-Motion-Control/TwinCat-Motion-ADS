@@ -157,6 +157,14 @@
                             VerticalAlignment="Top"
                             Margin="10,5,0,0"
                         Style="{StaticResource myDefaultButton}"/>
+                    <Button x:Name="disconnectPlcButton" 
+                            Focusable="False" 
+                            Content="Disconnect PLC" 
+                            Click="DisconnectPlc_Click" 
+                            Height="20"
+                            VerticalAlignment="Top"
+                            Margin="10,5,0,0"
+                        Style="{StaticResource myDefaultButton}"/>
                 </StackPanel>
             </StackPanel>
 

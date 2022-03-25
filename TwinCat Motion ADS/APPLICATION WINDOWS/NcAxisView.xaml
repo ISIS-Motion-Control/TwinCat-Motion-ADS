@@ -163,6 +163,12 @@
                             
                             Margin="0,10,0,0"
                                 Style="{StaticResource myDefaultButton}" Click="AxisCommand_Click"/>
+                            <Button x:Name="homeButton"
+                            Focusable="False"  
+                            Content="Home" 
+                            
+                            Margin="0,10,0,0"
+                                Style="{StaticResource myDefaultButton}" Click="AxisCommand_Click"/>
                             <Button x:Name="move2High" 
                             Focusable="False"
                             Content="Move2HighLimit"  
@@ -227,6 +233,12 @@
                                 Focusable="False" 
                                 Content="BacklashTest" 
                                 Click="BacklashTestButton_Click"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource myBlueButton}"/>
+                    <Button x:Name="HomingTestButton" 
+                                Focusable="False" 
+                                Content="HomingTest" 
+                                Click="HomingTestButton_Click"
                                 Margin="0,10,0,0"
                                 Style="{StaticResource myBlueButton}"/>
                     <Button x:Name="cancelTest" 

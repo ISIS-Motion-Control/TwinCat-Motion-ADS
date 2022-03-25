@@ -19,7 +19,7 @@ namespace TwinCat_Motion_ADS
         const byte eMoveAbsolute = 0;
         const byte eMoveRelative = 1;
         const byte eMoveVelocity = 3;
-        //const byte eHome = 10;
+        const byte eHome = 10;
         #endregion
 
         #region variableHandles
@@ -61,6 +61,7 @@ namespace TwinCat_Motion_ADS
 
         public void UpdateAxisInstance(uint axisID, PLC plc)
         {
+            Plc = plc;
             if (!ValidCommand()) return;
             try
             {
@@ -173,6 +174,22 @@ namespace TwinCat_Motion_ADS
                 }
                 absoluteTasks.Remove(finishedTask);
             }
+            await Execute();
+            return true;
+        }
+
+        public async Task<bool> Home()
+        {
+            if (!ValidCommand()) return false;
+            if (AxisBusy)
+            {
+                return false;   //command fails if axis already busy
+            }
+            if (Error)
+            {
+                return false;
+            }
+            await SetCommand(eHome);
             await Execute();
             return true;
         }
@@ -387,7 +404,56 @@ namespace TwinCat_Motion_ADS
             Console.WriteLine("Axis busy - command rejected");
             return false;
         }
-        
+
+        public async Task<bool> HomeAndWait(int timeout = 0)
+        {
+            if (!ValidCommand()) return false;
+            CancellationTokenSource ct = new();
+
+            if (await Home())
+            {
+                await Task.Delay(40);
+                Task<bool> doneTask = WaitForDone(ct.Token);
+                Task<bool> errorTask = CheckForError(ct.Token);
+                List<Task> waitingTask;
+
+                //Check direction of travel for monitoring limits
+
+                //Check if we need a timeout task
+                if (timeout > 0)
+                {
+                    Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token);
+                    waitingTask = new List<Task> { doneTask, errorTask, timeoutTask };
+                }
+                else
+                {
+                    waitingTask = new List<Task> { doneTask, errorTask};
+                }
+
+                if (await Task.WhenAny(waitingTask) == doneTask)
+                {
+                    Console.WriteLine("Home complete");
+                    ct.Cancel();
+                    return true;
+                }
+                else if (await Task.WhenAny(waitingTask) == errorTask)
+                {
+                    Console.WriteLine("Error on homing");
+                    ct.Cancel();
+                    return false;
+                }               
+                else
+                {
+                    Console.WriteLine("Home");
+                    await MoveStop();
+                    ct.Cancel();
+                    return false;
+                }
+            }
+            Console.WriteLine("Axis busy - command rejected");
+            return false;
+        }
+
         public async Task<bool> MoveToHighLimit(double velocity, int timeout)
         {
             if (!ValidCommand()) return false;
@@ -1175,6 +1241,97 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
+        public async Task<bool> HomingRepeatabilityTest(NcTestSettings testSettings, MeasurementDevices devices = null)
+        {
+            //check for a valid connection
+            if (!ValidCommand()) return false;
+
+            //update the progress and time scalers
+            ResetAndCalculateProgressScalers(testSettings, TestTypes.HomingRepeatability); //this will likely need updating
+
+            //Check for pause or cancellation request
+            await PauseTask(CancellationToken.None);
+            if (IsTestCancelled()) return false;
+
+            //Setup test CSV and setting files
+            string settingFileFullPath = GenerateSettingsPath(testSettings);
+            string csvFileFullPath = GenerateCSVPath(testSettings);
+            SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.HomingRepeatability.GetStringValue());   //New test type required
+            StartCSV(csvFileFullPath, devices);
+
+            //Set the test is running flag
+            testRunning = true;
+
+            //Start stopwatch for time of test
+            Stopwatch stopWatch = new();
+            stopWatch.Start();  //Clear and start the stopwatch
+
+            //Delay start of sequence by settle time
+            await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
+
+            //Test Cycles here
+            //Home Command
+            //Move abs to end setpoint
+            //measure
+            //repeat
+            for(uint cycleCount = 1; cycleCount <= testSettings.Cycles.Val; cycleCount++)
+            {
+                Console.WriteLine("Starting cycle " + cycleCount);
+                //Check for pause or cancellation request
+                await PauseTask(CancellationToken.None);
+                if (IsTestCancelled())
+                {
+                    testRunning = false;
+                    return false;
+                }
+                
+                //Update the estimated time - won't work yet
+                EstimatedTimeRemaining.TimeEstimateUpdate(cycleCount, testSettings.Cycles.Val);
+
+                if(await HomeAndWait())
+                {
+                    CalculateCurrentProgress(cycleCount - 1, 0);
+                    await PauseTask(CancellationToken.None);
+                    if (IsTestCancelled())
+                    {
+                        testRunning = false;
+                        return false;
+                    }
+
+                    if (await MoveAbsoluteAndWait(testSettings.EndSetpoint.Val,testSettings.Velocity.Val))   //timeout not implemented
+                    {
+                        //Write test data
+                        StandardCSVData tmpCSV = new StandardCSVData((uint)cycleCount, 0, "Move abs after home", testSettings.EndSetpoint.Val, AxisPosition);
+                        if (await WriteToCSV(csvFileFullPath, tmpCSV, devices) == false)
+                        {
+                            Console.WriteLine("Failed to write data to file, exiting test");
+                            testRunning = false;
+                            stopWatch.Stop();
+                            return false;
+                        }                        
+                    }
+                    else
+                    {
+                        Console.WriteLine("Move absolute after home failed");
+                        testRunning = false;
+                        return false;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Homing failed");
+                    testRunning = false;
+                    return false;
+                }
+                await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
+            }
+            TestProgress = 1;
+            testRunning = false;
+            stopWatch.Stop();
+            Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
+            return true;
+
+        }
 
         private async Task<bool> UniDirectionalSingleCycle(NcTestSettings ts, uint currentCycle, double TargetPosition, MeasurementDevices md, string csvFile, uint additionalSteps = 0, bool reverseStepCount = false)
         {

@@ -140,7 +140,7 @@ namespace TwinCat_Motion_ADS
 
             if (TestList.SelectedIndex != -1)
             {
-                if (testItems[TestList.SelectedIndex].TestType == TestTypes.ScalingTest)
+                if (testItems[TestList.SelectedIndex].TestType == TestTypes.ScalingTest || testItems[TestList.SelectedIndex].TestType == TestTypes.HomingRepeatability)
                 {
                     enableFlag = true;
                 }
@@ -434,6 +434,17 @@ namespace TwinCat_Motion_ADS
                             statusListItems.Add("Failed");
                         }
                         break;
+                    case TestTypes.HomingRepeatability:
+                        testResult = await NcAxis.HomingRepeatabilityTest(test.TestSettings, wd.MeasurementDevices);
+                        if (testResult)
+                        {
+                            statusListItems.Add("Complete");
+                        }
+                        else
+                        {
+                            statusListItems.Add("Failed");
+                        }
+                        break;
                     case TestTypes.UserPrompt:
                         MessageBoxResult result = MessageBox.Show(test.TestSettings.TestTitle.UiVal + "\nSelect 'cancel' to exit test sequence.", "User breakpoint", MessageBoxButton.OKCancel);
                         if(result == MessageBoxResult.Cancel)
@@ -502,6 +513,8 @@ namespace TwinCat_Motion_ADS
         ScalingTest,
         [StringValue("BacklashDetection")]
         BacklashDetection,
+        [StringValue("HomingRepeatability")]
+        HomingRepeatability,
         [StringValue("UserPrompt")]
         UserPrompt,
         [StringValue("NoneSelected")]

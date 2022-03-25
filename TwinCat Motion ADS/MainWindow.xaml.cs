@@ -117,6 +117,12 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("Device connected and running");
             }
         }
+        private void DisconnectPlc_Click(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("Attempting to disconnect...");
+            Plc.Disconnect();
+            NcAxis = null;
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
@@ -259,6 +265,8 @@ namespace TwinCat_Motion_ADS
                 TestSuiteWindow.Close();
             }           
         }
+
+        
     }
 
     public class ListBoxStatusItem

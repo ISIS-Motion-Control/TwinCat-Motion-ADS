@@ -132,6 +132,10 @@ namespace TwinCat_Motion_ADS
             {
                 await testAxis.MoveVelocity(Convert.ToDouble(velocityTB.Text));
             }
+            else if(sender as Button == homeButton)
+            {
+                await testAxis.Home();
+            }
             //Move to forward limit
             else if(sender as Button == move2High)
             {
@@ -324,6 +328,28 @@ namespace TwinCat_Motion_ADS
             ncWindowGrid.Focus();
         }
 
-        
+        private async void HomingTestButton_Click(object sender, RoutedEventArgs e)
+        {
+            windowData.mainWindowGrid.Focus();
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
+            if (selectedFolder == string.Empty)
+            {
+                Console.WriteLine("No save directory selected");
+                return;
+            }
+            cancelTest.IsEnabled = true;
+            pauseTest.IsEnabled = true;
+
+            if (await testAxis.HomingRepeatabilityTest(NcTestSettings, windowData.MeasurementDevices))
+            { }
+            else
+            {
+                Console.WriteLine("Test did not complete");
+            }
+        }
     }
 }
