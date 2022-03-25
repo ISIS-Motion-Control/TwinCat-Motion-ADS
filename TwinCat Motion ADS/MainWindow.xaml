@@ -103,9 +103,9 @@
     
     <Grid x:Name="mainWindowGrid" Focusable="True">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="143*"/>
-            <ColumnDefinition Width="857*"/>
-                <ColumnDefinition Width="900*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="1100*"/>
+            <ColumnDefinition Width="820*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
                 <RowDefinition Height="30"/>
@@ -168,8 +168,8 @@
                     <DataTemplate>
                         <Grid Margin="0,2">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="700"/>
-                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="560"/>
+                                <ColumnDefinition Width="200"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="20"/>
