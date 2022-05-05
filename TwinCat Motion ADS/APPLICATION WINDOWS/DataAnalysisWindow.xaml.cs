@@ -40,8 +40,113 @@ namespace TwinCat_Motion_ADS
             OpComboBox.ItemsSource = Enum.GetValues(typeof(Operations)).Cast<Operations>();
             Data_B.ItemsSource = new double[] { 1, 2, 3, 4 };
 
-
         }
+
+        #region Saving & Loading
+        private string saveDirectory;
+
+        private void SelectSaveDirectoryBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+            var fbd = new VistaFolderBrowserDialog();
+            saveDirectory = string.Empty;
+            if (fbd.ShowDialog() == true)
+            {
+                saveDirectory = fbd.SelectedPath;
+            }
+            Console.WriteLine(saveDirectory);
+        }
+
+        private void SaveFileBtn_Click(object sender, RoutedEventArgs e)
+        {
+            VistaSaveFileDialog fbd = new();
+            fbd.AddExtension = true;
+            fbd.DefaultExt = ".XML";
+            string selectedFile;
+            if (fbd.ShowDialog() == true)
+            {
+                selectedFile = fbd.FileName;
+                SaveDASuite(selectedFile);
+            }
+        }
+        public void SaveDASuite(string selectedFile)
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            XmlNode rootNode = xmlDoc.CreateElement("DataAnalysis_Suite");
+            xmlDoc.AppendChild(rootNode);
+
+            //Save settings for each DataAnalysisItem
+
+            foreach (DataAnalysisItem dataAnalysisItem in DataAnalysisCollection)
+            {
+                XmlNode DANode = xmlDoc.CreateElement("DataAnalysis_Item");
+                rootNode.AppendChild(DANode);
+
+                AddFields(xmlDoc, dataAnalysisItem, DANode);
+            }
+            xmlDoc.Save(selectedFile);
+        }
+
+        public static void AddFields(XmlDocument xmlDoc, DataAnalysisItem dataAnalysisItem, XmlNode parentNode)
+        {
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "Data_A", dataAnalysisItem.Data_A);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "Operation", dataAnalysisItem.Operation.ToString());
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "Data_A", dataAnalysisItem.Data_A);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "Name", dataAnalysisItem.Name);
+        }
+
+        public static void CreateAndAppendXmlNode(XmlNode parentNode, XmlDocument doc, string ndName, string ndValue)
+        {
+            var node = CreateXmlNode(doc, ndName, ndValue);
+            parentNode.AppendChild(node);
+        }
+
+        public static XmlNode CreateXmlNode(XmlDocument doc, string ndName, string ndValue)
+        {
+            XmlNode xmlNode = doc.CreateElement(ndName);
+            xmlNode.InnerText = ndValue;
+            return xmlNode;
+        }
+
+        private void LoadFileBtn_Click(object sender, RoutedEventArgs e)
+        {
+            VistaOpenFileDialog fbd = new();
+            fbd.Filter = "*.XML|*.xml";
+            string selectedFile;
+            if (fbd.ShowDialog() == true)
+            {
+                selectedFile = fbd.FileName;
+                LoadDASuite(selectedFile);
+            }
+        }
+        private void LoadDASuite(string selectedFile)
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.Load(selectedFile);
+            XmlNodeList DASuite = xmlDoc.SelectNodes("DataAnalysis_Suite");
+
+            DataAnalysisCollection.Clear();  //clear the current list
+            int DACounter = 0;
+            //Add each test in turn
+            foreach (XmlNode DataAnalysis_Item in DASuite)
+            {
+                DataAnalysisCollection.Add(new());    //temp axis ID
+
+                //Import all the settings
+                ImportSingleDASettings(DataAnalysisCollection[DACounter], DataAnalysis_Item);
+
+                //increment the list counter
+                DACounter++;
+            }
+        }
+        public static void ImportSingleDASettings(DataAnalysisItem dali, XmlNode DANode)
+        {
+            dali.Data_A = DANode.SelectSingleNode("Data_A").InnerText;
+            dali.Operation = (Operations)Enum.Parse(typeof(Operations),DANode.SelectSingleNode("Operation").InnerText);
+            dali.Data_B = DANode.SelectSingleNode("Data_B").InnerText;
+            dali.Name = DANode.SelectSingleNode("Name").InnerText;
+        }
+        #endregion
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -67,12 +172,10 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-
-
         private void OpComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
-            //OperationsCollection[1].Operation = (Operations)OpComboBox.SelectedItem;
+            
 
         }
 
@@ -96,7 +199,6 @@ namespace TwinCat_Motion_ADS
             DataAnalysisCollection.Add(dataAnalysisItem);
 
             string ListText = dataAnalysisItem.Data_A + " " + dataAnalysisItem.Operation + " " + dataAnalysisItem.Data_B + " = " + dataAnalysisItem.Name;
-
             DataAnalysisList.Items.Add(ListText);
 
         }
