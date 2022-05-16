@@ -25,17 +25,19 @@ namespace TwinCat_Motion_ADS
             MeasurementDeviceList.Clear();
         }
 
-        public void AddDevice(DeviceTypes dType = DeviceTypes.Timestamp)
+        public void AddDevice(DeviceTypes dType = DeviceTypes.NoneSelected)
         {
             I_MeasurementDevice newDevice;
             switch (dType)
             {
                 case DeviceTypes.DigimaticIndicator:    //Single channel device              
-                    
+                    newDevice = new DigimaticIndicator_V2();
+                    MeasurementDeviceList.Add(newDevice);
                     break;
 
                 case DeviceTypes.KeyenceTM3000: //Multi Channel device
-                    
+                    newDevice = new KeyenceTM3000_V2();
+                    MeasurementDeviceList.Add(newDevice);
                     break;
 
                 case DeviceTypes.Beckhoff:   //Multi-channel device                    
@@ -43,21 +45,53 @@ namespace TwinCat_Motion_ADS
                     break;
 
                 case DeviceTypes.MotionChannel:  //Single channel device
-                    
+                    newDevice = new MotionControllerChannel_V2();
+                    MeasurementDeviceList.Add(newDevice);
                     break;
 
                 case DeviceTypes.Timestamp: //Single channel device
                     newDevice = new TimestampDevice_V2();
                     MeasurementDeviceList.Add(newDevice);
                     break;
+                case DeviceTypes.NoneSelected:
+                    newDevice = new NoneSelectedMeasurementDevice();
+                    MeasurementDeviceList.Add(newDevice);
+                    break;
 
             }          
         }
-        public void ChangeDeviceType(int i, DeviceTypes dType = DeviceTypes.Timestamp)
+        public void ChangeDeviceType(int i, DeviceTypes dType)
         {
+            string tempName = MeasurementDeviceList[i].Name;
+            switch (dType)
+            {
+                case DeviceTypes.DigimaticIndicator:    //Single channel device                             
+                    MeasurementDeviceList[i] = new DigimaticIndicator_V2();
+                    break;
+
+                case DeviceTypes.KeyenceTM3000: //Multi Channel device
+                    MeasurementDeviceList[i] = new KeyenceTM3000_V2();
+                    break;
+
+                case DeviceTypes.Beckhoff:   //Multi-channel device                    
+
+                    break;
+
+                case DeviceTypes.MotionChannel:  //Single channel device
+                    MeasurementDeviceList[i] = new MotionControllerChannel_V2();
+                    break;
+
+                case DeviceTypes.Timestamp: //Single channel device
+                    MeasurementDeviceList[i] = new TimestampDevice_V2();
+                    break;
+                case DeviceTypes.NoneSelected:
+                    MeasurementDeviceList[i] = new NoneSelectedMeasurementDevice();
+                    break;
+            }
+            MeasurementDeviceList[i].Name = tempName;
+
             //THis will need to be a case statement
-            MeasurementDeviceList[i] = new TimestampDevice_V2();
-            MeasurementDeviceList[i].DeviceType = dType;
+            
             
         }
 

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO.Ports;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -27,6 +29,160 @@ namespace TwinCat_Motion_ADS
         public bool Connected { get; set; }
 
     }
+
+    public enum DeviceTypes
+    {
+        [StringValue("NoneSelected")]
+        NoneSelected,
+        [StringValue("DigimaticIndicator")]
+        DigimaticIndicator,
+        [StringValue("KeyenceTM3000")]
+        KeyenceTM3000,
+        [StringValue("Beckhoff")]
+        Beckhoff,
+        [StringValue("MotionChannel")]
+        MotionChannel,
+        [StringValue("Timestamp")]
+        Timestamp
+    }
+
+    public class NoneSelectedMeasurementDevice : BaseMeasurementDevice, I_MeasurementDevice
+    {
+        public bool Connect()
+        {
+            Console.WriteLine("No device type selected"); return false;
+        }
+    
+
+        public bool Disconnect()
+        {
+            Console.WriteLine("No device type selected"); return false;
+        }
+
+        public Task<string> GetChannelMeasurement(int channelNumber = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetMeasurement()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateChannelList()
+        {
+            ChannelList.Clear();
+            NumberOfChannels = 0;
+        }
+    }
+
+
+    public abstract class BaseRs232MeasurementDevice : BaseMeasurementDevice
+    {
+        protected SerialPort SerialPort { get; set; }
+        protected string _PortName;
+        public string PortName {
+            get { return _PortName; }
+            set
+            {
+                if (Connected) return;
+                _PortName = value;
+                OnPropertyChanged();
+                
+            }
+        }
+        protected string _BaudRate;
+        public string BaudRate
+        {
+            get { return _BaudRate; }
+            protected set
+            {
+                _BaudRate = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public void UpdateBaudRate(string bRate)
+        {           
+            if (!Connected) BaudRate = bRate;
+        }
+
+
+
+        private const int readDelay = 25;   //Give buffer time to fill
+        private const int defaultTimeout = 1000;
+        public ObservableCollection<string> SerialPortList = new();
+
+        public BaseRs232MeasurementDevice(string portName = "", string baudRate = "9600")
+        {
+            PortName = portName;
+            BaudRate = baudRate;
+            SerialPort = new SerialPort();
+        }
+
+        //Populate the SerialPortList
+        public void UpdatePortList()
+        {
+            SerialPortList.Clear();
+            string[] ports = SerialPort.GetPortNames();
+            foreach (string port in ports)
+            {
+                SerialPortList.Add(port);
+            }
+        }
+
+        //Open the local port
+        public bool Connect()
+        {
+            if (SerialPort.IsOpen)  //If port already open and in use
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(PortName)) //If no port name specified
+            {
+                return false;
+            }
+            try
+            {
+                SerialPort = new SerialPort(PortName, Int32.Parse(BaudRate));    //Create serial port instance
+                SerialPort.Open();
+            }
+            catch
+            {
+                return false;
+            }
+            Connected = true;
+            return true;
+        }
+
+        public bool CheckConnected()
+        {
+            return SerialPort.IsOpen;
+        }
+
+        public bool Disconnect()
+        {
+            ChannelList.Clear();
+            if (SerialPort.IsOpen)
+            {
+                try
+                {
+                    SerialPort.Close();
+                    SerialPort.Dispose();
+                }
+                catch
+                {
+                    
+                    return false;
+                }
+                Connected = false;
+                return true;
+            }
+            return false;
+        }
+
+    }
+
 
      public abstract class BaseMeasurementDevice : INotifyPropertyChanged
     {
@@ -83,7 +239,7 @@ namespace TwinCat_Motion_ADS
             NumberOfChannels = ChannelList.Count;
         }
 
-        private bool AllowDisconnect()
+        protected bool AllowDisconnect()
         {
             if (!Connected)
             {
