@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -10,10 +11,10 @@ namespace TwinCat_Motion_ADS
     /// <summary>
     /// Interaction logic for accessing measurement devices
     /// </summary>
-    public partial class measurementDeviceWindow : Window
+    public partial class measurementDeviceWindow2 : Window
     {
         int DeviceIndex;
-        public ObservableCollection<DeviceTypes> DeviceTypeList;
+        public ObservableCollection<DeviceTypes> DeviceTypeList = new(Enum.GetValues(typeof(DeviceTypes)).Cast<DeviceTypes>());
         public ObservableCollection<string> BaudRateList = new ObservableCollection<string>()
         {
             "9600", "19200","38400","57600","115200"
@@ -22,17 +23,18 @@ namespace TwinCat_Motion_ADS
         {
             "string","double","short","bool"
         };
-        MeasurementDevice MDevice;
+        I_MeasurementDevice MDevice;
         const int KEYENCE_CHANNELS = 16;
+
+
 
         /// <summary>
         /// Constructor for the class
         /// </summary>
         /// <param name="deviceIndex"></param>
         /// <param name="mDevice"></param>
-        public measurementDeviceWindow(int deviceIndex, MeasurementDevice mDevice)
+        public measurementDeviceWindow2(int deviceIndex, I_MeasurementDevice mDevice)
         {
-            DeviceTypeList = mDevice.DeviceTypeList;
             InitializeComponent();
             DeviceIndex = deviceIndex;
             MDevice = mDevice;
@@ -105,7 +107,7 @@ namespace TwinCat_Motion_ADS
             statusStackPanel.Children.Add(numberOfChannels);
             statusStackPanel.Children.Add(connected);
 
-            if (MDevice.DeviceType == DeviceTypes.DigimaticIndicator || MDevice.DeviceType == DeviceTypes.KeyenceTM3000)
+            /*if (MDevice.DeviceType == DeviceTypes.DigimaticIndicator || MDevice.DeviceType == DeviceTypes.KeyenceTM3000)
             {
                 CommonRs232Window();                                                    //Settings common to all RS232 devices
                 if (MDevice.DeviceType == DeviceTypes.KeyenceTM3000)                           //Extra settings for keyence TM 3000
@@ -212,7 +214,7 @@ namespace TwinCat_Motion_ADS
             else if (MDevice.DeviceType == DeviceTypes.Timestamp)
             {
                 //Don't need anything for a timestamp!
-            }
+            }*/
 
             deviceSettings.Children.Add(buttonsStackPanel);
             deviceSettings.Children.Add(extraButtonsStackPanel);
@@ -222,6 +224,7 @@ namespace TwinCat_Motion_ADS
 
         public void CommonRs232Window()
         {
+            /*
             //Create stack panel for 1st setting
             StackPanel setting1 = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
             deviceSettings.Children.Add(setting1);
@@ -262,6 +265,7 @@ namespace TwinCat_Motion_ADS
 
             setting2.Children.Add(setting2Text);
             setting2.Children.Add(baudRate);
+            */
         }
 
         public void UpdateChannels(object sender, EventArgs e)
@@ -298,7 +302,7 @@ namespace TwinCat_Motion_ADS
             {
                 Console.WriteLine("Already connected to device");
             }
-            if (MDevice.ConnectToDevice())
+            if (MDevice.Connect())
             {
                 Console.WriteLine("Connection made");
             }
@@ -314,7 +318,7 @@ namespace TwinCat_Motion_ADS
             {
                 Console.WriteLine("Not connected to a device");
             }
-            if (MDevice.DisconnectFromDevice())
+            if (MDevice.Disconnect())
             {
                 Console.WriteLine("Disconnected");
             }
@@ -324,10 +328,6 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            ((MainWindow)(Application.Current.MainWindow)).measurementMenuItems[DeviceIndex].Header = MDevice.Name;
-        }
         private void Window_Closing2(object sender, System.ComponentModel.CancelEventArgs e)
         {
             ((MainWindow)(Application.Current.MainWindow)).measurementMenuItems2[DeviceIndex].Header = MDevice.Name;
@@ -337,7 +337,7 @@ namespace TwinCat_Motion_ADS
         {
             if (!MDevice.Connected)
             {
-                MDevice.changeDeviceType((DeviceTypes)DeviceTypeComboBox.SelectedItem);
+                //MDevice.changeDeviceType((DeviceTypes)DeviceTypeComboBox.SelectedItem);
             }
             DeviceTypeComboBox.SelectedItem = MDevice.DeviceType.GetStringValue();
             ConstructDeviceSettingsScreen();
@@ -345,68 +345,37 @@ namespace TwinCat_Motion_ADS
 
         private void portSelect_DropDownClosed(object sender, EventArgs e)
         {
+            /*
             var combo = sender as ComboBox;
             MDevice.PortName = (string)combo.SelectedItem;
-            combo.SelectedItem = MDevice.PortName;
+            combo.SelectedItem = MDevice.PortName;*/
         }
 
         private void baudSelect_DropDownClosed(object sender, EventArgs e)
         {
+            /*
             var baud = sender as ComboBox;
             MDevice.UpdateBaudRate((string)baud.SelectedItem);
-            baud.SelectedItem = MDevice.BaudRate;
+            baud.SelectedItem = MDevice.BaudRate;*/
         }
 
         private void variableType_DropDownClosed(object sender, EventArgs e)
         {
+            /*
             var combo = sender as ComboBox;
             MDevice.motionChannel.VariableType = (string)combo.SelectedItem;
             combo.SelectedItem = MDevice.motionChannel.VariableType;
+            */
         }
 
         private void refreshPorts_Click(object sender, EventArgs e)
         {
+            /*
             MDevice.UpdatePortList();
+            */
         }
 
     }
 
-    class KeyenceChannel
-    {
-        public int channelID;
-        public StackPanel sp = new() { Orientation = Orientation.Horizontal };
-        private TextBox tb = new();
-        private CheckBox cb = new();
-
-        public KeyenceChannel(int channel, object source)
-        {
-            channelID = channel;
-            //Setup strings for content and property paths
-            //string tbpp = "Ch" + channel + "Name";
-            string tbpp = "ChName[" + (channel-1)+"]";           
-            string cbContent = "Ch" + channel;
-            string cbpp = "ChConnected[" + (channel - 1) + "]";
-            string tbContent;
-            //Don't want to reset name field unless it's empty
-            if ( string.IsNullOrEmpty(((KeyenceTM3000)source).ChName[channel - 1]))
-            {
-                tbContent = "*Ch" + channel + "*";
-            }
-            else
-            {
-                tbContent = ((KeyenceTM3000)source).ChName[channel - 1];
-            }
-
-            //Bind and setup UI elements
-            XamlUI.TextboxBinding(tb, source, tbpp);
-            XamlUI.SetupTextBox(ref tb, tbContent, 100);
-            XamlUI.CheckBoxBinding(cbContent,cb, source, cbpp);
-
-            //Add elements to stackpanel
-            sp.Children.Add(tb);
-            sp.Children.Add(cb);
-
-        }       
-    }
-
+    
 }
