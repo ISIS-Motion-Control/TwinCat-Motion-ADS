@@ -518,4 +518,33 @@ namespace TwinCat_Motion_ADS
         [StringValue("Timestamp")]
         Timestamp
     }
+
+    public class newTestDevice : BaseMeasurementDevice, I_MeasurementDevice
+    {
+
+        public bool Connect()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Disconnect()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetChannelMeasurement(int channelNumber = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetMeasurement()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateChannelList()
+        { 
+            throw new NotImplementedException();
+        }
+    }
 }

@@ -36,6 +36,12 @@ namespace TwinCat_Motion_ADS
         public MeasurementDevices MeasurementDevices = new();
         public List<MenuItem> measurementMenuItems = new();
 
+        public MeasurementDevices_V2 MeasurementDevices2 = new();
+        public List<MenuItem> measurementMenuItems2 = new();
+
+        public I_MeasurementDevice testDevice = new newTestDevice();
+
+
         private string _amsNetID;
         public string AmsNetID
         {
@@ -55,7 +61,12 @@ namespace TwinCat_Motion_ADS
         public MainWindow()
         {
             InitializeComponent();
+
+            //test code
             
+
+            //test code end
+
             lbw = new(consoleListBox);
             consoleListBox.ItemsSource = consoleStringList;
             Console.SetOut(lbw);
@@ -130,6 +141,12 @@ namespace TwinCat_Motion_ADS
             UpdateMeasurementDeviceMenu();
         }
 
+        private void AddNewDevice2(object sender, RoutedEventArgs e)
+        {
+            MeasurementDevices2.AddDevice(DeviceTypes.Timestamp);
+            UpdateMeasurementDeviceMenu2();
+        }
+
         private void DeviceMenu_Click(object sender, RoutedEventArgs e)
         {
             MenuItem mI = sender as MenuItem;
@@ -145,6 +162,23 @@ namespace TwinCat_Motion_ADS
             }
 
             measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
+            newMeasureWindow.Show();
+        }
+        private void DeviceMenu_Click2(object sender, RoutedEventArgs e)
+        {
+            MenuItem mI = sender as MenuItem;
+            int i = 0;
+            int deviceIndex = 0;
+            foreach (var device in measurementMenuItems2)
+            {
+                if (mI == device)
+                {
+                    deviceIndex = i;
+                }
+                i++;
+            }
+
+            measurementDeviceWindow2 newMeasureWindow = new(deviceIndex, MeasurementDevices2.MeasurementDeviceList[deviceIndex]);
             newMeasureWindow.Show();
         }
 
@@ -170,6 +204,30 @@ namespace TwinCat_Motion_ADS
                 newMeasureWindow.Show();
             }
             
+
+        }
+
+        public void UpdateMeasurementDeviceMenu2(bool suppress = false)
+        {
+            MenuItem newMenuItem = new();
+
+            //This binding seems to be bugged, works fine but does not update. - I think due to the style used
+            int testInt = MeasurementDevices2.NumberOfDevices - 1;
+
+
+            newMenuItem.Click += new RoutedEventHandler(DeviceMenu_Click2);
+            newMenuItem.Template = (ControlTemplate)FindResource("VsMenuSub");
+            MeasureDevicesMenu2.Items.Add(newMenuItem);  //adding to the actual UI
+            measurementMenuItems2.Add(newMenuItem);      //Adding to internal list
+
+            int deviceIndex = MeasurementDevices2.NumberOfDevices-1;
+
+            if (!suppress)
+            {
+                measurementDeviceWindow2 newMeasureWindow = new(deviceIndex, MeasurementDevices2.MeasurementDeviceList[deviceIndex]);
+                newMeasureWindow.Show();
+            }
+
 
         }
 
@@ -199,6 +257,16 @@ namespace TwinCat_Motion_ADS
             foreach(MenuItem mi in measurementMenuItems)
             {
                 mi.Header = MeasurementDevices.MeasurementDeviceList[counter].Name;
+                counter++;
+            }
+        }
+        private void MeasureDevicesMenu_Click2(object sender, RoutedEventArgs e)
+        {
+            MeasureDevicesMenu2.Items.Refresh();
+            int counter = 0;
+            foreach (MenuItem mi in measurementMenuItems2)
+            {
+                mi.Header = MeasurementDevices2.MeasurementDeviceList[counter].Name;
                 counter++;
             }
         }
