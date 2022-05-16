@@ -388,13 +388,13 @@ namespace TwinCat_Motion_ADS
             string cbpp = "ChConnected[" + (channel - 1) + "]";
             string tbContent;
             //Don't want to reset name field unless it's empty
-            if ( string.IsNullOrEmpty(((KeyenceTM3000)source).ChName[channel - 1]))
+            if ( string.IsNullOrEmpty(((KeyenceTM3000_V2)source).ChName[channel - 1]))
             {
                 tbContent = "*Ch" + channel + "*";
             }
             else
             {
-                tbContent = ((KeyenceTM3000)source).ChName[channel - 1];
+                tbContent = ((KeyenceTM3000_V2)source).ChName[channel - 1];
             }
 
             //Bind and setup UI elements

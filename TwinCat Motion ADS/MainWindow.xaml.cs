@@ -39,8 +39,6 @@ namespace TwinCat_Motion_ADS
         public MeasurementDevices_V2 MeasurementDevices2 = new();
         public List<MenuItem> measurementMenuItems2 = new();
 
-        public I_MeasurementDevice testDevice = new newTestDevice();
-
 
         private string _amsNetID;
         public string AmsNetID
@@ -143,7 +141,7 @@ namespace TwinCat_Motion_ADS
 
         private void AddNewDevice2(object sender, RoutedEventArgs e)
         {
-            MeasurementDevices2.AddDevice(DeviceTypes.Timestamp);
+            MeasurementDevices2.AddDevice(DeviceTypes.NoneSelected);
             UpdateMeasurementDeviceMenu2();
         }
 

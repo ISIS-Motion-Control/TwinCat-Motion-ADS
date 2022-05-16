@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TwinCat_Motion_ADS
@@ -49,6 +50,11 @@ namespace TwinCat_Motion_ADS
 
     public class TimestampDevice_V2 : BaseMeasurementDevice, I_MeasurementDevice
     {
+        public TimestampDevice_V2()
+        {
+            DeviceType = DeviceTypes.Timestamp;
+        }
+
         public bool Connect()
         {
             Connected = true;
@@ -56,8 +62,14 @@ namespace TwinCat_Motion_ADS
         }
         public bool Disconnect()
         {
-            Connected = false;
-            return true;
+            if (AllowDisconnect())
+            {
+                Connected = false;
+                UpdateChannelList();
+                return true;
+            }
+            return false;
+            
         }
 
         public async Task<string> GetChannelMeasurement(int channelNumber = 0)
@@ -82,7 +94,8 @@ namespace TwinCat_Motion_ADS
             ChannelList.Add(t3);
             NumberOfChannels = ChannelList.Count;
         }
-
     }
+
+    
 
 }

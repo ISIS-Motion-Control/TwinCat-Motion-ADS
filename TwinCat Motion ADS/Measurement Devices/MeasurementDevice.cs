@@ -502,49 +502,4 @@ namespace TwinCat_Motion_ADS
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
-
-    public enum DeviceTypes
-    {
-        [StringValue("NoneSelected")]
-        NoneSelected,
-        [StringValue("DigimaticIndicator")]
-        DigimaticIndicator,
-        [StringValue("KeyenceTM3000")]
-        KeyenceTM3000,
-        [StringValue("Beckhoff")]
-        Beckhoff,
-        [StringValue("MotionChannel")]
-        MotionChannel,
-        [StringValue("Timestamp")]
-        Timestamp
-    }
-
-    public class newTestDevice : BaseMeasurementDevice, I_MeasurementDevice
-    {
-
-        public bool Connect()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Disconnect()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<string> GetChannelMeasurement(int channelNumber = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<string> GetMeasurement()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void UpdateChannelList()
-        { 
-            throw new NotImplementedException();
-        }
-    }
 }
