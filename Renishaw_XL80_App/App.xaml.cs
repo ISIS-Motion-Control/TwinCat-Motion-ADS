@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.IO.Pipes;
 
 namespace Renishaw_XL80_App
 {
@@ -13,5 +14,6 @@ namespace Renishaw_XL80_App
     /// </summary>
     public partial class App : Application
     {
+        
     }
 }

@@ -7,6 +7,11 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <Button x:Name="checkForMessage" Content="Check for message" HorizontalAlignment="Left" Margin="61,37,0,0" VerticalAlignment="Top" Width="131" Click="checkForMessage_Click"/>
+        <Button x:Name="sendMessage" Content="Send message" HorizontalAlignment="Left" Margin="61,80,0,0" VerticalAlignment="Top" Width="131" Click="sendMessage_Click"/>
+        <TextBox x:Name="messageToSend" HorizontalAlignment="Left" Margin="224,80,0,0" TextWrapping="Wrap" Text="Message to send" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="connectClient" Content="Connect" HorizontalAlignment="Left" Margin="61,151,0,0" VerticalAlignment="Top" Width="131" Click="connectClient_Click"/>
+        <Button x:Name="enterReadMode" Content="Enter Read Mode" HorizontalAlignment="Left" Margin="61,217,0,0" VerticalAlignment="Top" Width="131" Click="enterReadMode_Click"/>
+
     </Grid>
 </Window>

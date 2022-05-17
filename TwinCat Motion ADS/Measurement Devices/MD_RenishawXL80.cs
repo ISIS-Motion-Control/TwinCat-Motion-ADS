@@ -54,8 +54,7 @@ namespace TwinCat_Motion_ADS
         public bool Connect()
         {
             if(!Connected)
-            {
-                
+            {               
                 RenishawServer.WaitForConnection();
                 Connected = true;
                 UpdateChannelList();
@@ -73,13 +72,18 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public Task<string> GetChannelMeasurement(int channelNumber = 0)
+        public async Task<string> GetChannelMeasurement(int channelNumber = 0)
         {
-            writer.WriteLine("test");
-            writer.Flush();
-            string messageBack = reader.ReadLine();
-            Console.WriteLine(messageBack);
-            return Task.FromResult(messageBack);
+            if (ReadInProgress) return "Read in progress";
+
+            ReadInProgress = true;
+            await writer.WriteLineAsync("1");
+            await writer.FlushAsync();
+            string messageBack = await reader.ReadLineAsync();
+            await writer.WriteLineAsync("0");
+            await writer.FlushAsync();
+            ReadInProgress = false;
+            return messageBack;
         }
 
         public Task<string> GetMeasurement()
