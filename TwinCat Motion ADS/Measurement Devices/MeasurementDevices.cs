@@ -55,6 +55,12 @@ namespace TwinCat_Motion_ADS
                     newDevice = new MD_TimestampDevice();
                     MeasurementDeviceList.Add(newDevice);
                     break;
+
+                case DeviceTypes.RenishawXL80: //Single channel device
+                    newDevice = new MD_RenishawXL80();
+                    MeasurementDeviceList.Add(newDevice);
+                    break;
+
                 case DeviceTypes.NoneSelected:
                     newDevice = new NoneSelectedMeasurementDevice();
                     MeasurementDeviceList.Add(newDevice);
@@ -86,6 +92,11 @@ namespace TwinCat_Motion_ADS
                 case DeviceTypes.Timestamp: //Single channel device
                     MeasurementDeviceList[i] = new MD_TimestampDevice();
                     break;
+
+                case DeviceTypes.RenishawXL80:
+                    MeasurementDeviceList[i] = new MD_RenishawXL80();
+                    break;
+
                 case DeviceTypes.NoneSelected:
                     MeasurementDeviceList[i] = new NoneSelectedMeasurementDevice();
                     break;
