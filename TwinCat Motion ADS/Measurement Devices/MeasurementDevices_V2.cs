@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Windows;
 using System.Xml;
 
 namespace TwinCat_Motion_ADS
@@ -41,11 +42,12 @@ namespace TwinCat_Motion_ADS
                     break;
 
                 case DeviceTypes.Beckhoff:   //Multi-channel device                    
-                    
+                    newDevice = new Beckhoff_V2();
+                    MeasurementDeviceList.Add(newDevice);
                     break;
 
                 case DeviceTypes.MotionChannel:  //Single channel device
-                    newDevice = new MotionControllerChannel_V2();
+                    newDevice = new MotionControllerChannel_V2(((MainWindow)Application.Current.MainWindow).Plc);
                     MeasurementDeviceList.Add(newDevice);
                     break;
 
@@ -74,11 +76,11 @@ namespace TwinCat_Motion_ADS
                     break;
 
                 case DeviceTypes.Beckhoff:   //Multi-channel device                    
-
+                    MeasurementDeviceList[i] = new Beckhoff_V2();
                     break;
 
                 case DeviceTypes.MotionChannel:  //Single channel device
-                    MeasurementDeviceList[i] = new MotionControllerChannel_V2();
+                    MeasurementDeviceList[i] = new MotionControllerChannel_V2(((MainWindow)Application.Current.MainWindow).Plc);
                     break;
 
                 case DeviceTypes.Timestamp: //Single channel device

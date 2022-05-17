@@ -79,6 +79,11 @@ namespace TwinCat_Motion_ADS
 
     public abstract class BaseRs232MeasurementDevice : BaseMeasurementDevice
     {
+        public ObservableCollection<string> BaudRateList = new ObservableCollection<string>()
+        {
+            "9600", "19200","38400","57600","115200"
+        };
+
         protected SerialPort SerialPort { get; set; }
         protected string _PortName;
         public string PortName {
