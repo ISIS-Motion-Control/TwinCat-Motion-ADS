@@ -221,7 +221,9 @@ namespace TwinCat_Motion_ADS
         [StringValue("MotionChannel")]
         MotionChannel,
         [StringValue("Timestamp")]
-        Timestamp
+        Timestamp,
+        [StringValue("RenishawXL80")]
+        RenishawXL80
     }
 
     public class NoneSelectedMeasurementDevice : BaseMeasurementDevice, I_MeasurementDevice

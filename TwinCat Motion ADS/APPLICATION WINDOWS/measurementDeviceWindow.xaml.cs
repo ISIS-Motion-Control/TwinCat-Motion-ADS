@@ -13,20 +13,10 @@ namespace TwinCat_Motion_ADS
     /// </summary>
     public partial class measurementDeviceWindow : Window
     {
-        int DeviceIndex;
-        public ObservableCollection<DeviceTypes> DeviceTypeList = new(Enum.GetValues(typeof(DeviceTypes)).Cast<DeviceTypes>());
-        
-        
+        int DeviceIndex;     
         I_MeasurementDevice MDevice;
-        const int KEYENCE_CHANNELS = 16;
+        public ObservableCollection<DeviceTypes> DeviceTypeList = new(Enum.GetValues(typeof(DeviceTypes)).Cast<DeviceTypes>());
 
-
-
-        /// <summary>
-        /// Constructor for the class
-        /// </summary>
-        /// <param name="deviceIndex"></param>
-        /// <param name="mDevice"></param>
         public measurementDeviceWindow(int deviceIndex, I_MeasurementDevice mDevice)
         {
             InitializeComponent();
@@ -37,7 +27,6 @@ namespace TwinCat_Motion_ADS
 
         private void ConstructDeviceSettingsScreen()
         {
-
             XamlUI.TextboxBinding(deviceName, MDevice, "Name");                                 //Bind the name field          
             DeviceTypeComboBox.ItemsSource = DeviceTypeList;
             DeviceTypeComboBox.SelectedItem = MDevice.DeviceType;
@@ -101,11 +90,14 @@ namespace TwinCat_Motion_ADS
             statusStackPanel.Children.Add(numberOfChannels);
             statusStackPanel.Children.Add(connected);
 
-            if (MDevice.DeviceType == DeviceTypes.DigimaticIndicator || MDevice.DeviceType == DeviceTypes.KeyenceTM3000)
+            switch(MDevice.DeviceType)
             {
-                CommonRs232Window();                                                    //Settings common to all RS232 devices
-                if (MDevice.DeviceType == DeviceTypes.KeyenceTM3000)                   //Extra settings for keyence TM 3000
-                {
+                case DeviceTypes.DigimaticIndicator:
+                    CommonRs232Window();
+                    break;
+
+                case DeviceTypes.KeyenceTM3000:
+                    CommonRs232Window();
                     //Create stack panels to show the channel settings
                     StackPanel allChannels = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
                     StackPanel col1Channels = new() { Orientation = Orientation.Vertical };
@@ -123,97 +115,98 @@ namespace TwinCat_Motion_ADS
                         keyenceChannels.Add(new(i + 1, ((MD_KeyenceTM3000)MDevice)));
                     }
                     //Populate the UI columns based on channel numbers (8 channels per column)
-                    foreach(KeyenceChannel kc in keyenceChannels)
+                    foreach (KeyenceChannel kc in keyenceChannels)
                     {
-                        if(kc.channelID<9)
+                        if (kc.channelID < 9)
                         {
                             col1Channels.Children.Add(kc.sp);
                         }
-                        else if(kc.channelID>8 && kc.channelID<17)
+                        else if (kc.channelID > 8 && kc.channelID < 17)
                         {
                             col2Channels.Children.Add(kc.sp);
                         }
                     }
-                }
+                    break;
+
+                case DeviceTypes.Beckhoff:
+                    //Create stack panel for 1st setting
+                    StackPanel setting1 = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
+                    deviceSettings.Children.Add(setting1);
+
+                    //AMS NET ID SETTING
+                    TextBlock setting1Text = new();
+                    TextBox netID = new();
+                    XamlUI.SetupTextBlock(ref setting1Text, "AMS NET ID:");
+                    XamlUI.SetupTextBox(ref netID, "x.x.x.x");
+                    XamlUI.TextboxBinding(netID, ((MD_Beckhoff)MDevice).Plc, "ID");
+                    setting1.Children.Add(setting1Text);
+                    setting1.Children.Add(netID);
+
+                    //Create stack panel elements to hold channels
+                    StackPanel channels = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
+                    StackPanel col1 = new() { Orientation = Orientation.Vertical };
+                    StackPanel col2 = new() { Orientation = Orientation.Vertical, Margin = new Thickness(5, 0, 0, 0) };
+
+                    //Create digital input channels
+                    for (int i = 1; i <= ((MD_Beckhoff)MDevice).DIGITAL_INPUT_CHANNELS; i++)
+                    {
+                        CheckBox cb = new();
+                        XamlUI.CheckBoxBinding("DInput Ch" + i, cb, ((MD_Beckhoff)MDevice), "DigitalInputConnected[" + (i - 1) + "]");
+                        col1.Children.Add(cb);
+                    }
+                    //Create PT100 input channels
+                    for (int i = 1; i <= ((MD_Beckhoff)MDevice).PT100_CHANNELS; i++)
+                    {
+                        CheckBox cb = new();
+                        XamlUI.CheckBoxBinding("PT100 Ch" + i, cb, ((MD_Beckhoff)MDevice), "PT100Connected[" + (i - 1) + "]");
+                        col2.Children.Add(cb);
+                    }
+                    deviceSettings.Children.Add(channels);
+                    channels.Children.Add(col1);
+                    channels.Children.Add(col2);
+                    break;
+
+                case DeviceTypes.MotionChannel:
+                    //VARIABLE TYPE
+                    StackPanel setting_motionCh = new();
+                    setting_motionCh.Orientation = Orientation.Horizontal;
+                    setting_motionCh.Margin = new Thickness(5, 5, 0, 0);
+                    deviceSettings.Children.Add(setting_motionCh);
+
+                    TextBlock settingText_motionCh = new();
+                    XamlUI.SetupTextBlock(ref settingText_motionCh, "Variable Type");
+                    ComboBox variableType = new();
+                    XamlUI.SetupComboBox(ref variableType, "variableType", ((MD_MotionControllerChannel)MDevice).VariableTypeList);
+                    variableType.DropDownClosed += new EventHandler(variableType_DropDownClosed);
+                    XamlUI.ComboBoxBinding(((MD_MotionControllerChannel)MDevice).VariableTypeList, variableType, ((MD_MotionControllerChannel)MDevice), "VariableType");
+                    setting_motionCh.Children.Add(settingText_motionCh);
+                    setting_motionCh.Children.Add(variableType);
+
+
+                    //VARIABLE STRING
+                    StackPanel setting2 = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
+                    deviceSettings.Children.Add(setting2);
+
+                    TextBlock setting2Text = new();
+                    XamlUI.SetupTextBlock(ref setting2Text, "Access Path");
+                    TextBox accessPath = new();
+                    XamlUI.SetupTextBox(ref accessPath, "", 250);
+                    XamlUI.TextboxBinding(accessPath, ((MD_MotionControllerChannel)MDevice), "VariableString");
+                    setting2.Children.Add(setting2Text);
+                    setting2.Children.Add(accessPath);
+                    break;
+
+                case DeviceTypes.Timestamp:
+                    //nothing needed
+                    break;
+
+                case DeviceTypes.NoneSelected:
+                    //nothing needed
+                    break;
             }
-            else if (MDevice.DeviceType == DeviceTypes.Beckhoff)
-            {
-                //Create stack panel for 1st setting
-                StackPanel setting1 = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
-                deviceSettings.Children.Add(setting1);
-
-                //AMS NET ID SETTING
-                TextBlock setting1Text = new();
-                TextBox netID = new();
-                XamlUI.SetupTextBlock(ref setting1Text, "AMS NET ID:");
-                XamlUI.SetupTextBox(ref netID, "x.x.x.x");
-                XamlUI.TextboxBinding(netID, ((MD_Beckhoff)MDevice).Plc, "ID");
-                setting1.Children.Add(setting1Text);
-                setting1.Children.Add(netID);
-
-                //Create stack panel elements to hold channels
-                StackPanel channels = new() {Orientation=Orientation.Horizontal,Margin = new Thickness(5,5,0,0) };
-                StackPanel col1 = new() { Orientation = Orientation.Vertical };
-                StackPanel col2 = new() { Orientation = Orientation.Vertical, Margin = new Thickness(5, 0, 0, 0) };
-
-                //Create digital input channels
-                for (int i=1;i<=((MD_Beckhoff)MDevice).DIGITAL_INPUT_CHANNELS;i++)
-                {
-                    CheckBox cb = new();
-                    XamlUI.CheckBoxBinding("DInput Ch" + i, cb, ((MD_Beckhoff)MDevice), "DigitalInputConnected[" + (i-1) + "]");
-                    col1.Children.Add(cb);
-                }
-                //Create PT100 input channels
-                for (int i = 1; i <= ((MD_Beckhoff)MDevice).PT100_CHANNELS; i++)
-                {
-                    CheckBox cb = new();
-                    XamlUI.CheckBoxBinding("PT100 Ch" + i, cb, ((MD_Beckhoff)MDevice), "PT100Connected[" + (i - 1) + "]");
-                    col2.Children.Add(cb);
-                }
-                deviceSettings.Children.Add(channels);
-                channels.Children.Add(col1);
-                channels.Children.Add(col2);
-
-            }
-            else if (MDevice.DeviceType == DeviceTypes.MotionChannel)
-            {
-                //VARIABLE TYPE
-                StackPanel setting1 = new();
-                setting1.Orientation = Orientation.Horizontal;
-                setting1.Margin = new Thickness(5, 5, 0, 0);
-                deviceSettings.Children.Add(setting1);
-
-                TextBlock setting1Text = new();
-                XamlUI.SetupTextBlock(ref setting1Text, "Variable Type");
-                ComboBox variableType = new();
-                XamlUI.SetupComboBox(ref variableType, "variableType", ((MD_MotionControllerChannel)MDevice).VariableTypeList);
-                variableType.DropDownClosed += new EventHandler(variableType_DropDownClosed);
-                XamlUI.ComboBoxBinding(((MD_MotionControllerChannel)MDevice).VariableTypeList, variableType, ((MD_MotionControllerChannel)MDevice),"VariableType");
-                setting1.Children.Add(setting1Text);
-                setting1.Children.Add(variableType);
-
-
-                //VARIABLE STRING
-                StackPanel setting2 = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
-                deviceSettings.Children.Add(setting2);
-
-                TextBlock setting2Text = new();
-                XamlUI.SetupTextBlock(ref setting2Text, "Access Path");
-                TextBox accessPath = new();
-                XamlUI.SetupTextBox(ref accessPath, "",250);
-                XamlUI.TextboxBinding(accessPath, ((MD_MotionControllerChannel)MDevice), "VariableString");
-                setting2.Children.Add(setting2Text);
-                setting2.Children.Add(accessPath);
-            }
-            else if (MDevice.DeviceType == DeviceTypes.Timestamp)
-            {
-                //Don't need anything for a timestamp!
-            }
-
             deviceSettings.Children.Add(buttonsStackPanel);
             deviceSettings.Children.Add(extraButtonsStackPanel);
             deviceSettings.Children.Add(statusStackPanel);
-
         }
 
         public void CommonRs232Window()
@@ -361,10 +354,8 @@ namespace TwinCat_Motion_ADS
         }
 
         private void refreshPorts_Click(object sender, EventArgs e)
-        {
-            
-            ((BaseRs232MeasurementDevice)MDevice).UpdatePortList();
-            
+        {           
+            ((BaseRs232MeasurementDevice)MDevice).UpdatePortList();           
         }
 
     }
@@ -403,9 +394,6 @@ namespace TwinCat_Motion_ADS
             //Add elements to stackpanel
             sp.Children.Add(tb);
             sp.Children.Add(cb);
-
         }
     }
-
-
 }
