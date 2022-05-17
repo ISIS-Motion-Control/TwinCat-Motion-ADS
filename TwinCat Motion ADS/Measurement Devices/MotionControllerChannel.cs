@@ -183,9 +183,10 @@ namespace TwinCat_Motion_ADS
 
     public class MotionControllerChannel_V2 : BaseMeasurementDevice, I_MeasurementDevice
     {
-        public MotionControllerChannel_V2()
+        public MotionControllerChannel_V2(PLC plc)
         {
             DeviceType = DeviceTypes.MotionChannel;
+            Plc = plc;
         }
         public ObservableCollection<string> VariableTypeList = new ObservableCollection<string>()
         {
@@ -264,6 +265,7 @@ namespace TwinCat_Motion_ADS
 
         public void UpdateChannelList()
         {
+            ChannelList.Clear();
             Tuple<string, int> t2 = (Name, 1).ToTuple();
             ChannelList.Add(t2);
             NumberOfChannels = ChannelList.Count;

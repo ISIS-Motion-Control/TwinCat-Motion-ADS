@@ -689,7 +689,7 @@ namespace TwinCat_Motion_ADS
 
 
 
-        public async Task<bool> LimitToLimitTestwithReversingSequence(NcTestSettings testSettings, MeasurementDevices devices = null)
+        public async Task<bool> LimitToLimitTestwithReversingSequence(NcTestSettings testSettings, MeasurementDevices_V2 devices = null)
         {
             //check there is a valid plc connection
             if (!ValidCommand()) return false;
@@ -824,7 +824,7 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> UniDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
+        public async Task<bool> UniDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices_V2 devices = null)
         {
             //check there is a valid plc connection
             if (!ValidCommand()) return false;
@@ -905,7 +905,7 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> BiDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices devices = null)
+        public async Task<bool> BiDirectionalAccuracyTest(NcTestSettings testSettings, MeasurementDevices_V2 devices = null)
         {
             //check there is a valid plc connection
             if (!ValidCommand()) return false;
@@ -1018,7 +1018,7 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> ScalingTest(NcTestSettings testSettings, MeasurementDevices devices = null)
+        public async Task<bool> ScalingTest(NcTestSettings testSettings, MeasurementDevices_V2 devices = null)
         {
             //check there is a valid plc connection
             if (!ValidCommand()) return false;
@@ -1104,7 +1104,7 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> BacklashDetectionTest(NcTestSettings testSettings, MeasurementDevices devices = null)
+        public async Task<bool> BacklashDetectionTest(NcTestSettings testSettings, MeasurementDevices_V2 devices = null)
         {
             //check there is a valid plc connection
             if (!ValidCommand()) return false;
@@ -1176,7 +1176,7 @@ namespace TwinCat_Motion_ADS
         }
 
 
-        private async Task<bool> UniDirectionalSingleCycle(NcTestSettings ts, uint currentCycle, double TargetPosition, MeasurementDevices md, string csvFile, uint additionalSteps = 0, bool reverseStepCount = false)
+        private async Task<bool> UniDirectionalSingleCycle(NcTestSettings ts, uint currentCycle, double TargetPosition, MeasurementDevices_V2 md, string csvFile, uint additionalSteps = 0, bool reverseStepCount = false)
         {
             string approachUp;
             string approachDown;
@@ -1357,7 +1357,7 @@ namespace TwinCat_Motion_ADS
             return GenerateTestFileName(ts) + ".xml";
         }
 
-        public void StartCSV(string fp, MeasurementDevices md)
+        public void StartCSV(string fp, MeasurementDevices_V2 md)
         {
             using (FileStream stream = File.Open(fp, FileMode.Append,FileAccess.Write,FileShare.ReadWrite))
             using (StreamWriter writer = new StreamWriter(stream))
@@ -1381,7 +1381,7 @@ namespace TwinCat_Motion_ADS
             }          
         }
 
-        public async Task<bool> WriteToCSV(string fp, StandardCSVData csvData, MeasurementDevices md)
+        public async Task<bool> WriteToCSV(string fp, StandardCSVData csvData, MeasurementDevices_V2 md)
         {
             int retryCounter = 0;
             while(true)

@@ -15,10 +15,7 @@ namespace TwinCat_Motion_ADS
     {
         int DeviceIndex;
         public ObservableCollection<DeviceTypes> DeviceTypeList = new(Enum.GetValues(typeof(DeviceTypes)).Cast<DeviceTypes>());
-        public ObservableCollection<string> BaudRateList = new ObservableCollection<string>()
-        {
-            "9600", "19200","38400","57600","115200"
-        };
+        
         
         I_MeasurementDevice MDevice;
         const int KEYENCE_CHANNELS = 16;
@@ -139,7 +136,7 @@ namespace TwinCat_Motion_ADS
                     }
                 }
             }
-            /*else if (MDevice.DeviceType == DeviceTypes.Beckhoff)
+            else if (MDevice.DeviceType == DeviceTypes.Beckhoff)
             {
                 //Create stack panel for 1st setting
                 StackPanel setting1 = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
@@ -150,7 +147,7 @@ namespace TwinCat_Motion_ADS
                 TextBox netID = new();
                 XamlUI.SetupTextBlock(ref setting1Text, "AMS NET ID:");
                 XamlUI.SetupTextBox(ref netID, "x.x.x.x");
-                XamlUI.TextboxBinding(netID, MDevice, "AmsNetId");
+                XamlUI.TextboxBinding(netID, ((Beckhoff_V2)MDevice).Plc, "ID");
                 setting1.Children.Add(setting1Text);
                 setting1.Children.Add(netID);
 
@@ -160,24 +157,24 @@ namespace TwinCat_Motion_ADS
                 StackPanel col2 = new() { Orientation = Orientation.Vertical, Margin = new Thickness(5, 0, 0, 0) };
 
                 //Create digital input channels
-                for (int i=1;i<=MDevice.beckhoff.DIGITAL_INPUT_CHANNELS;i++)
+                for (int i=1;i<=((Beckhoff_V2)MDevice).DIGITAL_INPUT_CHANNELS;i++)
                 {
                     CheckBox cb = new();
-                    XamlUI.CheckBoxBinding("DInput Ch" + i, cb, MDevice.beckhoff, "DigitalInputConnected[" + (i-1) + "]");
+                    XamlUI.CheckBoxBinding("DInput Ch" + i, cb, ((Beckhoff_V2)MDevice), "DigitalInputConnected[" + (i-1) + "]");
                     col1.Children.Add(cb);
                 }
                 //Create PT100 input channels
-                for (int i = 1; i <= MDevice.beckhoff.PT100_CHANNELS; i++)
+                for (int i = 1; i <= ((Beckhoff_V2)MDevice).PT100_CHANNELS; i++)
                 {
                     CheckBox cb = new();
-                    XamlUI.CheckBoxBinding("PT100 Ch" + i, cb, MDevice.beckhoff, "PT100Connected[" + (i - 1) + "]");
+                    XamlUI.CheckBoxBinding("PT100 Ch" + i, cb, ((Beckhoff_V2)MDevice), "PT100Connected[" + (i - 1) + "]");
                     col2.Children.Add(cb);
                 }
                 deviceSettings.Children.Add(channels);
                 channels.Children.Add(col1);
                 channels.Children.Add(col2);
 
-            }*/
+            }
             else if (MDevice.DeviceType == DeviceTypes.MotionChannel)
             {
                 //VARIABLE TYPE
@@ -255,8 +252,8 @@ namespace TwinCat_Motion_ADS
             ComboBox baudRate = new();
             
             XamlUI.SetupTextBlock(ref setting2Text, "Baud Rate:");
-            XamlUI.SetupComboBox(ref baudRate, "baudRate", BaudRateList);
-            XamlUI.ComboBoxBinding(BaudRateList, baudRate, ((BaseRs232MeasurementDevice)MDevice), "BaudRate");
+            XamlUI.SetupComboBox(ref baudRate, "baudRate", ((BaseRs232MeasurementDevice)MDevice).BaudRateList);
+            XamlUI.ComboBoxBinding(((BaseRs232MeasurementDevice)MDevice).BaudRateList, baudRate, ((BaseRs232MeasurementDevice)MDevice), "BaudRate");
 
             baudRate.DropDownClosed += new EventHandler(baudSelect_DropDownClosed);
             baudRate.SelectedItem = ((BaseRs232MeasurementDevice)MDevice).BaudRate.ToString();
