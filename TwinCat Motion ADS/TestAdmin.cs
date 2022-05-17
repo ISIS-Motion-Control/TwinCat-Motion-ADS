@@ -415,7 +415,7 @@ namespace TwinCat_Motion_ADS
             Task.Run(() => TimeRemainingCalc(CancellationToken.None));
         }
 
-        private async Task<string> TimeRemainingCalc(CancellationToken ct)
+        private  Task<string> TimeRemainingCalc(CancellationToken ct)
         { 
             while(!ct.IsCancellationRequested)
             {
@@ -425,10 +425,10 @@ namespace TwinCat_Motion_ADS
                     //TimeRemaining = String.Format("{d} days {hh} hours {mm} minutes {ss} seconds", temp);
 
                     string formatted = string.Format("{0}{1}{2}{3}",
-        temp.Duration().Days > 0 ? string.Format("{0:0} day{1}, ", temp.Days, temp.Days == 1 ? string.Empty : "s") : string.Empty,
-        temp.Duration().Hours > 0 ? string.Format("{0:0} hour{1}, ", temp.Hours, temp.Hours == 1 ? string.Empty : "s") : string.Empty,
-        temp.Duration().Minutes > 0 ? string.Format("{0:0} minute{1}, ", temp.Minutes, temp.Minutes == 1 ? string.Empty : "s") : string.Empty,
-        temp.Duration().Seconds > 0 ? string.Format("{0:0} second{1}", temp.Seconds, temp.Seconds == 1 ? string.Empty : "s") : string.Empty);
+                    temp.Duration().Days > 0 ? string.Format("{0:0} day{1}, ", temp.Days, temp.Days == 1 ? string.Empty : "s") : string.Empty,
+                    temp.Duration().Hours > 0 ? string.Format("{0:0} hour{1}, ", temp.Hours, temp.Hours == 1 ? string.Empty : "s") : string.Empty,
+                    temp.Duration().Minutes > 0 ? string.Format("{0:0} minute{1}, ", temp.Minutes, temp.Minutes == 1 ? string.Empty : "s") : string.Empty,
+                    temp.Duration().Seconds > 0 ? string.Format("{0:0} second{1}", temp.Seconds, temp.Seconds == 1 ? string.Empty : "s") : string.Empty);
                     TimeRemaining = formatted;
                 }
                 else 
@@ -436,7 +436,7 @@ namespace TwinCat_Motion_ADS
                     TimeRemaining = "";
                 }
             }
-            return TimeRemaining;
+            return Task.FromResult(TimeRemaining);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

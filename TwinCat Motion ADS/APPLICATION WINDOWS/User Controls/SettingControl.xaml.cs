@@ -14,7 +14,7 @@ namespace TwinCat_Motion_ADS
             InitializeComponent();
             this.DataContext = this;
         }
-        public string SetValue { get; set; }
+        public new string SetValue { get; set; }
         public string SetName { get; set; }
     }
 }

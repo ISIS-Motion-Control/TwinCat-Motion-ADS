@@ -20,62 +20,87 @@ namespace TwinCat_Motion_ADS
         public void AddToChannelList(Tuple<string, int> ch);
         public void RemoveFromChannelList(Tuple<string, int> ch);
 
-
         public DeviceTypes DeviceType { get; set; }
         public int NumberOfChannels { get; set; }
         public List<Tuple<string, int>> ChannelList { get; set; }
         public bool ReadInProgress { get; set; }
         public string Name { get; set; }
         public bool Connected { get; set; }
-
     }
 
-    public enum DeviceTypes
+    public abstract class BaseMeasurementDevice : INotifyPropertyChanged
     {
-        [StringValue("NoneSelected")]
-        NoneSelected,
-        [StringValue("DigimaticIndicator")]
-        DigimaticIndicator,
-        [StringValue("KeyenceTM3000")]
-        KeyenceTM3000,
-        [StringValue("Beckhoff")]
-        Beckhoff,
-        [StringValue("MotionChannel")]
-        MotionChannel,
-        [StringValue("Timestamp")]
-        Timestamp
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
+        private int _NumberOfChannels;
+        public int NumberOfChannels
+        {
+            get { return _NumberOfChannels; }
+            set
+            {
+                _NumberOfChannels = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public DeviceTypes DeviceType { get; set; }
+        
+        public List<Tuple<string, int>> ChannelList { get; set; } = new();
+
+        public bool ReadInProgress { get; set; }
+
+        private string _name;
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                _name = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private bool _connected;
+        public bool Connected
+        {
+            get { return _connected; }
+            set
+            {
+                _connected = value;
+                OnPropertyChanged();
+            }
+        }
+        public void RemoveFromChannelList(Tuple<string, int> ch)
+        {
+            ChannelList.Remove(ch);
+            NumberOfChannels = ChannelList.Count;
+        }
+
+        public void AddToChannelList(Tuple<string, int> ch)
+        {
+            ChannelList.Add(ch);
+            NumberOfChannels = ChannelList.Count;
+        }
+
+        protected bool AllowDisconnect()
+        {
+            if (!Connected)
+            {
+                Console.WriteLine("Nothing to disconnect from");
+                return false; //Nothing to disconnect from
+            }
+            if (ReadInProgress)
+            {
+                Console.WriteLine("Cannot disconnect during read");
+                return false;
+            }
+            return true;
+        }
     }
-
-    public class NoneSelectedMeasurementDevice : BaseMeasurementDevice, I_MeasurementDevice
-    {
-        public bool Connect()
-        {
-            Console.WriteLine("No device type selected"); return false;
-        }
-    
-
-        public bool Disconnect()
-        {
-            Console.WriteLine("No device type selected"); return false;
-        }
-
-        public Task<string> GetChannelMeasurement(int channelNumber = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<string> GetMeasurement()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void UpdateChannelList()
-        {
-            ChannelList.Clear();
-            NumberOfChannels = 0;
-        }
-    }
-
 
     public abstract class BaseRs232MeasurementDevice : BaseMeasurementDevice
     {
@@ -86,14 +111,14 @@ namespace TwinCat_Motion_ADS
 
         protected SerialPort SerialPort { get; set; }
         protected string _PortName;
-        public string PortName {
+        public string PortName
+        {
             get { return _PortName; }
             set
             {
                 if (Connected) return;
                 _PortName = value;
                 OnPropertyChanged();
-                
             }
         }
         protected string _BaudRate;
@@ -108,14 +133,10 @@ namespace TwinCat_Motion_ADS
         }
 
         public void UpdateBaudRate(string bRate)
-        {           
+        {
             if (!Connected) BaudRate = bRate;
         }
 
-
-
-        private const int readDelay = 25;   //Give buffer time to fill
-        private const int defaultTimeout = 1000;
         public ObservableCollection<string> SerialPortList = new();
 
         public BaseRs232MeasurementDevice(string portName = "", string baudRate = "9600")
@@ -177,7 +198,7 @@ namespace TwinCat_Motion_ADS
                 }
                 catch
                 {
-                    
+
                     return false;
                 }
                 Connected = false;
@@ -185,78 +206,55 @@ namespace TwinCat_Motion_ADS
             }
             return false;
         }
-
     }
 
-
-     public abstract class BaseMeasurementDevice : INotifyPropertyChanged
+    public enum DeviceTypes
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        [StringValue("NoneSelected")]
+        NoneSelected,
+        [StringValue("DigimaticIndicator")]
+        DigimaticIndicator,
+        [StringValue("KeyenceTM3000")]
+        KeyenceTM3000,
+        [StringValue("Beckhoff")]
+        Beckhoff,
+        [StringValue("MotionChannel")]
+        MotionChannel,
+        [StringValue("Timestamp")]
+        Timestamp
+    }
+
+    public class NoneSelectedMeasurementDevice : BaseMeasurementDevice, I_MeasurementDevice
+    {
+        public bool Connect()
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            Console.WriteLine("No device type selected"); return false;
+        }
+    
+        public bool Disconnect()
+        {
+            Console.WriteLine("No device type selected"); return false;
         }
 
-        private int _NumberOfChannels;
-        public int NumberOfChannels
+        public Task<string> GetChannelMeasurement(int channelNumber = 0)
         {
-            get { return _NumberOfChannels; }
-            set
-            {
-                _NumberOfChannels = value;
-                OnPropertyChanged();
-            }
-        }
-        public DeviceTypes DeviceType { get; set; }
-        public List<Tuple<string, int>> ChannelList { get; set; } =  new();
-
-        public bool ReadInProgress { get; set; }
-
-        private string _name;
-        public string Name
-        {
-            get { return _name; }
-            set 
-            {
-                _name = value;
-                OnPropertyChanged();
-            }
+            return Task.FromResult("");
         }
 
-        private bool _connected;
-        public bool Connected
+        public  Task<string> GetMeasurement()
         {
-            get { return _connected; }
-            set
-            {
-                _connected = value;
-                OnPropertyChanged();
-            }
-        }
-        public void RemoveFromChannelList(Tuple<string, int> ch)
-        {
-            ChannelList.Remove(ch);
-            NumberOfChannels = ChannelList.Count;
-        }
-        public void AddToChannelList(Tuple<string, int> ch)
-        {
-            ChannelList.Add(ch);
-            NumberOfChannels = ChannelList.Count;
+            return Task.FromResult("");
         }
 
-        protected bool AllowDisconnect()
+        public void UpdateChannelList()
         {
-            if (!Connected)
-            {
-                Console.WriteLine("Nothing to disconnect from");
-                return false; //Nothing to disconnect from
-            }
-            if (ReadInProgress)
-            {
-                Console.WriteLine("Cannot disconnect during read");
-                return false;
-            }
-            return true;
+            ChannelList.Clear();
+            NumberOfChannels = 0;
         }
     }
+
+
+    
+
+     
 }

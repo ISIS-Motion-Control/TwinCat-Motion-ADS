@@ -122,12 +122,6 @@
                     <MenuItem Header="Export devices..." Click="ExportDevices_Click" Template="{StaticResource VsMenuSub}"/>
                     <Separator/>
                 </MenuItem>
-                <MenuItem x:Name="MeasureDevicesMenu2" Header="Measurement Devices V2" Height="30" Width="195" Template="{StaticResource VsOnline}" Click="MeasureDevicesMenu_Click2">
-                    <MenuItem Header="Add new device..." Click="AddNewDevice2" Template="{StaticResource VsMenuSub}"/>
-                    <MenuItem Header="Import devices..." Click="ImportDevices_Click" Template="{StaticResource VsMenuSub}"/>
-                    <MenuItem Header="Export devices..." Click="ExportDevices_Click" Template="{StaticResource VsMenuSub}"/>
-                    <Separator/>
-                </MenuItem>
                 <MenuItem x:Name="TestSuiteMenu" Header="Test Suite" Height="30" Width="195" Template="{StaticResource VsOnline}" Click="TestSuiteMenu_Click" >
                     
                 </MenuItem>
