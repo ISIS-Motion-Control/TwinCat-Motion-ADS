@@ -380,7 +380,7 @@ namespace TwinCat_Motion_ADS
                 switch (test.TestType)
                 {
                     case TestTypes.EndToEnd:
-                        testResult = await NcAxis.LimitToLimitTestwithReversingSequence(test.TestSettings, wd.MeasurementDevices2);
+                        testResult = await NcAxis.LimitToLimitTestwithReversingSequence(test.TestSettings, wd.MeasurementDevices);
                         if(testResult)
                         {
                             statusListItems.Add("Complete");
@@ -391,7 +391,7 @@ namespace TwinCat_Motion_ADS
                         }
                         break;
                     case TestTypes.UnidirectionalAccuracy:
-                        testResult = await NcAxis.UniDirectionalAccuracyTest(test.TestSettings, wd.MeasurementDevices2);
+                        testResult = await NcAxis.UniDirectionalAccuracyTest(test.TestSettings, wd.MeasurementDevices);
                         if (testResult)
                         {
                             statusListItems.Add("Complete");
@@ -402,7 +402,7 @@ namespace TwinCat_Motion_ADS
                         }
                         break;
                     case TestTypes.BidirectionalAccuracy:
-                        testResult = await NcAxis.BiDirectionalAccuracyTest(test.TestSettings, wd.MeasurementDevices2);
+                        testResult = await NcAxis.BiDirectionalAccuracyTest(test.TestSettings, wd.MeasurementDevices);
                         if (testResult)
                         {
                             statusListItems.Add("Complete");
@@ -413,7 +413,7 @@ namespace TwinCat_Motion_ADS
                         }
                         break;
                     case TestTypes.ScalingTest:
-                        testResult = await NcAxis.ScalingTest(test.TestSettings, wd.MeasurementDevices2);
+                        testResult = await NcAxis.ScalingTest(test.TestSettings, wd.MeasurementDevices);
                         if (testResult)
                         {
                             statusListItems.Add("Complete");
@@ -424,7 +424,7 @@ namespace TwinCat_Motion_ADS
                         }
                         break;
                     case TestTypes.BacklashDetection:
-                        testResult = await NcAxis.BacklashDetectionTest(test.TestSettings, wd.MeasurementDevices2);
+                        testResult = await NcAxis.BacklashDetectionTest(test.TestSettings, wd.MeasurementDevices);
                         if (testResult)
                         {
                             statusListItems.Add("Complete");

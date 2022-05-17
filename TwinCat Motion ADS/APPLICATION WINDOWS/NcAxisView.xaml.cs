@@ -176,7 +176,7 @@ namespace TwinCat_Motion_ADS
             }
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
-            if (await testAxis.LimitToLimitTestwithReversingSequence(NcTestSettings, windowData.MeasurementDevices2))
+            if (await testAxis.LimitToLimitTestwithReversingSequence(NcTestSettings, windowData.MeasurementDevices))
             {
                 Console.WriteLine("Test Complete");
             }
@@ -202,7 +202,7 @@ namespace TwinCat_Motion_ADS
             }
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
-            if (await testAxis.UniDirectionalAccuracyTest(NcTestSettings, windowData.MeasurementDevices2))
+            if (await testAxis.UniDirectionalAccuracyTest(NcTestSettings, windowData.MeasurementDevices))
             {}
             else
             {
@@ -226,7 +226,7 @@ namespace TwinCat_Motion_ADS
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
 
-            if (await testAxis.BiDirectionalAccuracyTest(NcTestSettings, windowData.MeasurementDevices2))
+            if (await testAxis.BiDirectionalAccuracyTest(NcTestSettings, windowData.MeasurementDevices))
             {          }
             else
             {
@@ -250,7 +250,7 @@ namespace TwinCat_Motion_ADS
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
 
-            if (await testAxis.ScalingTest(NcTestSettings, windowData.MeasurementDevices2))
+            if (await testAxis.ScalingTest(NcTestSettings, windowData.MeasurementDevices))
             { }
             else
             {
@@ -274,7 +274,7 @@ namespace TwinCat_Motion_ADS
             cancelTest.IsEnabled = true;
             pauseTest.IsEnabled = true;
 
-            if (await testAxis.BacklashDetectionTest(NcTestSettings, windowData.MeasurementDevices2))
+            if (await testAxis.BacklashDetectionTest(NcTestSettings, windowData.MeasurementDevices))
             { }
             else
             {

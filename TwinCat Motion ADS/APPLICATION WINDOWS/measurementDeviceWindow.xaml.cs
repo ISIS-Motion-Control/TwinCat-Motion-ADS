@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -13,26 +14,21 @@ namespace TwinCat_Motion_ADS
     public partial class measurementDeviceWindow : Window
     {
         int DeviceIndex;
-        public ObservableCollection<DeviceTypes> DeviceTypeList;
-        public ObservableCollection<string> BaudRateList = new ObservableCollection<string>()
-        {
-            "9600", "19200","38400","57600","115200"
-        };
-        public ObservableCollection<string> VariableTypeList = new ObservableCollection<string>()
-        {
-            "string","double","short","bool"
-        };
-        MeasurementDevice MDevice;
+        public ObservableCollection<DeviceTypes> DeviceTypeList = new(Enum.GetValues(typeof(DeviceTypes)).Cast<DeviceTypes>());
+        
+        
+        I_MeasurementDevice MDevice;
         const int KEYENCE_CHANNELS = 16;
+
+
 
         /// <summary>
         /// Constructor for the class
         /// </summary>
         /// <param name="deviceIndex"></param>
         /// <param name="mDevice"></param>
-        public measurementDeviceWindow(int deviceIndex, MeasurementDevice mDevice)
+        public measurementDeviceWindow(int deviceIndex, I_MeasurementDevice mDevice)
         {
-            DeviceTypeList = mDevice.DeviceTypeList;
             InitializeComponent();
             DeviceIndex = deviceIndex;
             MDevice = mDevice;
@@ -108,7 +104,7 @@ namespace TwinCat_Motion_ADS
             if (MDevice.DeviceType == DeviceTypes.DigimaticIndicator || MDevice.DeviceType == DeviceTypes.KeyenceTM3000)
             {
                 CommonRs232Window();                                                    //Settings common to all RS232 devices
-                if (MDevice.DeviceType == DeviceTypes.KeyenceTM3000)                           //Extra settings for keyence TM 3000
+                if (MDevice.DeviceType == DeviceTypes.KeyenceTM3000)                   //Extra settings for keyence TM 3000
                 {
                     //Create stack panels to show the channel settings
                     StackPanel allChannels = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
@@ -122,9 +118,9 @@ namespace TwinCat_Motion_ADS
 
                     //Populate a list to contain all channel UI elements
                     List<KeyenceChannel> keyenceChannels = new();
-                    for (int i = 0; i < MDevice.keyence.KEYENCE_MAX_CHANNELS; i++)
+                    for (int i = 0; i < ((MD_KeyenceTM3000)MDevice).KEYENCE_MAX_CHANNELS; i++)
                     {
-                        keyenceChannels.Add(new(i + 1, MDevice.keyence));
+                        keyenceChannels.Add(new(i + 1, ((MD_KeyenceTM3000)MDevice)));
                     }
                     //Populate the UI columns based on channel numbers (8 channels per column)
                     foreach(KeyenceChannel kc in keyenceChannels)
@@ -151,7 +147,7 @@ namespace TwinCat_Motion_ADS
                 TextBox netID = new();
                 XamlUI.SetupTextBlock(ref setting1Text, "AMS NET ID:");
                 XamlUI.SetupTextBox(ref netID, "x.x.x.x");
-                XamlUI.TextboxBinding(netID, MDevice, "AmsNetId");
+                XamlUI.TextboxBinding(netID, ((MD_Beckhoff)MDevice).Plc, "ID");
                 setting1.Children.Add(setting1Text);
                 setting1.Children.Add(netID);
 
@@ -161,17 +157,17 @@ namespace TwinCat_Motion_ADS
                 StackPanel col2 = new() { Orientation = Orientation.Vertical, Margin = new Thickness(5, 0, 0, 0) };
 
                 //Create digital input channels
-                for (int i=1;i<=MDevice.beckhoff.DIGITAL_INPUT_CHANNELS;i++)
+                for (int i=1;i<=((MD_Beckhoff)MDevice).DIGITAL_INPUT_CHANNELS;i++)
                 {
                     CheckBox cb = new();
-                    XamlUI.CheckBoxBinding("DInput Ch" + i, cb, MDevice.beckhoff, "DigitalInputConnected[" + (i-1) + "]");
+                    XamlUI.CheckBoxBinding("DInput Ch" + i, cb, ((MD_Beckhoff)MDevice), "DigitalInputConnected[" + (i-1) + "]");
                     col1.Children.Add(cb);
                 }
                 //Create PT100 input channels
-                for (int i = 1; i <= MDevice.beckhoff.PT100_CHANNELS; i++)
+                for (int i = 1; i <= ((MD_Beckhoff)MDevice).PT100_CHANNELS; i++)
                 {
                     CheckBox cb = new();
-                    XamlUI.CheckBoxBinding("PT100 Ch" + i, cb, MDevice.beckhoff, "PT100Connected[" + (i - 1) + "]");
+                    XamlUI.CheckBoxBinding("PT100 Ch" + i, cb, ((MD_Beckhoff)MDevice), "PT100Connected[" + (i - 1) + "]");
                     col2.Children.Add(cb);
                 }
                 deviceSettings.Children.Add(channels);
@@ -190,9 +186,9 @@ namespace TwinCat_Motion_ADS
                 TextBlock setting1Text = new();
                 XamlUI.SetupTextBlock(ref setting1Text, "Variable Type");
                 ComboBox variableType = new();
-                XamlUI.SetupComboBox(ref variableType, "variableType", VariableTypeList);
+                XamlUI.SetupComboBox(ref variableType, "variableType", ((MD_MotionControllerChannel)MDevice).VariableTypeList);
                 variableType.DropDownClosed += new EventHandler(variableType_DropDownClosed);
-                XamlUI.ComboBoxBinding(VariableTypeList, variableType, MDevice.motionChannel,"VariableType");
+                XamlUI.ComboBoxBinding(((MD_MotionControllerChannel)MDevice).VariableTypeList, variableType, ((MD_MotionControllerChannel)MDevice),"VariableType");
                 setting1.Children.Add(setting1Text);
                 setting1.Children.Add(variableType);
 
@@ -205,7 +201,7 @@ namespace TwinCat_Motion_ADS
                 XamlUI.SetupTextBlock(ref setting2Text, "Access Path");
                 TextBox accessPath = new();
                 XamlUI.SetupTextBox(ref accessPath, "",250);
-                XamlUI.TextboxBinding(accessPath, MDevice.motionChannel, "VariableString");
+                XamlUI.TextboxBinding(accessPath, ((MD_MotionControllerChannel)MDevice), "VariableString");
                 setting2.Children.Add(setting2Text);
                 setting2.Children.Add(accessPath);
             }
@@ -222,6 +218,8 @@ namespace TwinCat_Motion_ADS
 
         public void CommonRs232Window()
         {
+
+
             //Create stack panel for 1st setting
             StackPanel setting1 = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
             deviceSettings.Children.Add(setting1);
@@ -230,12 +228,12 @@ namespace TwinCat_Motion_ADS
             TextBlock setting1Text = new();
             ComboBox comPort = new();
             Button updatePortsButton = new();
-            
-            MDevice.UpdatePortList();   //Generate new serial port list
+
+            ((BaseRs232MeasurementDevice)MDevice).UpdatePortList();   //Generate new serial port list
 
             XamlUI.SetupTextBlock(ref setting1Text, "Com Port:");
-            XamlUI.SetupComboBox(ref comPort, "comPort", MDevice.SerialPortList);
-            XamlUI.ComboBoxBinding(MDevice.SerialPortList, comPort, MDevice, "PortName");
+            XamlUI.SetupComboBox(ref comPort, "comPort", ((BaseRs232MeasurementDevice)MDevice).SerialPortList);
+            XamlUI.ComboBoxBinding(((BaseRs232MeasurementDevice)MDevice).SerialPortList, comPort, ((BaseRs232MeasurementDevice)MDevice), "PortName");
             XamlUI.SetupButton(ref updatePortsButton, "Refresh");
 
             comPort.DropDownClosed += new EventHandler(portSelect_DropDownClosed);
@@ -254,14 +252,15 @@ namespace TwinCat_Motion_ADS
             ComboBox baudRate = new();
             
             XamlUI.SetupTextBlock(ref setting2Text, "Baud Rate:");
-            XamlUI.SetupComboBox(ref baudRate, "baudRate", BaudRateList);
-            XamlUI.ComboBoxBinding(BaudRateList, baudRate, MDevice, "BaudRate");
+            XamlUI.SetupComboBox(ref baudRate, "baudRate", ((BaseRs232MeasurementDevice)MDevice).BaudRateList);
+            XamlUI.ComboBoxBinding(((BaseRs232MeasurementDevice)MDevice).BaudRateList, baudRate, ((BaseRs232MeasurementDevice)MDevice), "BaudRate");
 
-            baudRate.DropDownClosed += new EventHandler(baudSelect_DropDownClosed);           
-            baudRate.SelectedItem = MDevice.BaudRate;
+            baudRate.DropDownClosed += new EventHandler(baudSelect_DropDownClosed);
+            baudRate.SelectedItem = ((BaseRs232MeasurementDevice)MDevice).BaudRate.ToString();
 
             setting2.Children.Add(setting2Text);
             setting2.Children.Add(baudRate);
+            
         }
 
         public void UpdateChannels(object sender, EventArgs e)
@@ -298,7 +297,7 @@ namespace TwinCat_Motion_ADS
             {
                 Console.WriteLine("Already connected to device");
             }
-            if (MDevice.ConnectToDevice())
+            if (MDevice.Connect())
             {
                 Console.WriteLine("Connection made");
             }
@@ -314,7 +313,7 @@ namespace TwinCat_Motion_ADS
             {
                 Console.WriteLine("Not connected to a device");
             }
-            if (MDevice.DisconnectFromDevice())
+            if (MDevice.Disconnect())
             {
                 Console.WriteLine("Disconnected");
             }
@@ -328,16 +327,13 @@ namespace TwinCat_Motion_ADS
         {
             ((MainWindow)(Application.Current.MainWindow)).measurementMenuItems[DeviceIndex].Header = MDevice.Name;
         }
-        private void Window_Closing2(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            ((MainWindow)(Application.Current.MainWindow)).measurementMenuItems2[DeviceIndex].Header = MDevice.Name;
-        }
 
         private void DeviceType_DropDownClosed(object sender, EventArgs e)
         {
             if (!MDevice.Connected)
             {
-                MDevice.changeDeviceType((DeviceTypes)DeviceTypeComboBox.SelectedItem);
+                ((MainWindow)(Application.Current.MainWindow)).MeasurementDevices.ChangeDeviceType(DeviceIndex, (DeviceTypes)DeviceTypeComboBox.SelectedItem);
+                MDevice = ((MainWindow)(Application.Current.MainWindow)).MeasurementDevices.MeasurementDeviceList[DeviceIndex];
             }
             DeviceTypeComboBox.SelectedItem = MDevice.DeviceType.GetStringValue();
             ConstructDeviceSettingsScreen();
@@ -346,27 +342,29 @@ namespace TwinCat_Motion_ADS
         private void portSelect_DropDownClosed(object sender, EventArgs e)
         {
             var combo = sender as ComboBox;
-            MDevice.PortName = (string)combo.SelectedItem;
-            combo.SelectedItem = MDevice.PortName;
+            ((BaseRs232MeasurementDevice)MDevice).PortName = (string)combo.SelectedItem;
+            combo.SelectedItem = ((BaseRs232MeasurementDevice)MDevice).PortName;
         }
 
         private void baudSelect_DropDownClosed(object sender, EventArgs e)
-        {
+        {           
             var baud = sender as ComboBox;
-            MDevice.UpdateBaudRate((string)baud.SelectedItem);
-            baud.SelectedItem = MDevice.BaudRate;
+            ((BaseRs232MeasurementDevice)MDevice).UpdateBaudRate((string)baud.SelectedItem);
+            baud.SelectedItem = ((BaseRs232MeasurementDevice)MDevice).BaudRate.ToString();
         }
 
         private void variableType_DropDownClosed(object sender, EventArgs e)
-        {
+        {         
             var combo = sender as ComboBox;
-            MDevice.motionChannel.VariableType = (string)combo.SelectedItem;
-            combo.SelectedItem = MDevice.motionChannel.VariableType;
+            ((MD_MotionControllerChannel)MDevice).VariableType = (string)combo.SelectedItem;
+            combo.SelectedItem = ((MD_MotionControllerChannel)MDevice).VariableType;
         }
 
         private void refreshPorts_Click(object sender, EventArgs e)
         {
-            MDevice.UpdatePortList();
+            
+            ((BaseRs232MeasurementDevice)MDevice).UpdatePortList();
+            
         }
 
     }
@@ -383,30 +381,31 @@ namespace TwinCat_Motion_ADS
             channelID = channel;
             //Setup strings for content and property paths
             //string tbpp = "Ch" + channel + "Name";
-            string tbpp = "ChName[" + (channel-1)+"]";           
+            string tbpp = "ChName[" + (channel - 1) + "]";
             string cbContent = "Ch" + channel;
             string cbpp = "ChConnected[" + (channel - 1) + "]";
             string tbContent;
             //Don't want to reset name field unless it's empty
-            if ( string.IsNullOrEmpty(((KeyenceTM3000_V2)source).ChName[channel - 1]))
+            if (string.IsNullOrEmpty(((MD_KeyenceTM3000)source).ChName[channel - 1]))
             {
                 tbContent = "*Ch" + channel + "*";
             }
             else
             {
-                tbContent = ((KeyenceTM3000_V2)source).ChName[channel - 1];
+                tbContent = ((MD_KeyenceTM3000)source).ChName[channel - 1];
             }
 
             //Bind and setup UI elements
             XamlUI.TextboxBinding(tb, source, tbpp);
             XamlUI.SetupTextBox(ref tb, tbContent, 100);
-            XamlUI.CheckBoxBinding(cbContent,cb, source, cbpp);
+            XamlUI.CheckBoxBinding(cbContent, cb, source, cbpp);
 
             //Add elements to stackpanel
             sp.Children.Add(tb);
             sp.Children.Add(cb);
 
-        }       
+        }
     }
+
 
 }
