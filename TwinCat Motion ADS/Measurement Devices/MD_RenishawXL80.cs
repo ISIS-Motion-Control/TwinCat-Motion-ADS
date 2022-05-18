@@ -9,36 +9,17 @@ using Nito.AsyncEx;
 using System.IO.Pipes;
 using System.IO;
 using System.Linq;
+using System.Diagnostics;
 
 namespace TwinCat_Motion_ADS
 {
     public class MD_RenishawXL80 : BaseMeasurementDevice, I_MeasurementDevice
     {
 
-        private NamedPipeServerStream RenishawServer = new NamedPipeServerStream("RenishawXL80_Pipe");
+        private NamedPipeServerStream RenishawServer;
         private StreamReader reader;
         private StreamWriter writer;
-        
-        static void StartServer()
-        {
-            Task.Factory.StartNew(() =>
-            {
-                var server = new NamedPipeServerStream("PipesOfPiece");
-                server.WaitForConnection();
-                StreamReader reader = new StreamReader(server);
-                StreamWriter writer = new StreamWriter(server);
-                while (true)
-                {
-                    var line = reader.ReadLine();
-                    if (line != null)
-                    {
-                        Console.WriteLine(line.ToString());
-                        writer.WriteLine(String.Join("", line.Reverse()));
-                        writer.Flush();
-                    }
-                }
-            });
-        }
+        Process RenishawClient;
 
         public MD_RenishawXL80()
         {
@@ -48,28 +29,94 @@ namespace TwinCat_Motion_ADS
             
             //StartServer();
             UpdateChannelList();
+            
 
         }
 
         public bool Connect()
         {
+            if (Connected)
+            {
+                Console.WriteLine("Already connected");
+                return false;
+            }
+            
             if(!Connected)
-            {               
-                RenishawServer.WaitForConnection();
-                Connected = true;
-                UpdateChannelList();
+            {
+                RenishawServer = new NamedPipeServerStream("RenishawXL80_Pipe");
                 reader = new StreamReader(RenishawServer);
                 writer = new StreamWriter(RenishawServer);
-                return true;
+                string exeName = "Renishaw_XL80_App.exe";
+                string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, exeName);
+                RenishawClient = Process.Start(path);
+                CancellationTokenSource ct = new();
+                RenishawServer.WaitForConnectionAsync(ct.Token);
+                //Task connectionTask = Task.Run(() => RenishawServer.WaitForConnection(),ct.Token);
+                Task connectionTask = Task.Run(() => 
+                {
+                    while (!RenishawServer.IsConnected) 
+                    { 
+                        if (ct.IsCancellationRequested)
+                        { 
+                            return; 
+                        } 
+                    }
+                },ct.Token
+                );
+                if (connectionTask.Wait(TimeSpan.FromSeconds(4)))
+                {
+                    Connected = true;
+                    UpdateChannelList();
+                    Console.WriteLine("Connection made to client application. Configure device in client.");
+                    return true;
+                }
+                else
+                {
+                    ct.Cancel();
+                    
+                    connectionTask.Dispose();
+                    reader.Close();
+                    reader.Dispose();
+                    RenishawServer.Close();
+                    RenishawServer.Dispose();
+                    try
+                    {
+                        RenishawClient.CloseMainWindow();
+                        RenishawClient.Close();
+                    }
+                    catch { }
+                    return false;
+                }
+                    
+                //RenishawServer.WaitForConnection();
+                
             }
             return false;
         }
 
+
         public bool Disconnect()
         {
-            RenishawServer.Dispose();
-            Connected = false;
-            return true;
+            try
+            {
+                RenishawClient.CloseMainWindow();
+                RenishawClient.Close();
+                RenishawServer.Close();
+                //RenishawServer.Dispose();
+                Connected = false;
+                UpdateChannelList();
+                if (RenishawServer == null)
+                {
+                    Console.WriteLine("Server is null");
+                }
+                else
+                { Console.WriteLine("Server is not null"); }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<string> GetChannelMeasurement(int channelNumber = 0)
@@ -80,8 +127,8 @@ namespace TwinCat_Motion_ADS
             await writer.WriteLineAsync("1");
             await writer.FlushAsync();
             string messageBack = await reader.ReadLineAsync();
-            await writer.WriteLineAsync("0");
-            await writer.FlushAsync();
+            //await writer.WriteLineAsync("0");
+            //await writer.FlushAsync();
             ReadInProgress = false;
             return messageBack;
         }

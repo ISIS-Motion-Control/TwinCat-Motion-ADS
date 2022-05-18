@@ -32,6 +32,7 @@ namespace Renishaw_XL80_App
         public MainWindow()
         {
             InitializeComponent();
+            Connection();
             //client.Connect();
             //reader = new StreamReader(client);
             //writer = new StreamWriter(client);
@@ -64,7 +65,6 @@ namespace Renishaw_XL80_App
             SendInProgress = true;
             await writer.WriteLineAsync(messageToSend.Text);
             await writer.FlushAsync();
-            SendInProgress = false;
         }
 
         private void connectClient_Click(object sender, RoutedEventArgs e)
@@ -72,6 +72,14 @@ namespace Renishaw_XL80_App
             client.Connect();
             reader = new StreamReader(client);
             writer = new StreamWriter(client);
+            ConstantReadMode();
+        }
+        private void Connection()
+        {
+            client.Connect();
+            reader = new StreamReader(client);
+            writer = new StreamWriter(client);
+            ConstantReadMode();
         }
 
         private async void enterReadMode_Click(object sender, RoutedEventArgs e)
@@ -84,6 +92,24 @@ namespace Renishaw_XL80_App
                 if(cmd=="1")
                 {
                     await writer.WriteLineAsync("test data here");
+                    await writer.FlushAsync();
+                }
+                if (cmd == "0")
+                    break;
+            }
+
+        }
+
+        private async void ConstantReadMode()
+        {
+            string cmd;
+            while (true)
+            {
+                cmd = await reader.ReadLineAsync();
+
+                if (cmd == "1")
+                {
+                    await writer.WriteLineAsync(messageToSend.Text);
                     await writer.FlushAsync();
                 }
                 if (cmd == "0")
