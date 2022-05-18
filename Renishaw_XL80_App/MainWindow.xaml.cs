@@ -14,6 +14,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO.Pipes;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Windows.Interop;
 
 namespace Renishaw_XL80_App
 {
@@ -26,6 +28,13 @@ namespace Renishaw_XL80_App
         StreamReader reader;
         StreamWriter writer;
 
+        private const int GWL_STYLE = -16;
+        private const int WS_SYSMENU = 0x80000;
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+        [DllImport("user32.dll")]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
         bool SendInProgress = false;
 
 
@@ -33,20 +42,6 @@ namespace Renishaw_XL80_App
         {
             InitializeComponent();
             Connection();
-            //client.Connect();
-            //reader = new StreamReader(client);
-            //writer = new StreamWriter(client);
-            /*
-            while (true)
-            {
-                //string input = Console.ReadLine();
-                //if (String.IsNullOrEmpty(input)) break;
-                //writer.WriteLine(input);
-                //writer.Flush();
-                MessageBox.Show(reader.ReadLine());
-                writer.WriteLine("Hello friend");
-                writer.Flush();
-            }*/
         }
 
         private void checkForMessage_Click(object sender, RoutedEventArgs e)
@@ -116,6 +111,12 @@ namespace Renishaw_XL80_App
                     break;
             }
 
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_SYSMENU);
         }
     }
 }
