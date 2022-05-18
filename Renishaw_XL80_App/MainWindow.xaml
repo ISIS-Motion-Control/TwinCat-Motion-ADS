@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Renishaw_XL80_App"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="XL80 Configuration" Height="450" Width="800" WindowStyle="ThreeDBorderWindow" Loaded="Window_Loaded">
     <Grid>
         <Button x:Name="checkForMessage" Content="Check for message" HorizontalAlignment="Left" Margin="61,37,0,0" VerticalAlignment="Top" Width="131" Click="checkForMessage_Click"/>
         <Button x:Name="sendMessage" Content="Send message" HorizontalAlignment="Left" Margin="61,80,0,0" VerticalAlignment="Top" Width="131" Click="sendMessage_Click"/>
