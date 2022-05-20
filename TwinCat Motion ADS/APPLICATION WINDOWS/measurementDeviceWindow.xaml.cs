@@ -196,6 +196,9 @@ namespace TwinCat_Motion_ADS
                     setting2.Children.Add(accessPath);
                     break;
 
+                case DeviceTypes.RenishawXL80:
+                    break;
+
                 case DeviceTypes.Timestamp:
                     //nothing needed
                     break;
