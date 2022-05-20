@@ -7,57 +7,76 @@
         mc:Ignorable="d"
         Title="XL80 Configuration" Height="650" Width="800" WindowStyle="ThreeDBorderWindow" Loaded="Window_Loaded" Closing="Window_Closing">
     <Grid>
-        <Button x:Name="button_LaserConnect2" Content="Connect to laser" HorizontalAlignment="Left" Margin="607,295,0,0" VerticalAlignment="Top" Click="button_LaserConnect_Click"/>
+        <StackPanel Orientation="Horizontal">
+            <Border BorderBrush="Black" BorderThickness="1" Margin="10,10,10,10" HorizontalAlignment="Left" Background="AliceBlue">
+                <StackPanel Width="380" Orientation="Horizontal" >
+                    <StackPanel x:Name="SP_LaserButtons" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0">
+                        <TextBlock Text="XL80 Laser"/>
+                        <Button x:Name="button_LaserConnect" Width="120" Height="30" Content="Connect" Margin="0,0,0,5" Click="button_LaserConnect_Click"/>
+                        <Button x:Name="button_LaserDisconnect" Width="120" Height="30" Content="Disconnect" Margin="0,0,0,5" Click="button_LaserDisconnect_Click"/>
+                        <Button x:Name="button_LaserVersion" Width="120" Height="30" Content="Version" Margin="0,0,0,5" Click="button_LaserVersion_Click"/>
+                        <Button x:Name="button_LaserClearScreen" Width="120" Height="30" Content="Clear Screen" Margin="0,0,0,5" Click="button_LaserClearScreen_Click"/>
+                        <Button x:Name="button_LaserReadPreset" Width="120" Height="30" Content="Read Preset" Margin="0,0,0,5" Click="button_LaserReadPreset_Click"/>
+                        <Button x:Name="button_LaserDeviceInfo" Width="120" Height="30" Content="Read Device Info" Margin="0,0,0,5"/>
+                        <Button x:Name="button_LaserCalibInfo" Width="120" Height="30" Content="Read Calibration Info" Margin="0,0,0,5"/>
+                        <Button x:Name="button_LaserConnectionStatus" Width="120" Height="30" Content="Connection Status" Margin="0,0,0,5"/>
+                        <Button x:Name="button_LaserMaterialExpCoeff" Width="120" Height="30" Content="Read Mat. Exp. Coeff" Margin="0,0,0,5"/>
+                        <Button x:Name="button_LaserGetSingleReading" Width="120" Height="30" Content="Get Reading" Margin="0,0,0,5"/>
+                        <Button x:Name="button_LaserSetDatum" Width="120" Height="30" Content="Set Datum" Margin="0,0,0,5"/>
+                        <Button x:Name="button_LaserReset" Width="120" Height="30" Content="Reset Laser" Margin="0,0,0,5"/>
+                        <Button x:Name="button_LaserAveraging" Width="120" Height="30" Content="Read Averaging" Margin="0,0,0,5"/>
+                    </StackPanel>
+                    <StackPanel x:Name="sp_LaserInfo">
+                        <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                            <Border Height="20" Margin="5,0,0,0">
+                                <TextBlock Text="Reading" Width="120" VerticalAlignment="Center" />
+                            </Border>
+                            <TextBox x:Name="m_laserReadingTextBox" Width="120" Margin="0,0,5,5" Height="20"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                            <Border Height="20" Margin="5,0,0,0">
+                                <TextBlock Text="Material Exp.Coeff." Width="120" VerticalAlignment="Center" />
+                            </Border>
+                            <TextBox x:Name="textbox_materialCoeff" Width="120" Margin="0,0,5,5" Height="20"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                            <Border Height="20" Margin="5,0,0,0">
+                                <TextBlock Text="Preset" Width="120" VerticalAlignment="Center" />
+                            </Border>
+                            <TextBox x:Name="textbox_preset" Width="120" Margin="0,0,5,5" Height="20" LostFocus="textbox_preset_LostFocus"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                            <Border Height="20" Margin="5,0,0,0">
+                                <TextBlock Text="Averaging" Width="120" VerticalAlignment="Center" />
+                            </Border>
+                            <ComboBox Height="20" Width="120" SelectedIndex="0">
+                                <ComboBoxItem Content="None"/>
+                                <ComboBoxItem Content="Fast"/>
+                                <ComboBoxItem Content="Slow"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
 
-        <Border BorderBrush="Black" BorderThickness="1" Margin="10,10,10,10" HorizontalAlignment="Left" Background="AliceBlue">
-            <StackPanel Width="380" Orientation="Horizontal" >
-                <StackPanel x:Name="SP_LaserButtons" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0">
-                    <TextBlock Text="XL80 Laser"/>
-                    <Button x:Name="button_LaserConnect" Width="120" Height="30" Content="Connect" Margin="0,0,0,5" Click="button_LaserConnect_Click"/>
-                    <Button x:Name="button_LaserDisconnect" Width="120" Height="30" Content="Disconnect" Margin="0,0,0,5"/>
-                    <Button x:Name="button_LaserVersion" Width="120" Height="30" Content="Version" Margin="0,0,0,5"/>
-                    <Button x:Name="button_LaserClearScreen" Width="120" Height="30" Content="Clear Screen" Margin="0,0,0,5"/>
-                    <Button x:Name="button_LaserReadPreset" Width="120" Height="30" Content="Read Preset" Margin="0,0,0,5"/>
-                    <Button x:Name="button_LaserDeviceInfo" Width="120" Height="30" Content="Read Device Info" Margin="0,0,0,5"/>
-                    <Button x:Name="button_LaserCalibInfo" Width="120" Height="30" Content="Read Calibration Info" Margin="0,0,0,5"/>
-                    <Button x:Name="button_LaserConnectionStatus" Width="120" Height="30" Content="Connection Status" Margin="0,0,0,5"/>
-                    <Button x:Name="button_LaserMaterialExpCoeff" Width="120" Height="30" Content="Read Mat. Exp. Coeff" Margin="0,0,0,5"/>
-                    <Button x:Name="button_LaserGetSingleReading" Width="120" Height="30" Content="Get Reading" Margin="0,0,0,5"/>
-                    <Button x:Name="button_LaserSetDatum" Width="120" Height="30" Content="Set Datum" Margin="0,0,0,5"/>
-                    <Button x:Name="button_LaserReset" Width="120" Height="30" Content="Reset Laser" Margin="0,0,0,5"/>
-                    <Button x:Name="button_LaserAveraging" Width="120" Height="30" Content="Read Averaging" Margin="0,0,0,5"/>
-                </StackPanel>
-                <StackPanel x:Name="sp_LaserInfo">
-                    <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
-                        <Border Height="20" Margin="5,0,0,0">
-                            <TextBlock Text="Reading" Width="120" VerticalAlignment="Center" />
-                        </Border>
-                        <TextBox x:Name="m_laserReadingTextBox" Width="120" Margin="0,0,5,5" Height="20"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
-                        <Border Height="20" Margin="5,0,0,0">
-                            <TextBlock Text="Material Exp.Coeff." Width="120" VerticalAlignment="Center" />
-                        </Border>
-                        <TextBox x:Name="textbox_materialCoeff" Width="120" Margin="0,0,5,5" Height="20"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
-                        <Border Height="20" Margin="5,0,0,0">
-                            <TextBlock Text="Preset" Width="120" VerticalAlignment="Center" />
-                        </Border>
-                        <TextBox x:Name="textbox_preset" Width="120" Margin="0,0,5,5" Height="20"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
-                        <Border Height="20" Margin="5,0,0,0">
-                            <TextBlock Text="Averaging" Width="120" VerticalAlignment="Center" />
-                        </Border>
-                        <ComboBox Height="20" Width="120" SelectedIndex="0">
-                            <ComboBoxItem Content="None"/>
-                            <ComboBoxItem Content="Fast"/>
-                            <ComboBoxItem Content="Slow"/>
-                        </ComboBox>
-                    </StackPanel>
-                </StackPanel>
-            </StackPanel>
-        </Border>
+            <ListBox x:Name="consoleListBox" local:ListBoxBehavior.ScrollOnNewItem="True" Margin="0,0,5,5" ScrollViewer.VerticalScrollBarVisibility="Visible" Width="320">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="220"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="16"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Column="0" Text="{Binding statusMessage}" FontSize="10" />
+                            <TextBlock Grid.Column="1" Text="{Binding timestamp}" FontSize="10" Margin="20,0,0,0" TextAlignment="Right"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </StackPanel>
+        
     </Grid>
 </Window>

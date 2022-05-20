@@ -25,6 +25,9 @@ using Renishaw.Calibration.Sensors;
 using Renishaw.Calibration.WeatherStationService.Service;
 using System.Threading;
 using System.ServiceModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Collections.ObjectModel;
 
 namespace Renishaw_XL80_App
 {
@@ -57,11 +60,16 @@ namespace Renishaw_XL80_App
         StreamReader reader;
         StreamWriter writer;
         bool SendInProgress = false;
-
+        ListBoxWriter lbw;
+        public ObservableCollection<ListBoxStatusItem> consoleStringList = new ObservableCollection<ListBoxStatusItem>();
+        
         public MainWindow()
         {
             InitializeComponent();
             m_SynchronizationContext = SynchronizationContext.Current;
+            lbw = new ListBoxWriter(consoleListBox);
+            consoleListBox.ItemsSource = consoleStringList;
+            Console.SetOut(lbw);
             //ConnectToServer();
             using (xcHost)
             {
@@ -183,23 +191,7 @@ namespace Renishaw_XL80_App
             SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_SYSMENU);
         }
 
-        private void button_LaserConnect_Click(object sender, RoutedEventArgs e)
-        {
-            DeviceInfo info = new DeviceInfo();
-            try
-            {
-                if (Laser.Connect(ref info))
-                {
-                    //m_edlen = new Edlen(Laser.GetVacuumWavelength());
-                    MessageBox.Show("Laser - " + info.SerialNumber);
-                    //WriteLine(textBox9, "Vacuum wavelength = " + m_edlen.VacuumWavelength.ToString("F9"));
-                }
-            }
-            catch
-            {
-                MessageBox.Show("Didn't work :(");
-            }            
-        }
+        
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -208,5 +200,218 @@ namespace Renishaw_XL80_App
                 xlHost.Dispose();
             }
         }
+
+        private void button_LaserConnect_Click(object sender, RoutedEventArgs e)
+        {
+            DeviceInfo info = new DeviceInfo();
+            try
+            {
+                if (Laser.Connect(ref info))
+                {
+                    //m_edlen = new Edlen(Laser.GetVacuumWavelength());
+                    Console.WriteLine("Laser - " + info.SerialNumber + " connected");
+                    //WriteLine(textBox9, "Vacuum wavelength = " + m_edlen.VacuumWavelength.ToString("F9"));
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Didn't work :(");
+            }
+        }
+
+        private void button_LaserDisconnect_Click(object sender, RoutedEventArgs e)
+        {
+            Laser.Disconnect();
+            Console.WriteLine("Laser disconnected");
+        }
+
+        private void button_LaserVersion_Click(object sender, RoutedEventArgs e)
+        {
+            VersionInfoDictionary info = Laser.GetVersionInfo();
+            foreach (string key in info.Keys)
+            {
+                Console.WriteLine(key + ": " + info[key].ToString());
+            }
+        }
+
+        private void button_LaserClearScreen_Click(object sender, RoutedEventArgs e)
+        {
+            consoleStringList.Clear();
+        }
+
+        private void button_LaserReadPreset_Click(object sender, RoutedEventArgs e)
+        {
+            double value = Laser.GetPreset() * 1000D;
+            Console.WriteLine("Preset: " + value.ToString("F9"));
+        }
+
+        private void textbox_preset_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if(ValidateTextNumber(sender))
+            {
+                double value = double.Parse(((TextBox)sender).Text) / 1000D;
+                Laser.SetPreset(value);
+            }
+            
+        }
+
+        private bool ValidateTextNumber(object sender)
+        {
+            double value = 0;
+            if (!double.TryParse(((TextBox)sender).Text, out value))
+            {
+                Console.WriteLine("Must be a number");
+                ((TextBox)sender).Text = "0";
+                return false;
+            }
+            return true;
+        }
     }
+
+    public class ListBoxStatusItem
+    {
+        public string timestamp { get; set; }
+        public string statusMessage { get; set; }
+        public ListBoxStatusItem(string status)
+        {
+            statusMessage = status;
+            timestamp = DateTime.Now.ToString();
+        }
+    }
+
+    public class ListBoxWriter : TextWriter
+    {
+        private ListBox list;
+        private StringBuilder content = new StringBuilder();
+
+        public ListBoxWriter(ListBox list)
+        {
+            this.list = list;
+        }
+
+        public override void Write(char value)
+        {
+            base.Write(value);
+            content.Append(value);
+            if (value == '\n')
+            {
+                ListBoxStatusItem temp = new ListBoxStatusItem(content.ToString());
+                //((ObservableCollection<string>)(list.ItemsSource)).Add(content.ToString());
+                ((ObservableCollection<ListBoxStatusItem>)(list.ItemsSource)).Add(temp);
+                //list.Items.Add(content.ToString());
+                content = new StringBuilder();
+            }
+        }
+
+        public override Encoding Encoding
+        {
+            get { return System.Text.Encoding.UTF8; }
+        }
+    }
+
+    class ListBoxBehavior
+    {
+        static readonly Dictionary<ListBox, Capture> Associations =
+               new Dictionary<ListBox, Capture>();
+
+        public static bool GetScrollOnNewItem(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(ScrollOnNewItemProperty);
+        }
+
+        public static void SetScrollOnNewItem(DependencyObject obj, bool value)
+        {
+            obj.SetValue(ScrollOnNewItemProperty, value);
+        }
+
+        public static readonly DependencyProperty ScrollOnNewItemProperty =
+            DependencyProperty.RegisterAttached(
+                "ScrollOnNewItem",
+                typeof(bool),
+                typeof(ListBoxBehavior),
+                new UIPropertyMetadata(false, OnScrollOnNewItemChanged));
+
+        public static void OnScrollOnNewItemChanged(
+            DependencyObject d,
+            DependencyPropertyChangedEventArgs e)
+        {
+            var listBox = d as ListBox;
+            if (listBox == null) return;
+            bool oldValue = (bool)e.OldValue, newValue = (bool)e.NewValue;
+            if (newValue == oldValue) return;
+            if (newValue)
+            {
+                listBox.Loaded += ListBox_Loaded;
+                listBox.Unloaded += ListBox_Unloaded;
+                var itemsSourcePropertyDescriptor = TypeDescriptor.GetProperties(listBox)["ItemsSource"];
+                itemsSourcePropertyDescriptor.AddValueChanged(listBox, ListBox_ItemsSourceChanged);
+            }
+            else
+            {
+                listBox.Loaded -= ListBox_Loaded;
+                listBox.Unloaded -= ListBox_Unloaded;
+                if (Associations.ContainsKey(listBox))
+                    Associations[listBox].Dispose();
+                var itemsSourcePropertyDescriptor = TypeDescriptor.GetProperties(listBox)["ItemsSource"];
+                itemsSourcePropertyDescriptor.RemoveValueChanged(listBox, ListBox_ItemsSourceChanged);
+            }
+        }
+
+        private static void ListBox_ItemsSourceChanged(object sender, EventArgs e)
+        {
+            var listBox = (ListBox)sender;
+            if (Associations.ContainsKey(listBox))
+                Associations[listBox].Dispose();
+            Associations[listBox] = new Capture(listBox);
+        }
+
+        static void ListBox_Unloaded(object sender, RoutedEventArgs e)
+        {
+            var listBox = (ListBox)sender;
+            if (Associations.ContainsKey(listBox))
+                Associations[listBox].Dispose();
+            listBox.Unloaded -= ListBox_Unloaded;
+        }
+
+        static void ListBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            var listBox = (ListBox)sender;
+            var incc = listBox.Items as INotifyCollectionChanged;
+            if (incc == null) return;
+            listBox.Loaded -= ListBox_Loaded;
+            Associations[listBox] = new Capture(listBox);
+        }
+
+        class Capture : IDisposable
+        {
+            private readonly ListBox listBox;
+            private readonly INotifyCollectionChanged incc;
+
+            public Capture(ListBox listBox)
+            {
+                this.listBox = listBox;
+                incc = listBox.ItemsSource as INotifyCollectionChanged;
+                if (incc != null)
+                {
+                    incc.CollectionChanged += incc_CollectionChanged;
+                }
+            }
+
+            void incc_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+            {
+                if (e.Action == NotifyCollectionChangedAction.Add)
+                {
+                    listBox.ScrollIntoView(e.NewItems[0]);
+                    listBox.SelectedItem = e.NewItems[0];
+                }
+            }
+
+            public void Dispose()
+            {
+                if (incc != null)
+                    incc.CollectionChanged -= incc_CollectionChanged;
+            }
+        }
+    }
+
 }
