@@ -323,7 +323,5 @@ namespace TwinCat_Motion_ADS
         {
             ncWindowGrid.Focus();
         }
-
-        
     }
 }

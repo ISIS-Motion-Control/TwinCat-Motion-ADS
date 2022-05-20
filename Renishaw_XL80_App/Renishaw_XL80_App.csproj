@@ -30,9 +30,11 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -40,6 +42,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -49,6 +52,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>23351D90C350ABFDCC668FC53632A34E8F4576D9</ManifestCertificateThumbprint>
@@ -60,11 +64,40 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DeviceStream">
+      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\DeviceStream.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.DX10SERVERLib">
+      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\Interop.DX10SERVERLib.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="LocalHost">
+      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\LocalHost.dll</HintPath>
+    </Reference>
+    <Reference Include="Renishaw.Calibration">
+      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\Renishaw.Calibration.dll</HintPath>
+    </Reference>
+    <Reference Include="Renishaw.Calibration.ServiceModel">
+      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\Renishaw.Calibration.ServiceModel.dll</HintPath>
+    </Reference>
+    <Reference Include="Renishaw.IO">
+      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\Renishaw.IO.dll</HintPath>
+    </Reference>
+    <Reference Include="RenishawDX10Service">
+      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\RenishawDX10Service.dll</HintPath>
+    </Reference>
+    <Reference Include="RenishawLaserService">
+      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\RenishawLaserService.dll</HintPath>
+    </Reference>
+    <Reference Include="RenishawWeatherStationService">
+      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\RenishawWeatherStationService.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -74,9 +107,18 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="UsbIo">
+      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\UsbIo.dll</HintPath>
+    </Reference>
+    <Reference Include="UsbTmc">
+      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\UsbTmc.dll</HintPath>
+    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="XLLaserSystem">
+      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\XLLaserSystem.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -118,7 +160,6 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="Renishaw_XL80_App_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

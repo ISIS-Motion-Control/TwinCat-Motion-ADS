@@ -21,6 +21,8 @@ namespace TwinCat_Motion_ADS
         private StreamWriter writer;
         Process RenishawClient;
 
+        public string testString = "Hello";
+
         public MD_RenishawXL80()
         {
             DeviceType = DeviceTypes.RenishawXL80;

@@ -99,8 +99,7 @@
     
     
     <Border CornerRadius="10" Background="#FF9FC1C9" Focusable="True">
-        
-    
+           
     <Grid x:Name="mainWindowGrid" Focusable="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
