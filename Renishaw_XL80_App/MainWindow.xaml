@@ -5,13 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Renishaw_XL80_App"
         mc:Ignorable="d"
-        Title="XL80 Configuration" Height="720" Width="1200" WindowStyle="ThreeDBorderWindow" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="XL80 Configurator" Height="720" Width="940" WindowStyle="ThreeDBorderWindow" Loaded="Window_Loaded" Closing="Window_Closing">
     <Grid>
-        <StackPanel Orientation="Horizontal">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="74*"/>
+            <ColumnDefinition Width="867*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Horizontal" Grid.ColumnSpan="2">
             <Border BorderBrush="Black" BorderThickness="1" Margin="10,10,10,10" HorizontalAlignment="Left" Background="AliceBlue">
                 <StackPanel Width="400" Orientation="Vertical" >
                     <StackPanel x:Name="sp_LaserInfo">
-                        <TextBlock Text="XL80 Laser" FontSize="16"/>
+                        <TextBlock Text="XL80 Laser" FontSize="16" Margin="25,0,0,0"/>
                         <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
                             <Border Height="20" Margin="5,0,0,0">
                                 <TextBlock Text="Reading" Width="120" VerticalAlignment="Center" />
@@ -78,7 +82,7 @@
                             <Button x:Name="button_LaserTrigger" Width="120" Height="30" Content="Trigger" Margin="0,0,0,5" Click="button_LaserTrigger_Click"/>
 
                         </StackPanel>
-                        
+
                     </StackPanel>
                     <ListBox x:Name="consoleListBox" local:ListBoxBehavior.ScrollOnNewItem="True" Margin="0,5,0,5" ScrollViewer.VerticalScrollBarVisibility="Visible" Width="360" Height="315">
                         <ListBox.ItemTemplate>
@@ -101,76 +105,84 @@
                 </StackPanel>
             </Border>
             <Border BorderBrush="Black" BorderThickness="1" Margin="10,10,10,10" HorizontalAlignment="Left" Background="AliceBlue">
-                <StackPanel Width="400" Orientation="Vertical" >
+                <StackPanel Width="460" Orientation="Vertical" >
                     <StackPanel x:Name="sp_WeatherInfo">
-                        <TextBlock Text="XC80 Weather Station" FontSize="16"/>
-                        <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
-                            <Border Height="20" Margin="5,0,0,0">
-                                <TextBlock Text="Air Temp" Width="120" VerticalAlignment="Center" />
-                            </Border>
-                            <TextBox x:Name="textbox_xcAirTemp" Width="120" Margin="0,0,5,5" Height="20"/>
+                        <TextBlock Text="XC80 Weather Station" FontSize="16" Margin="25,0,0,0"/>
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                    <Border Height="20" Margin="5,0,0,0">
+                                        <TextBlock Text="Air Temp" Width="80" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBox x:Name="textbox_xcAirTemp" Width="100" Margin="0,0,5,5" Height="20"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                    <Border Height="20" Margin="5,0,0,0">
+                                        <TextBlock Text="Air Pressure" Width="80" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBox x:Name="textbox_xcAirPressure" Width="100" Margin="0,0,5,5" Height="20"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                    <Border Height="20" Margin="5,0,0,0">
+                                        <TextBlock Text="Air Humidity" Width="80" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBox x:Name="textbox_xcAirHumidity" Width="100" Margin="0,0,5,5" Height="20"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                    <Border Height="20" Margin="5,0,0,0">
+                                        <TextBlock Text="Material Temp. 1" Width="120" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBox x:Name="textbox_xcMatTemp1" Width="120" Margin="0,0,5,5" Height="20"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                    <Border Height="20" Margin="5,0,0,0">
+                                        <TextBlock Text="Material Temp. 2" Width="120" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBox x:Name="textbox_xcMatTemp2" Width="120" Margin="0,0,5,5" Height="20"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                    <Border Height="20" Margin="5,0,0,0">
+                                        <TextBlock Text="Material Temp. 3" Width="120" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBox x:Name="textbox_xcMatTemp3" Width="120" Margin="0,0,5,5" Height="20"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                    <Border Height="20" Margin="5,0,0,0">
+                                        <TextBlock Text="Material Temp. Avg." Width="120" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBox x:Name="textbox_xcMatTempAverage" Width="120" Margin="0,0,5,5" Height="20"/>
+                                </StackPanel>
+                            </StackPanel>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
-                            <Border Height="20" Margin="5,0,0,0">
-                                <TextBlock Text="Air Pressure" Width="120" VerticalAlignment="Center" />
-                            </Border>
-                            <TextBox x:Name="textbox_xcAirPressure" Width="120" Margin="0,0,5,5" Height="20"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
-                            <Border Height="20" Margin="5,0,0,0">
-                                <TextBlock Text="Air Humidity" Width="120" VerticalAlignment="Center" />
-                            </Border>
-                            <TextBox x:Name="textbox_xcAirHumidity" Width="120" Margin="0,0,5,5" Height="20"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
-                            <Border Height="20" Margin="5,0,0,0">
-                                <TextBlock Text="Material Temp. 1" Width="120" VerticalAlignment="Center" />
-                            </Border>
-                            <TextBox x:Name="textbox_xcMatTemp1" Width="120" Margin="0,0,5,5" Height="20"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
-                            <Border Height="20" Margin="5,0,0,0">
-                                <TextBlock Text="Material Temp. 2" Width="120" VerticalAlignment="Center" />
-                            </Border>
-                            <TextBox x:Name="textbox_xcMatTemp2" Width="120" Margin="0,0,5,5" Height="20"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
-                            <Border Height="20" Margin="5,0,0,0">
-                                <TextBlock Text="Material Temp. 3" Width="120" VerticalAlignment="Center" />
-                            </Border>
-                            <TextBox x:Name="textbox_xcMatTemp3" Width="120" Margin="0,0,5,5" Height="20"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
-                            <Border Height="20" Margin="5,0,0,0">
-                                <TextBlock Text="Material Temp. Avg." Width="120" VerticalAlignment="Center" />
-                            </Border>
-                            <TextBox x:Name="textbox_xcMatTempAverage" Width="120" Margin="0,0,5,5" Height="20"/>
-                        </StackPanel>
+
+
 
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                        <StackPanel x:Name="SP_WeatherButtons_Col1" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0">
-                            <Button x:Name="button_weatherConnect" Width="120" Height="30" Content="Connect" Margin="0,0,0,5" Click="button_weatherConnect_Click"/>
-                            <Button x:Name="button_weatherClearScreen" Width="120" Height="30" Content="Clear Screen" Margin="0,0,0,5" Click="button_weatherClearScreen_Click"/>
-                            <Button x:Name="button_weatherConnectionStatus" Width="120" Height="30" Content="Connection Status" Margin="0,0,0,5" Click="button_weatherConnectionStatus_Click"/>
-                            <Button x:Name="button_weatherMaterialRead" Width="120" Height="30" Content="Material Read" Margin="0,0,0,5" Click="button_weatherMaterialRead_Click"/>
+                        <StackPanel x:Name="SP_WeatherButtons_Col1" HorizontalAlignment="Left" Margin="5,5,0,0">
+                            <Button x:Name="button_weatherConnect" Width="140" Height="30" Content="Connect" Margin="0,0,0,5" Click="button_weatherConnect_Click"/>
+                            <Button x:Name="button_weatherClearScreen" Width="140" Height="30" Content="Clear Screen" Margin="0,0,0,5" Click="button_weatherClearScreen_Click"/>
+                            <Button x:Name="button_weatherConnectionStatus" Width="140" Height="30" Content="Connection Status" Margin="0,0,0,5" Click="button_weatherConnectionStatus_Click"/>
+                            <Button x:Name="button_weatherMaterialRead" Width="140" Height="30" Content="Material Read" Margin="0,0,0,5" Click="button_weatherMaterialRead_Click"/>
 
                         </StackPanel>
-                        <StackPanel x:Name="SP_WeatherButtons_Col2" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0">
-                            <Button x:Name="button_weatherDisconnect" Width="120" Height="30" Content="Disconnect" Margin="0,0,0,5" Click="button_weatherDisconnect_Click"/>
-                            <Button x:Name="button_weatherDeviceInfo" Width="120" Height="30" Content="Read Device Info" Margin="0,0,0,5" Click="button_weatherDeviceInfo_Click"/>
-                            <Button x:Name="button_weatherBrowse" Width="120" Height="30" Content="Browse" Margin="0,0,0,5" Click="button_weatherBrowse_Click"/>
+                        <StackPanel x:Name="SP_WeatherButtons_Col2" HorizontalAlignment="Left" Margin="5,5,0,0">
+                            <Button x:Name="button_weatherDisconnect" Width="140" Height="30" Content="Disconnect" Margin="0,0,0,5" Click="button_weatherDisconnect_Click"/>
+                            <Button x:Name="button_weatherDeviceInfo" Width="140" Height="30" Content="Read Device Info" Margin="0,0,0,5" Click="button_weatherDeviceInfo_Click"/>
+                            <Button x:Name="button_weatherBrowse" Width="140" Height="30" Content="Browse" Margin="0,0,0,5" Click="button_weatherBrowse_Click"/>
 
                         </StackPanel>
-                        <StackPanel x:Name="SP_WeatherButtons_Col3" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0">
-                            <Button x:Name="button_weatherVersion" Width="120" Height="30" Content="Version" Margin="0,0,0,5" Click="button_weatherVersion_Click"/>
-                            <Button x:Name="button_weatherCalibInfo" Width="120" Height="30" Content="Read Calibration Info" Margin="0,0,0,5" Click="button_weatherCalibInfo_Click"/>
-                            <Button x:Name="button_weatherEnviron" Width="120" Height="30" Content="Environ Read" Margin="0,0,0,5" Click="button_weatherEnviron_Click"/>
+                        <StackPanel x:Name="SP_WeatherButtons_Col3"  HorizontalAlignment="Left" Margin="5,5,0,0">
+                            <Button x:Name="button_weatherVersion" Width="140" Height="30" Content="Version" Margin="0,0,0,5" Click="button_weatherVersion_Click"/>
+                            <Button x:Name="button_weatherCalibInfo" Width="140" Height="30" Content="Read Calibration Info" Margin="0,0,0,5" Click="button_weatherCalibInfo_Click"/>
+                            <Button x:Name="button_weatherEnviron" Width="140" Height="30" Content="Environ Read" Margin="0,0,0,5" Click="button_weatherEnviron_Click"/>
 
                         </StackPanel>
 
                     </StackPanel>
-                    <ListBox x:Name="consoleListBoxWeather" local:ListBoxBehavior.ScrollOnNewItem="True" Margin="0,5,0,5" ScrollViewer.VerticalScrollBarVisibility="Visible" Width="360" Height="255">
+                    <ListBox x:Name="consoleListBoxWeather" local:ListBoxBehavior.ScrollOnNewItem="True" Margin="0,35,0,5" ScrollViewer.VerticalScrollBarVisibility="Visible" Width="420" Height="315">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="0,2">
@@ -191,6 +203,6 @@
                 </StackPanel>
             </Border>
         </StackPanel>
-        
+
     </Grid>
 </Window>

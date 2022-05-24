@@ -104,7 +104,7 @@ namespace Renishaw_XL80_App
             //Set default console to the laser listbox
             Console.SetOut(lbw);
 
-            //ConnectToServer();
+            ConnectToServer();
 
             try
             {
@@ -117,11 +117,11 @@ namespace Renishaw_XL80_App
             }
         }
 
-        private async void SendMessage()
+        private async void SendMessage(string value)
         {
             if (SendInProgress) return;
             SendInProgress = true;
-            await writer.WriteLineAsync(m_laserReadingTextBox.Text);
+            await writer.WriteLineAsync(value);
             await writer.FlushAsync();
             SendInProgress = false;
         }
@@ -137,16 +137,96 @@ namespace Renishaw_XL80_App
         private async void ConstantReadMode()
         {
             string cmd;
+            LaserReading recordLaser = null;// = Laser.GetLatestReading();
+            EnvironmentalRecord recordEnviron = null;;// = WeatherStation.GetEnvironmentalRecord();
+            MaterialTemperatureRecord recordMaterial = null; // = WeatherStation.GetMaterialTemperatureRecord();
             while (true)
             {
                 cmd = await reader.ReadLineAsync();
 
-                if (cmd == "1")
+                switch (cmd)
                 {
-                    SendMessage();
+                    case "1":
+                        recordLaser = Laser.GetLatestReading();
+                        SendMessage((recordLaser.ValueOf*1000D).ToString("F6"));
+                        break;
+
+                    case "2":
+                        SendMessage(recordLaser.Valid.ToString());
+                        break;
+
+                    case "3":
+                        SendMessage(recordLaser.SignalStrength.ToString());
+                        break;
+
+                    case "4":
+                        recordEnviron = WeatherStation.GetEnvironmentalRecord();
+                        SendMessage(recordEnviron.AirTemperature.ValueOf.ToString());
+                        break;
+
+                    case "5":
+                        SendMessage(recordEnviron.AirTemperature.Valid.ToString());
+                        break;
+
+                    case "6":
+                        SendMessage(recordEnviron.AirPressure.ValueOf.ToString());
+                        break;
+
+                    case "7":
+                        SendMessage(recordEnviron.AirPressure.Valid.ToString());
+                        break;
+
+                    case "8":
+                        SendMessage(recordEnviron.AirHumidity.ValueOf.ToString());
+                        break;
+
+                    case "9":
+                        SendMessage(recordEnviron.AirHumidity.Valid.ToString());
+                        break;
+
+                    case "10":
+                        recordMaterial = WeatherStation.GetMaterialTemperatureRecord();
+                        SendMessage(recordMaterial.AverageMaterialTemperature.ValueOf.ToString());
+                        break;
+
+                    case "11":
+                        SendMessage(recordMaterial.AverageMaterialTemperature.Valid.ToString());
+                        break;
+
+                    case "12":
+                        SendMessage(recordMaterial[0].Valid.ToString());
+                        break;
+
+                    case "13":
+                        SendMessage(recordMaterial[0].Valid.ToString());
+                        break;
+
+                    case "14":
+                        SendMessage(recordMaterial[1].Valid.ToString());
+                        break;
+
+                    case "15":
+                        SendMessage(recordMaterial[1].Valid.ToString());
+                        break;
+
+                    case "16":
+                        SendMessage(recordMaterial[2].Valid.ToString());
+                        break;
+
+                    case "17":
+                        SendMessage(recordMaterial[2].Valid.ToString());
+                        break;
+
+
+                    case "Weather":
+                        SendMessage(WeatherConnected.ToString());
+                        break;
+
+                    case "Laser":
+                        SendMessage(Connected.ToString());
+                        break;
                 }
-                if (cmd == "0")
-                    break;
+
             }
 
         }
