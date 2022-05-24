@@ -28,6 +28,7 @@ using System.ServiceModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
+using System.Windows.Threading;
 
 namespace Renishaw_XL80_App
 {
@@ -35,7 +36,7 @@ namespace Renishaw_XL80_App
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     [CallbackBehavior(UseSynchronizationContext = false)]
-    public partial class MainWindow : Window, ILaserSystemCallback
+    public partial class MainWindow : Window, ILaserSystemCallback, IWeatherStationCallback
     {      
         private const int GWL_STYLE = -16;
         private const int WS_SYSMENU = 0x80000;
@@ -49,10 +50,26 @@ namespace Renishaw_XL80_App
         private Edlen m_edlen;
         private MaterialExpansion m_expansion;
 
-        LocalXCHost xcHost = new LocalXCHost();
-        LocalEC10Host ecHost = new LocalEC10Host();
+        LocalXCHost xcHost = null;
+
         LocalXLHost xlHost = null;
-        
+
+        private bool _Connected;
+
+        public bool Connected
+        {
+            get { return _Connected; }
+            private set { _Connected = value; }
+        }
+
+        private bool _WeatherConnected;
+
+        public bool WeatherConnected
+        {
+            get { return _WeatherConnected; }
+            private set { _WeatherConnected = value; }
+        }
+
 
         private SynchronizationContext m_SynchronizationContext;
 
@@ -60,91 +77,45 @@ namespace Renishaw_XL80_App
         StreamReader reader;
         StreamWriter writer;
         bool SendInProgress = false;
+
+        ListBoxWriter lbw_Weather;
+        public ObservableCollection<ListBoxStatusItem> consoleStringList_Weather = new ObservableCollection<ListBoxStatusItem>();
+
+
         ListBoxWriter lbw;
         public ObservableCollection<ListBoxStatusItem> consoleStringList = new ObservableCollection<ListBoxStatusItem>();
+
         
+
         public MainWindow()
         {
             InitializeComponent();
             m_SynchronizationContext = SynchronizationContext.Current;
+            
+            
+            //Console for the laser
             lbw = new ListBoxWriter(consoleListBox);
             consoleListBox.ItemsSource = consoleStringList;
+
+            //Console for the weather settings
+            lbw_Weather = new ListBoxWriter(consoleListBoxWeather);
+            consoleListBoxWeather.ItemsSource = consoleStringList_Weather;
+
+            //Set default console to the laser listbox
             Console.SetOut(lbw);
+
             //ConnectToServer();
-            using (xcHost)
+
+            try
             {
-                xcHost.Open();
-                using (ecHost)
-                {
-                    ecHost.Open();
-                    try
-                    {
-                        xlHost = new LocalXLHost();
-                        xlHost.Open();
-                    }
-                    catch
-                    {
-                        MessageBox.Show("Unable to create XLHost");
-                    }
-                }
+                xlHost = new LocalXLHost();
+                xlHost.Open();
             }
-
-        }
-
-
-
-        #region LASER
-        private LaserSystemClient Laser
-        {
-            get
+            catch
             {
-                if (m_laser == null)
-                {
-                    m_laser = LocalXLHost.CreateLaserProxy(this);
-                    m_expansion = new MaterialExpansion();
-                }
-
-                return m_laser;
+                MessageBox.Show("Unable to create XLHost");
             }
         }
-
-        public void ConnectionStatusChanged(DeviceInfo info, ConnectionStatus value)
-        {
-            //MessageBox.Show("Connection status changed");
-            //TextBox control = info.Model.Contains("XL-80") || info.Model.Contains("ML10") ? textBox9 : textBox1;
-            //WriteLine(control, "ConnectionStatus: " + value.ToString());
-        }
-        public void LatestReadingUpdated(DeviceInfo info, Renishaw.Calibration.Laser.LaserReading value)
-        {
-            //tmpMeasure = value;
-            //MessageBox.Show(value.ValueOf.ToString());
-            UpdateReading(value);
-        }
-        private void UpdateReading(Renishaw.Calibration.Laser.LaserReading reading)
-        {
-            
-            SendOrPostCallback update = delegate (object value)
-            {
-                m_laserReadingTextBox.Text = (1000 * reading.ValueOf).ToString("F6");
-                m_laserReadingTextBox.Background = (reading.Valid) ? Brushes.White : Brushes.Red;
-                //m_laserStatusTextBox.Text = ((int)reading.Status).ToString("X8");
-            };
-
-            m_SynchronizationContext.Post(update, null);
-            
-        }
-        public void ReadingTriggered(DeviceInfo info, Renishaw.Calibration.Laser.LaserReading value)
-        {
-            //WriteLine(textBox9, "Reading triggered: " + (1000D * value.ValueOf).ToString("F6"));
-            //WriteLine(textBox9, "Velocity: " + (1000D * value.Velocity).ToString("F6"));
-            //WriteLine(textBox9, "Acceleration: " + (1000D * value.Acceleration).ToString("F6"));
-        }
-
-        #endregion
-
-        
-
-
 
         private async void SendMessage()
         {
@@ -154,7 +125,6 @@ namespace Renishaw_XL80_App
             await writer.FlushAsync();
             SendInProgress = false;
         }
-
 
         private void ConnectToServer()
         {
@@ -181,17 +151,11 @@ namespace Renishaw_XL80_App
 
         }
 
-        
-        
-        
-        
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var hwnd = new WindowInteropHelper(this).Handle;
             SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_SYSMENU);
         }
-
-        
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -201,6 +165,189 @@ namespace Renishaw_XL80_App
             }
         }
 
+        #region LASER
+        private LaserSystemClient Laser
+        {
+            get
+            {
+                if (m_laser == null)
+                {
+                    m_laser = LocalXLHost.CreateLaserProxy(this);
+                    m_expansion = new MaterialExpansion();
+                }
+
+                return m_laser;
+            }
+        }
+
+        public void ConnectionStatusChanged(DeviceInfo info, ConnectionStatus value)
+        {
+            //MessageBox.Show("Connection status changed");
+            //TextBox control = info.Model.Contains("XL-80") || info.Model.Contains("ML10") ? textBox9 : textBox1;
+            //Console.WriteLine("ConnectionStatus: " + value.ToString());
+        }
+        public void LatestReadingUpdated(DeviceInfo info, Renishaw.Calibration.Laser.LaserReading value)
+        {
+            //tmpMeasure = value;
+            //MessageBox.Show(value.ValueOf.ToString());
+            UpdateReading(value);
+        }
+        private void UpdateReading(Renishaw.Calibration.Laser.LaserReading reading)
+        {
+            
+            SendOrPostCallback update = delegate (object value)
+            {
+                m_laserReadingTextBox.Text = (1000 * reading.ValueOf).ToString("F6");
+                m_laserReadingTextBox.Background = (reading.Valid) ? Brushes.White : Brushes.Red;
+                //m_laserStatusTextBox.Text = ((int)reading.Status).ToString("X8");
+            };
+
+            m_SynchronizationContext.Post(update, null);
+            
+        }
+        public void ReadingTriggered(DeviceInfo info, Renishaw.Calibration.Laser.LaserReading value)
+        {
+            Application.Current.Dispatcher.BeginInvoke(
+            DispatcherPriority.Background,
+            new Action(() => {
+                WriteTriggeredReading(value);
+            }));         
+        }
+
+        #endregion
+
+        #region WEATHER STATION
+        private WeatherStationClient WeatherStation
+        {
+            get
+            {
+                if (m_ws == null)
+                {
+                    xcHost = new LocalXCHost();
+                    xcHost.Open();
+                    m_ws = LocalXCHost.CreateProxy(this);
+                }
+
+                return m_ws;
+            }
+        }
+        #endregion
+
+        #region IWeatherStationCallback Members
+        public void EnvironmentalRecordUpdated(DeviceInfo info, Renishaw.Calibration.Sensors.EnvironmentalRecord value)
+        {
+            Application.Current.Dispatcher.BeginInvoke(
+            DispatcherPriority.Background,
+            new Action(() => {
+                lbw_Weather.WriteLine("Air temperature: " + value.AirTemperature.ToString());
+                lbw_Weather.WriteLine("Air pressure: " + value.AirPressure.ToString());
+                lbw_Weather.WriteLine("Air humidity: " + value.AirHumidity.ToString());
+            }));
+
+            UpdateEnvironment(value);
+        }
+
+        private void UpdateEnvironment(EnvironmentalRecord record)
+        {
+            SendOrPostCallback update = delegate (object value)
+            {
+                UpdateLambda(record);
+
+                textbox_xcAirHumidity.Text = record.AirHumidity.ValueOf.ToString("F2");
+                textbox_xcAirHumidity.Background = (record.AirHumidity.Valid) ? Brushes.White : Brushes.Red;
+                textbox_xcAirPressure.Text = record.AirPressure.ValueOf.ToString("F2");
+                textbox_xcAirPressure.Background = (record.AirPressure.Valid) ? Brushes.White : Brushes.Red;
+                textbox_xcAirTemp.Text = record.AirTemperature.ValueOf.ToString("F2");
+                textbox_xcAirTemp.Background = (record.AirTemperature.Valid) ? Brushes.White : Brushes.Red;
+            };
+
+            m_SynchronizationContext.Post(update, null);
+        }
+
+        private void UpdateLambda(EnvironmentalRecord record)
+        {
+            if (m_laser != null)
+            {
+                if (Laser.GetConnectionStatus() != ConnectionStatus.None)
+                {
+                    double lambda = m_edlen.Calculate(
+                        record.AirTemperature.ValueOf,
+                        record.AirPressure.ValueOf,
+                        record.AirHumidity.ValueOf
+                        );
+
+                    Laser.SetLambda(lambda);
+                    Console.WriteLine("Lambda = " + lambda.ToString("F9"));
+                }
+            }
+        }
+
+        public void MaterialTemperatureRecordUpdated(DeviceInfo info, Renishaw.Calibration.Sensors.MaterialTemperatureRecord value)
+        {
+            Application.Current.Dispatcher.BeginInvoke(
+            DispatcherPriority.Background,
+            new Action(() => {
+                lbw_Weather.WriteLine("Average material temperature: " + value.AverageMaterialTemperature.ToString());
+                lbw_Weather.WriteLine("Material temperature[0]: " + value[0].ToString());
+                lbw_Weather.WriteLine("Material temperature[1]: " + value[1].ToString());
+                lbw_Weather.WriteLine("Material temperature[2]: " + value[2].ToString());
+
+            }));
+            
+            UpdateMaterial(value);
+        }
+
+        private void UpdateMaterial(MaterialTemperatureRecord record)
+        {
+            SendOrPostCallback update = delegate (object value)
+            {
+                UpdateMaterialExpansionFactor(record);
+
+                textbox_xcMatTemp1.Text = record[0].ValueOf.ToString("F2");
+                textbox_xcMatTemp1.Background = (record[0].Valid) ? Brushes.White : Brushes.Red;
+                textbox_xcMatTemp2.Text = record[1].ValueOf.ToString("F2");
+                textbox_xcMatTemp2.Background = (record[1].Valid) ? Brushes.White : Brushes.Red;
+                textbox_xcMatTemp3.Text = record[2].ValueOf.ToString("F2");
+                textbox_xcMatTemp3.Background = (record[2].Valid) ? Brushes.White : Brushes.Red;
+                textbox_xcMatTempAverage.Text = record.AverageMaterialTemperature.ValueOf.ToString("F2");
+                textbox_xcMatTempAverage.Background = (record.AverageMaterialTemperature.Valid) ? Brushes.White : Brushes.Red;
+            };
+
+            m_SynchronizationContext.Post(update, null);
+        }
+
+        private void UpdateMaterialExpansionFactor(MaterialTemperatureRecord record)
+        {
+            //if (m_laser != null)
+            //{
+            //    if (Laser.GetConnectionStatus() != ConnectionStatus.None)
+            //    {
+            //        SensorReading average = record.AverageMaterialTemperature;
+            //        if (average != SensorReading.Null)
+            //        {
+            //            m_expansion.MaterialTemperature = record.AverageMaterialTemperature;
+
+            //            double factor = (m_expansion.Reading.ValueOf);
+            //            Laser.SetMaterialExpansionFactor(factor);
+            //            WriteLine(textBox9, "Material expansion factor = " + (1 - factor).ToString("F9"));
+            //        }
+            //    }
+            //}
+        }
+
+        #endregion
+
+
+
+        public void WriteTriggeredReading(LaserReading value)
+        {
+            Console.WriteLine("Reading triggered: " + (1000D * value.ValueOf).ToString("F6"));
+            Console.WriteLine("Velocity: " + (1000D * value.Velocity).ToString("F6"));
+            Console.WriteLine("Acceleration: " + (1000D * value.Acceleration).ToString("F6"));
+        }
+
+
+        #region LASER BUTTONS AND UI
         private void button_LaserConnect_Click(object sender, RoutedEventArgs e)
         {
             DeviceInfo info = new DeviceInfo();
@@ -208,9 +355,10 @@ namespace Renishaw_XL80_App
             {
                 if (Laser.Connect(ref info))
                 {
-                    //m_edlen = new Edlen(Laser.GetVacuumWavelength());
+                    m_edlen = new Edlen(Laser.GetVacuumWavelength());
                     Console.WriteLine("Laser - " + info.SerialNumber + " connected");
-                    //WriteLine(textBox9, "Vacuum wavelength = " + m_edlen.VacuumWavelength.ToString("F9"));
+                    Console.WriteLine("Vacuum wavelength = " + m_edlen.VacuumWavelength.ToString("F9"));
+                    Connected = true;
                 }
             }
             catch
@@ -223,6 +371,7 @@ namespace Renishaw_XL80_App
         {
             Laser.Disconnect();
             Console.WriteLine("Laser disconnected");
+            Connected = false;
         }
 
         private void button_LaserVersion_Click(object sender, RoutedEventArgs e)
@@ -241,17 +390,125 @@ namespace Renishaw_XL80_App
 
         private void button_LaserReadPreset_Click(object sender, RoutedEventArgs e)
         {
+            if (!Connected) return;
             double value = Laser.GetPreset() * 1000D;
             Console.WriteLine("Preset: " + value.ToString("F9"));
         }
 
+        private void button_LaserDeviceInfo_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Connected) return;
+            DeviceInfo info = Laser.GetDeviceInfo();
+            Console.WriteLine("Manufacturer: " + info.Manufacturer);
+            Console.WriteLine("Model: " + info.Model);
+            Console.WriteLine("Serial number: " + info.SerialNumber);
+            Console.WriteLine("Name: " + info.Name);
+        }
+
+        private void button_downloadPreset_Click(object sender, RoutedEventArgs e)
+        {
+            double value = double.Parse(textbox_preset.Text) / 1000D;
+            Laser.SetPreset(value);
+            Console.WriteLine("Preset updated to: " + textbox_preset.Text);
+        }
+
+        private void button_downloadMatExpCoeff_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Connected) return;
+            m_expansion.Coefficient = double.Parse(textbox_materialCoeff.Text);
+            double factor = (m_expansion.Reading.ValueOf);
+            Laser.SetMaterialExpansionFactor(factor);
+        }
+
+        private void textbox_materialCoeff_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ValidateTextNumber(sender);
+        }
+
+        private void comboBox_laserAveraging_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!Connected)
+            {
+                comboBox_laserAveraging.SelectedIndex = 0;
+                return;
+            }
+            AveragingKind value = (AveragingKind)comboBox_laserAveraging.SelectedIndex;
+            Laser.SetAveragingKind(value);
+        }
+
+        private void button_LaserCalibInfo_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Connected) return;
+            CalibrationInfo info = Laser.GetCalibrationInfo();
+            Console.WriteLine("Organization: " + info.Organization);
+            Console.WriteLine("CertificateNumber: " + info.CertificateNumber);
+            Console.WriteLine("CalibrationDate: " + info.CalibrationDate.ToShortDateString());
+        }
+
+        private void button_LaserConnectionStatus_Click(object sender, RoutedEventArgs e)
+        {
+            ConnectionStatus value = Laser.GetConnectionStatus();
+            Console.WriteLine("ConnectionStatus: " + value.ToString());
+        }
+
+        private void button_LaserMaterialExpCoeff_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Connected) return;
+            double value = m_expansion.Coefficient;
+            Console.WriteLine("Material expansion coefficient: " + value.ToString("F2"));
+        }
+
+        private void button_LaserGetSingleReading_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Connected)
+            {
+                Console.WriteLine("No laser connected");
+                return;
+            }
+
+            LaserReading reading = Laser.GetLatestReading();
+            double value = reading.ValueOf * 1000D;
+            Console.WriteLine(value.ToString("F6"));
+            Console.WriteLine("Valid: " + reading.Valid.ToString());
+            Console.WriteLine("Velocity: " + (1000D * reading.Velocity).ToString("F6"));
+            Console.WriteLine("Acceleration: " + (1000D * reading.Acceleration).ToString("F6"));
+            Console.WriteLine("Status: " + reading.Status.ToString());
+            Console.WriteLine("Signal strength: " + reading.SignalStrength.ToString());
+        }
+
+        private void button_LaserSetDatum_Click(object sender, RoutedEventArgs e)
+        {
+            Laser.Datum();
+        }
+
+        private void button_LaserToggleDirection_Click(object sender, RoutedEventArgs e)
+        {
+            Laser.ToggleDirectionSense();
+        }
+
+        private void button_LaserReset_Click(object sender, RoutedEventArgs e)
+        {
+            Laser.ResetDatalink();
+        }
+
+        private void button_LaserAveraging_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Connected) return;
+            AveragingKind value = Laser.GetAveragingKind();
+            Console.WriteLine("Averaging kind: " + value.ToString());
+        }
+
+        private void button_LaserTrigger_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Connected) return;
+            Laser.Trigger();
+        }
+        #endregion
+
         private void textbox_preset_LostFocus(object sender, RoutedEventArgs e)
         {
-            if(ValidateTextNumber(sender))
-            {
-                double value = double.Parse(((TextBox)sender).Text) / 1000D;
-                Laser.SetPreset(value);
-            }
+            ValidateTextNumber(sender);
+            
             
         }
 
@@ -265,6 +522,91 @@ namespace Renishaw_XL80_App
                 return false;
             }
             return true;
+        }
+
+        private void button_weatherConnect_Click(object sender, RoutedEventArgs e)
+        {
+            DeviceInfo info = new DeviceInfo();
+            if (WeatherStation.Connect(ref info))
+            {
+                lbw_Weather.WriteLine("Connected");
+                WeatherConnected = true;
+            }
+        }
+
+        private void button_weatherDisconnect_Click(object sender, RoutedEventArgs e)
+        {
+            WeatherStation.Disconnect();
+            lbw_Weather.WriteLine("Disconnected");
+
+            WeatherConnected = false;
+        }
+
+        private void button_weatherVersion_Click(object sender, RoutedEventArgs e)
+        {
+            if(!WeatherConnected) return;
+            VersionInfoDictionary info = WeatherStation.GetVersionInfo();
+            foreach (string key in info.Keys)
+            {
+                lbw_Weather.WriteLine(key + ": " + info[key].ToString());
+            }
+        }
+
+        private void button_weatherClearScreen_Click(object sender, RoutedEventArgs e)
+        {
+            consoleStringList_Weather.Clear();
+        }
+
+        private void button_weatherDeviceInfo_Click(object sender, RoutedEventArgs e)
+        {
+            if(!WeatherConnected) return ;
+            DeviceInfo info = WeatherStation.GetDeviceInfo();
+            lbw_Weather.WriteLine("Manufacturer: " + info.Manufacturer);
+            lbw_Weather.WriteLine("Model: " + info.Model);
+            lbw_Weather.WriteLine("Serial number: " + info.SerialNumber);
+            lbw_Weather.WriteLine("Name: " + info.Name);
+        }
+
+        private void button_weatherCalibInfo_Click(object sender, RoutedEventArgs e)
+        {
+            if (!WeatherConnected) return;
+
+            CalibrationInfo info = WeatherStation.GetCalibrationInfo();
+            lbw_Weather.WriteLine("Organization: " + info.Organization);
+            lbw_Weather.WriteLine("CertificateNumber: " + info.CertificateNumber);
+            lbw_Weather.WriteLine("CalibrationDate: " + info.CalibrationDate.ToShortDateString());
+        }
+
+        private void button_weatherConnectionStatus_Click(object sender, RoutedEventArgs e)
+        {
+            ConnectionStatus value = WeatherStation.GetConnectionStatus();
+            lbw_Weather.WriteLine("ConnectionStatus: " + value.ToString());
+        }
+
+        private void button_weatherBrowse_Click(object sender, RoutedEventArgs e)
+        {
+            IEnumerable<DeviceInfo> devices = WeatherStation.BrowseAttachedDevices();
+            foreach (DeviceInfo device in devices)
+            {
+                lbw_Weather.WriteLine(device.Model + ":" + device.SerialNumber);
+            }
+        }
+
+        private void button_weatherEnviron_Click(object sender, RoutedEventArgs e)
+        {
+            EnvironmentalRecord record = WeatherStation.GetEnvironmentalRecord();
+            lbw_Weather.WriteLine("Air temperature: " + record.AirTemperature.ToString());
+            lbw_Weather.WriteLine("Air pressure: " + record.AirPressure.ToString());
+            lbw_Weather.WriteLine("Air humidity: " + record.AirHumidity.ToString());
+        }
+
+        private void button_weatherMaterialRead_Click(object sender, RoutedEventArgs e)
+        {
+            MaterialTemperatureRecord record = WeatherStation.GetMaterialTemperatureRecord();
+            lbw_Weather.WriteLine("Average material temperature: " + record.AverageMaterialTemperature.ToString());
+            lbw_Weather.WriteLine("Material temperature[0]: " + record[0].ToString());
+            lbw_Weather.WriteLine("Material temperature[1]: " + record[1].ToString());
+            lbw_Weather.WriteLine("Material temperature[2]: " + record[2].ToString());
         }
     }
 
