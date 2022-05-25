@@ -44,15 +44,15 @@ namespace TwinCat_Motion_ADS
         public void SetupBinds()
         {
             //Binds all the UI elemets to properties in the NC Axis
-            XamlUI.TextBlockBinding(axisPositionRB, testAxis, "AxisPosition");
-            XamlUI.CheckBoxBinding((string)enabledCheck.Content, enabledCheck, testAxis, "AxisEnabled", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding((string)fwEnabledCheck.Content, fwEnabledCheck, testAxis, "AxisFwEnabled", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding((string)bwEnabledCheck.Content, bwEnabledCheck, testAxis, "AxisBwEnabled", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding((string)errorCheck.Content, errorCheck, testAxis, "Error", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding((string)validAxis.Content, validAxis, testAxis, "Valid", BindingMode.OneWay);
-            XamlUI.TextBlockBinding(currentAxis, testAxis, "AxisID","D");
-            XamlUI.CheckBoxBinding((string)testCancelledCheck.Content, testCancelledCheck, testAxis, "CancelTest", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding((string)testPausedCheck.Content, testPausedCheck, testAxis, "PauseTest", BindingMode.OneWay);
+            XamlUI.TextBlockBinding(positionReadback.SettingValue, testAxis, "AxisPosition");
+            XamlUI.CheckBoxBinding(((TextBlock)enabledCheck.Content).Text, enabledCheck, testAxis, "AxisEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding(((TextBlock)fwEnabledCheck.Content).Text, fwEnabledCheck, testAxis, "AxisFwEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding(((TextBlock)bwEnabledCheck.Content).Text, bwEnabledCheck, testAxis, "AxisBwEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding(((TextBlock)errorCheck.Content).Text, errorCheck, testAxis, "Error", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding(((TextBlock)validAxis.Content).Text, validAxis, testAxis, "Valid", BindingMode.OneWay);
+            XamlUI.TextBlockBinding(currentAxisReadback.SettingValue, testAxis, "AxisID","D");
+            XamlUI.CheckBoxBinding(((TextBlock)testCancelledCheck.Content).Text, testCancelledCheck, testAxis, "CancelTest", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding(((TextBlock)testPausedCheck.Content).Text, testPausedCheck, testAxis, "PauseTest", BindingMode.OneWay);
             
             
 
@@ -132,29 +132,29 @@ namespace TwinCat_Motion_ADS
             }
             else if(sender as Button == moveAbsButton)
             {
-                double posCommanded = Convert.ToDouble(positionText.Text);
-                await testAxis.MoveAbsoluteAndWait(posCommanded, Convert.ToDouble(velocityTB.Text), Convert.ToInt32(SettingTimeout.SettingValue));
+                double posCommanded = Convert.ToDouble(windowSetPoint.SettingValue.Text);
+                await testAxis.MoveAbsoluteAndWait(posCommanded, Convert.ToDouble(windowVelocity.SettingValue.Text), Convert.ToInt32(SettingTimeout.SettingValue.Text));
             }
             //Move relative
             else if(sender as Button == moveRelButton)
             {
-                double posCommanded = Convert.ToDouble(positionText.Text);
-                await testAxis.MoveRelativeAndWait(posCommanded, Convert.ToDouble(velocityTB.Text));
+                double posCommanded = Convert.ToDouble(windowSetPoint.SettingValue.Text);
+                await testAxis.MoveRelativeAndWait(posCommanded, Convert.ToDouble(windowVelocity.SettingValue.Text));
             }
             //Move velocity
             else if(sender as Button == moveVelButton)
             {
-                await testAxis.MoveVelocity(Convert.ToDouble(velocityTB.Text));
+                await testAxis.MoveVelocity(Convert.ToDouble(windowVelocity.SettingValue.Text));
             }
             //Move to forward limit
             else if(sender as Button == move2High)
             {
-                await testAxis.MoveToHighLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(SettingTimeout.SettingValue));
+                await testAxis.MoveToHighLimit(Convert.ToDouble(windowVelocity.SettingValue.Text), Convert.ToInt32(SettingTimeout.SettingValue.Text));
             }
             //Move to backward limit
             else if(sender as Button == move2Low)
             {
-                await testAxis.MoveToLowLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(SettingTimeout.SettingValue));
+                await testAxis.MoveToLowLimit(Convert.ToDouble(windowVelocity.SettingValue.Text), Convert.ToInt32(SettingTimeout.SettingValue.Text));
             }
             //Stop axis
             else if(sender as Button == stopMove)
@@ -164,13 +164,13 @@ namespace TwinCat_Motion_ADS
             //Forward limit reversal
             else if(sender as Button == highLimReversal)
             {
-                await testAxis.HighLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(SettingTimeout.SettingValue), Convert.ToInt32(SettingReversalExtraSeconds.SettingValue), Convert.ToInt32(SettingReversalSettlingSeconds.SettingValue));
+                await testAxis.HighLimitReversal(Convert.ToDouble(windowVelocity.SettingValue.Text), Convert.ToInt32(SettingTimeout.SettingValue.Text), Convert.ToInt32(SettingReversalExtraSeconds.SettingValue.Text), Convert.ToInt32(SettingReversalSettlingSeconds.SettingValue.Text));
                 Console.WriteLine(testAxis.AxisPosition);
             }
             //Backward limit reversal
             else if(sender as Button == lowLimReversal)
             {
-                await testAxis.LowLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(SettingTimeout.SettingValue), Convert.ToInt32(SettingReversalExtraSeconds.SettingValue), Convert.ToInt32(SettingReversalSettlingSeconds.SettingValue));
+                await testAxis.LowLimitReversal(Convert.ToDouble(windowVelocity.SettingValue.Text), Convert.ToInt32(SettingTimeout.SettingValue.Text), Convert.ToInt32(SettingReversalExtraSeconds.SettingValue.Text), Convert.ToInt32(SettingReversalSettlingSeconds.SettingValue.Text));
                 Console.WriteLine(testAxis.AxisPosition);
             }
         }
