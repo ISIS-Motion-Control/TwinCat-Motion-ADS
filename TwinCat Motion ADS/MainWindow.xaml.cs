@@ -190,7 +190,7 @@ namespace TwinCat_Motion_ADS
             MenuItem newMenuItem = new();
 
             //This binding seems to be bugged, works fine but does not update. - I think due to the style used
-            int testInt = MeasurementDevices.NumberOfDevices - 1;
+            //int testInt = MeasurementDevices.NumberOfDevices - 1;
 
 
             newMenuItem.Click += new RoutedEventHandler(DeviceMenu_Click);
@@ -205,8 +205,12 @@ namespace TwinCat_Motion_ADS
                 measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
                 newMeasureWindow.Show();
             }
-
-
+        }
+        public void RemoveMeasurementMenuItem(int index)
+        {
+            measurementMenuItems.RemoveAt(index); //interal list doesn't contain default items
+            index += 4; //need to account for the 4 default items in the menu (Add, import, export, seperator)
+            MeasureDevicesMenu.Items.RemoveAt(index);            
         }
 
         private void ImportDevices_Click(object sender, RoutedEventArgs e)
