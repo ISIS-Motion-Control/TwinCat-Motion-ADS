@@ -227,6 +227,7 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(40);   //delay to system to allow PLC to react to move command
                 Task<bool> errorTask = CheckForError(ct.Token);
                 Task<bool> doneTask = WaitForDone(ct.Token);
+                Task<bool> cancellationTask = CancelTestTask(ct.Token);
                 Task<bool> limitTask;
                 List<Task> waitingTask;
 
@@ -243,11 +244,11 @@ namespace TwinCat_Motion_ADS
                 if (timeout > 0)
                 {
                     Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token);
-                    waitingTask = new List<Task> { doneTask, errorTask,limitTask, timeoutTask };
+                    waitingTask = new List<Task> { doneTask, errorTask,limitTask, timeoutTask, cancellationTask };
                 }
                 else
                 {
-                    waitingTask = new List<Task> { doneTask, errorTask,limitTask };
+                    waitingTask = new List<Task> { doneTask, errorTask,limitTask, cancellationTask };
                 }
                 
                 if(await Task.WhenAny(waitingTask)==doneTask)
@@ -266,6 +267,14 @@ namespace TwinCat_Motion_ADS
                 {
                     Console.WriteLine("Limit hit before position reached");
                     ct.Cancel();
+                    return false;
+                }
+                else if(await Task.WhenAny(waitingTask) == cancellationTask)
+                {
+                    await Task.Delay(20);
+                    
+                    ct.Cancel();
+                    await MoveStop();
                     return false;
                 }
                 else
@@ -335,6 +344,7 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(40);
                 Task<bool> doneTask = WaitForDone(ct.Token);
                 Task<bool> errorTask = CheckForError(ct.Token);
+                Task<bool> cancellationTask = CancelTestTask(ct.Token);
                 Task<bool> limitTask;
                 List<Task> waitingTask;
                 
@@ -351,11 +361,11 @@ namespace TwinCat_Motion_ADS
                 if (timeout > 0)
                 {
                     Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token);
-                    waitingTask = new List<Task> { doneTask, errorTask, limitTask, timeoutTask };
+                    waitingTask = new List<Task> { doneTask, errorTask, limitTask, timeoutTask, cancellationTask };
                 }
                 else
                 {
-                    waitingTask = new List<Task> { doneTask, errorTask, limitTask };
+                    waitingTask = new List<Task> { doneTask, errorTask, limitTask, cancellationTask };
                 }
 
                 if (await Task.WhenAny(waitingTask) == doneTask)
@@ -374,6 +384,14 @@ namespace TwinCat_Motion_ADS
                 {
                     Console.WriteLine("Limit hit before position reached");
                     ct.Cancel();
+                    return false;
+                }
+                else if (await Task.WhenAny(waitingTask) == cancellationTask)
+                {
+                    await Task.Delay(20);
+                    
+                    ct.Cancel();
+                    await MoveStop();
                     return false;
                 }
                 else
@@ -417,15 +435,17 @@ namespace TwinCat_Motion_ADS
             //Start a task to check the FwEnabled bool that only returns when flag is hit (fwEnabled == false)
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckFwLimitTask(true,ct.Token);
+            Task<bool> CancelationTask = CancelTestTask(ct.Token);
+            Task<bool> errorTask = CheckForError(ct.Token);
             List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if(timeout==0)
             {
-                waitingTask = new List<Task> { limitTask };
+                waitingTask = new List<Task> { limitTask, CancelationTask, errorTask};
             }
             else
             {
-                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token)};
+                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token), CancelationTask, errorTask};
             }
 
             if(await Task.WhenAny(waitingTask)==limitTask)
@@ -434,9 +454,24 @@ namespace TwinCat_Motion_ADS
                 ct.Cancel();
                 return true;
             }
-            else //Timeout on command
+            else if (await Task.WhenAny(waitingTask) == errorTask)
+            {
+                Console.WriteLine("Error on move to high limit");
+                ct.Cancel();
+                return false;
+            }
+            else if (await Task.WhenAny(waitingTask) == CancelationTask)
             {
                 await Task.Delay(20);
+                ct.Cancel();
+                
+                await MoveStop();
+                return false;
+            }
+            else//Timeout on command
+            {
+                await Task.Delay(20);
+                ct.Cancel();
                 Console.WriteLine("Timeout on move to high limit");
                 await MoveStop();
                 return false;
@@ -471,15 +506,17 @@ namespace TwinCat_Motion_ADS
             //Start a task to check the BwEnabled bool that only returns when flag is hit (BwEnabled == false)
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckBwLimitTask(true, ct.Token);
+            Task<bool> cancellationTask = CancelTestTask(ct.Token);
+            Task<bool> errorTask = CheckForError(ct.Token);
             List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task.
             if (timeout == 0)
             {
-                waitingTask = new List<Task> { limitTask };
+                waitingTask = new List<Task> { limitTask, cancellationTask, errorTask };
             }
             else
             {
-                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token) };
+                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token), cancellationTask, errorTask };
             }
 
             if (await Task.WhenAny(waitingTask) == limitTask)
@@ -488,9 +525,24 @@ namespace TwinCat_Motion_ADS
                 ct.Cancel();
                 return true;
             }
+            else if (await Task.WhenAny(waitingTask) == errorTask)
+            {
+                Console.WriteLine("Error on move to low limit");
+                ct.Cancel();
+                return false;
+            }
+            else if(await Task.WhenAny(waitingTask) == cancellationTask)
+            {
+                await Task.Delay(20);
+                ct.Cancel();
+                
+                await MoveStop();
+                return false;
+            }
             else //Timeout on command
             {
                 await Task.Delay(20);
+                ct.Cancel();
                 Console.WriteLine("Timeout on move to lower limit");
                 await MoveStop();
                 return false;
@@ -526,15 +578,17 @@ namespace TwinCat_Motion_ADS
             //Start a task to monitor when the FwEnable signal is regained
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckFwLimitTask(false, ct.Token);
+            Task<bool> errorTask = CheckForError(ct.Token);
+            Task<bool> cancellationTask = CancelTestTask(ct.Token);
             List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if (timeout == 0)
             {
-                waitingTask = new List<Task> { limitTask };
+                waitingTask = new List<Task> { limitTask, errorTask, cancellationTask };
             }
             else
             {
-                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token) };
+                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token), errorTask, cancellationTask };
             }
             //Monitor the checkFwEnableTask and a timeout task
             if (await Task.WhenAny(waitingTask) == limitTask)
@@ -542,6 +596,20 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(TimeSpan.FromSeconds(extraReversalTime));
                 await MoveStop();
                 ct.Cancel();
+            }
+            else if (await Task.WhenAny(waitingTask) == errorTask)
+            {
+                Console.WriteLine("Error on high limit reversal");
+                ct.Cancel();
+                return false;
+            }
+            else if (await Task.WhenAny(waitingTask) == cancellationTask)
+            {
+                await Task.Delay(20);
+                
+                ct.Cancel();
+                await MoveStop();
+                return false;
             }
             else
             {
@@ -560,14 +628,16 @@ namespace TwinCat_Motion_ADS
             waitingTask.Clear();
             CancellationTokenSource ct2 = new();
             limitTask = CheckFwLimitTask(true, ct2.Token);
+            errorTask = CheckForError(ct2.Token);
+            cancellationTask = CancelTestTask(ct2.Token);
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if (timeout == 0)
             {
-                waitingTask = new List<Task> { limitTask };
+                waitingTask = new List<Task> { limitTask, errorTask, cancellationTask };
             }
             else
             {
-                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct2.Token) };
+                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct2.Token), errorTask, cancellationTask };
             }
             //Monitor the checkFwEnableTask and a timeout task
             if (await Task.WhenAny(waitingTask) == limitTask)
@@ -575,6 +645,20 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(TimeSpan.FromSeconds(settleTime));
                 ct2.Cancel();
                 return true;
+            }
+            else if (await Task.WhenAny(waitingTask) == errorTask)
+            {
+                Console.WriteLine("Error on high limit reversal");
+                ct.Cancel();
+                return false;
+            }
+            else if (await Task.WhenAny(waitingTask) == cancellationTask)
+            {
+                await Task.Delay(20);
+                
+                ct.Cancel();
+                await MoveStop();
+                return false;
             }
             else
             {
@@ -614,15 +698,17 @@ namespace TwinCat_Motion_ADS
             //Start a task to monitor when the FwEnable signal is regained
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckBwLimitTask(false, ct.Token);
+            Task<bool> errorTask = CheckForError(ct.Token);
+            Task<bool> cancellationTask = CancelTestTask(ct.Token);
             List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if (timeout == 0)
             {
-                waitingTask = new List<Task> { limitTask };
+                waitingTask = new List<Task> { limitTask, errorTask, cancellationTask };
             }
             else
             {
-                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token) };
+                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token), errorTask, cancellationTask };
             }
             //Monitor the checkBwEnableTask and a timeout task
             if (await Task.WhenAny(waitingTask) == limitTask)
@@ -630,6 +716,19 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(TimeSpan.FromSeconds(extraReversalTime));
                 await MoveStop();
                 ct.Cancel();
+            }
+            else if (await Task.WhenAny(waitingTask) == errorTask)
+            {
+                Console.WriteLine("Error on low limit reversal");
+                ct.Cancel();
+                return false;
+            }
+            else if (await Task.WhenAny(waitingTask) == cancellationTask)
+            {
+                await Task.Delay(20);               
+                ct.Cancel();
+                await MoveStop();
+                return false;
             }
             else
             {
@@ -648,14 +747,16 @@ namespace TwinCat_Motion_ADS
             waitingTask.Clear();
             CancellationTokenSource ct2 = new();
             limitTask = CheckBwLimitTask(true, ct2.Token);
+            errorTask = CheckForError(ct2.Token);
+            cancellationTask = CancelTestTask(ct2.Token);
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if (timeout == 0)
             {
-                waitingTask = new List<Task> { limitTask };
+                waitingTask = new List<Task> { limitTask, errorTask, cancellationTask };
             }
             else
             {
-                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct2.Token) };
+                waitingTask = new List<Task> { limitTask, Task.Delay(TimeSpan.FromSeconds(timeout), ct2.Token), errorTask, cancellationTask };
             }
             //Monitor the checkFwEnableTask and a timeout task
             if (await Task.WhenAny(waitingTask) == limitTask)
@@ -663,6 +764,20 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(TimeSpan.FromSeconds(settleTime));
                 ct2.Cancel();
                 return true;
+            }
+            else if (await Task.WhenAny(waitingTask) == errorTask)
+            {
+                Console.WriteLine("Error on high limit reversal");
+                ct.Cancel();
+                return false;
+            }
+            else if (await Task.WhenAny(waitingTask) == cancellationTask)
+            {
+                await Task.Delay(20);
+                
+                ct.Cancel();
+                await MoveStop();
+                return false;
             }
             else
             {

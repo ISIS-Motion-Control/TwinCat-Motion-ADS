@@ -100,6 +100,5 @@ namespace TwinCat_Motion_ADS
             cb.VerticalAlignment = VerticalAlignment.Center;
             cb.Width = 150;
         }
-
     }
 }

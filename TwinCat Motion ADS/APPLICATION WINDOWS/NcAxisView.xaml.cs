@@ -45,14 +45,14 @@ namespace TwinCat_Motion_ADS
         {
             //Binds all the UI elemets to properties in the NC Axis
             XamlUI.TextBlockBinding(positionReadback.SettingValue, testAxis, "AxisPosition");
-            XamlUI.CheckBoxBinding(((TextBlock)enabledCheck.Content).Text, enabledCheck, testAxis, "AxisEnabled", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding(((TextBlock)fwEnabledCheck.Content).Text, fwEnabledCheck, testAxis, "AxisFwEnabled", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding(((TextBlock)bwEnabledCheck.Content).Text, bwEnabledCheck, testAxis, "AxisBwEnabled", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding(((TextBlock)errorCheck.Content).Text, errorCheck, testAxis, "Error", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding(((TextBlock)validAxis.Content).Text, validAxis, testAxis, "Valid", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)enabledCheck.Content, enabledCheck, testAxis, "AxisEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)fwEnabledCheck.Content, fwEnabledCheck, testAxis, "AxisFwEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)bwEnabledCheck.Content, bwEnabledCheck, testAxis, "AxisBwEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)errorCheck.Content, errorCheck, testAxis, "Error", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)validAxis.Content, validAxis, testAxis, "Valid", BindingMode.OneWay);
             XamlUI.TextBlockBinding(currentAxisReadback.SettingValue, testAxis, "AxisID","D");
-            XamlUI.CheckBoxBinding(((TextBlock)testCancelledCheck.Content).Text, testCancelledCheck, testAxis, "CancelTest", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding(((TextBlock)testPausedCheck.Content).Text, testPausedCheck, testAxis, "PauseTest", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)testCancelledCheck.Content, testCancelledCheck, testAxis, "CancelTest", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)testPausedCheck.Content, testPausedCheck, testAxis, "PauseTest", BindingMode.OneWay);
             
             
 
