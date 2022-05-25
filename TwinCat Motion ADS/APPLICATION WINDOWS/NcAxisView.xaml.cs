@@ -44,32 +44,46 @@ namespace TwinCat_Motion_ADS
         public void SetupBinds()
         {
             //Binds all the UI elemets to properties in the NC Axis
-            XamlUI.TextBlockBinding(axisPositionRB, testAxis, "AxisPosition");
-            XamlUI.CheckBoxBinding((string)enabledCheck.Content, enabledCheck, testAxis, "AxisEnabled", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding((string)fwEnabledCheck.Content, fwEnabledCheck, testAxis, "AxisFwEnabled", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding((string)bwEnabledCheck.Content, bwEnabledCheck, testAxis, "AxisBwEnabled", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding((string)errorCheck.Content, errorCheck, testAxis, "Error", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding((string)validAxis.Content, validAxis, testAxis, "Valid", BindingMode.OneWay);
-            XamlUI.TextBlockBinding(currentAxis, testAxis, "AxisID","D");
-            XamlUI.CheckBoxBinding((string)testCancelledCheck.Content, testCancelledCheck, testAxis, "CancelTest", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding((string)testPausedCheck.Content, testPausedCheck, testAxis, "PauseTest", BindingMode.OneWay);
-            XamlUI.TextboxBinding(timeoutTB, NcTestSettings.Timeout, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextBlockBinding(positionReadback.SettingValue, testAxis, "AxisPosition");
+            XamlUI.CheckBoxBinding(((TextBlock)enabledCheck.Content).Text, enabledCheck, testAxis, "AxisEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding(((TextBlock)fwEnabledCheck.Content).Text, fwEnabledCheck, testAxis, "AxisFwEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding(((TextBlock)bwEnabledCheck.Content).Text, bwEnabledCheck, testAxis, "AxisBwEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding(((TextBlock)errorCheck.Content).Text, errorCheck, testAxis, "Error", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding(((TextBlock)validAxis.Content).Text, validAxis, testAxis, "Valid", BindingMode.OneWay);
+            XamlUI.TextBlockBinding(currentAxisReadback.SettingValue, testAxis, "AxisID","D");
+            XamlUI.CheckBoxBinding(((TextBlock)testCancelledCheck.Content).Text, testCancelledCheck, testAxis, "CancelTest", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding(((TextBlock)testPausedCheck.Content).Text, testPausedCheck, testAxis, "PauseTest", BindingMode.OneWay);
+            
+            
 
-            XamlUI.TextboxBinding(testTitleTB, NcTestSettings.TestTitle, "UiVal", UpdateSourceTrigger.LostFocus);
-
-            XamlUI.TextboxBinding(velocityTB, NcTestSettings.Velocity, "UiVal", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(cycleTB, NcTestSettings.Cycles, "UiVal", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(cycleDelayTB, NcTestSettings.CycleDelaySeconds, "UiVal", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(revVelTB, NcTestSettings.ReversalVelocity, "UiVal", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(revExtraTB, NcTestSettings.ReversalExtraTimeSeconds, "UiVal", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(revSettleTB, NcTestSettings.ReversalSettleTimeSeconds, "UiVal", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(initSetpointTB, NcTestSettings.InitialSetpoint, "UiVal", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(NumberOfStepsTB, NcTestSettings.NumberOfSteps, "UiVal", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(stepSizeTB, NcTestSettings.StepSize, "UiVal", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(settleTimeTB, NcTestSettings.SettleTimeSeconds, "UiVal", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(revDistanceTB, NcTestSettings.ReversalDistance, "UiVal", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(overshootDistanceTB, NcTestSettings.OvershootDistance, "UiVal", UpdateSourceTrigger.LostFocus);
-            XamlUI.TextboxBinding(endSetpointTB, NcTestSettings.EndSetpoint, "UiVal", UpdateSourceTrigger.LostFocus);
+            //XamlUI.TextboxBinding(testTitleTB, NcTestSettings.TestTitle, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(SettingTitle.SettingValue, NcTestSettings.TestTitle, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(SettingTimeout.SettingValue, NcTestSettings.Timeout, "UiVal", UpdateSourceTrigger.LostFocus);                      
+            XamlUI.TextboxBinding(SettingVelocity.SettingValue, NcTestSettings.Velocity, "UiVal", UpdateSourceTrigger.LostFocus);
+            
+            XamlUI.TextboxBinding(SettingCycles.SettingValue, NcTestSettings.Cycles, "UiVal", UpdateSourceTrigger.LostFocus);
+            
+            XamlUI.TextboxBinding(SettingCycleDelay.SettingValue, NcTestSettings.CycleDelaySeconds, "UiVal", UpdateSourceTrigger.LostFocus);
+            
+            XamlUI.TextboxBinding(SettingReversalVelocity.SettingValue, NcTestSettings.ReversalVelocity, "UiVal", UpdateSourceTrigger.LostFocus);
+            
+            XamlUI.TextboxBinding(SettingReversalExtraSeconds.SettingValue, NcTestSettings.ReversalExtraTimeSeconds, "UiVal", UpdateSourceTrigger.LostFocus);
+            
+            XamlUI.TextboxBinding(SettingReversalSettlingSeconds.SettingValue, NcTestSettings.ReversalSettleTimeSeconds, "UiVal", UpdateSourceTrigger.LostFocus);
+            
+            XamlUI.TextboxBinding(SettingInitialSetpoint.SettingValue, NcTestSettings.InitialSetpoint, "UiVal", UpdateSourceTrigger.LostFocus);
+            
+            XamlUI.TextboxBinding(SettingAccuracySteps.SettingValue, NcTestSettings.NumberOfSteps, "UiVal", UpdateSourceTrigger.LostFocus);
+            
+            XamlUI.TextboxBinding(SettingStepSize.SettingValue, NcTestSettings.StepSize, "UiVal", UpdateSourceTrigger.LostFocus);
+            
+            XamlUI.TextboxBinding(SettingSettlingTime.SettingValue, NcTestSettings.SettleTimeSeconds, "UiVal", UpdateSourceTrigger.LostFocus);
+            
+            XamlUI.TextboxBinding(SettingReversalDistance.SettingValue, NcTestSettings.ReversalDistance, "UiVal", UpdateSourceTrigger.LostFocus);
+            
+            XamlUI.TextboxBinding(SettingOvershootDistance.SettingValue, NcTestSettings.OvershootDistance, "UiVal", UpdateSourceTrigger.LostFocus);
+            
+            XamlUI.TextboxBinding(SettingEndSetpoint.SettingValue, NcTestSettings.EndSetpoint, "UiVal", UpdateSourceTrigger.LostFocus);
 
             XamlUI.ProgressBarBinding(testProgressBar, testAxis, "TestProgress");
             if(testAxis!=null)
@@ -118,29 +132,29 @@ namespace TwinCat_Motion_ADS
             }
             else if(sender as Button == moveAbsButton)
             {
-                double posCommanded = Convert.ToDouble(positionText.Text);
-                await testAxis.MoveAbsoluteAndWait(posCommanded, Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
+                double posCommanded = Convert.ToDouble(windowSetPoint.SettingValue.Text);
+                await testAxis.MoveAbsoluteAndWait(posCommanded, Convert.ToDouble(windowVelocity.SettingValue.Text), Convert.ToInt32(SettingTimeout.SettingValue.Text));
             }
             //Move relative
             else if(sender as Button == moveRelButton)
             {
-                double posCommanded = Convert.ToDouble(positionText.Text);
-                await testAxis.MoveRelativeAndWait(posCommanded, Convert.ToDouble(velocityTB.Text));
+                double posCommanded = Convert.ToDouble(windowSetPoint.SettingValue.Text);
+                await testAxis.MoveRelativeAndWait(posCommanded, Convert.ToDouble(windowVelocity.SettingValue.Text));
             }
             //Move velocity
             else if(sender as Button == moveVelButton)
             {
-                await testAxis.MoveVelocity(Convert.ToDouble(velocityTB.Text));
+                await testAxis.MoveVelocity(Convert.ToDouble(windowVelocity.SettingValue.Text));
             }
             //Move to forward limit
             else if(sender as Button == move2High)
             {
-                await testAxis.MoveToHighLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
+                await testAxis.MoveToHighLimit(Convert.ToDouble(windowVelocity.SettingValue.Text), Convert.ToInt32(SettingTimeout.SettingValue.Text));
             }
             //Move to backward limit
             else if(sender as Button == move2Low)
             {
-                await testAxis.MoveToLowLimit(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text));
+                await testAxis.MoveToLowLimit(Convert.ToDouble(windowVelocity.SettingValue.Text), Convert.ToInt32(SettingTimeout.SettingValue.Text));
             }
             //Stop axis
             else if(sender as Button == stopMove)
@@ -150,13 +164,13 @@ namespace TwinCat_Motion_ADS
             //Forward limit reversal
             else if(sender as Button == highLimReversal)
             {
-                await testAxis.HighLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtraTB.Text), Convert.ToInt32(revSettleTB.Text));
+                await testAxis.HighLimitReversal(Convert.ToDouble(windowVelocity.SettingValue.Text), Convert.ToInt32(SettingTimeout.SettingValue.Text), Convert.ToInt32(SettingReversalExtraSeconds.SettingValue.Text), Convert.ToInt32(SettingReversalSettlingSeconds.SettingValue.Text));
                 Console.WriteLine(testAxis.AxisPosition);
             }
             //Backward limit reversal
             else if(sender as Button == lowLimReversal)
             {
-                await testAxis.LowLimitReversal(Convert.ToDouble(velocityTB.Text), Convert.ToInt32(timeoutTB.Text), Convert.ToInt32(revExtraTB.Text), Convert.ToInt32(revSettleTB.Text));
+                await testAxis.LowLimitReversal(Convert.ToDouble(windowVelocity.SettingValue.Text), Convert.ToInt32(SettingTimeout.SettingValue.Text), Convert.ToInt32(SettingReversalExtraSeconds.SettingValue.Text), Convert.ToInt32(SettingReversalSettlingSeconds.SettingValue.Text));
                 Console.WriteLine(testAxis.AxisPosition);
             }
         }
@@ -323,7 +337,5 @@ namespace TwinCat_Motion_ADS
         {
             ncWindowGrid.Focus();
         }
-
-        
     }
 }

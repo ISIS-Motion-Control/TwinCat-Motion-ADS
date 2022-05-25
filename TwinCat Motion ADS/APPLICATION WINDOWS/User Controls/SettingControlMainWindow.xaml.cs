@@ -7,14 +7,17 @@ namespace TwinCat_Motion_ADS
     /// <summary>
     /// Interaction logic for SettingControl.xaml
     /// </summary>
-    public partial class SettingControl : UserControl
+    public partial class SettingControlMainWindow : UserControl
     {
-        public SettingControl()
+        public SettingControlMainWindow()
         {
             InitializeComponent();
             this.DataContext = this;
         }
         public new string SetValue { get; set; }
         public string SetName { get; set; }
+        public int BoxWidth { get; set; } = 200;
+        public string strTests { get; set; }
+        public int TextWidth { get; set; } = 260;
     }
 }

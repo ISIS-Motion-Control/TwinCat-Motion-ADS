@@ -1,29 +1,16 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Input;
-using System.Windows.Media;
 using TwinCAT.Ads;
 using Ookii.Dialogs.Wpf;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Collections.Specialized;
 
 namespace TwinCat_Motion_ADS
 {
-   
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public PLC Plc;
@@ -35,6 +22,7 @@ namespace TwinCat_Motion_ADS
 
         public MeasurementDevices MeasurementDevices = new();
         public List<MenuItem> measurementMenuItems = new();
+
 
         private string _amsNetID;
         public string AmsNetID
@@ -55,7 +43,7 @@ namespace TwinCat_Motion_ADS
         public MainWindow()
         {
             InitializeComponent();
-            
+
             lbw = new(consoleListBox);
             consoleListBox.ItemsSource = consoleStringList;
             Console.SetOut(lbw);
@@ -64,8 +52,7 @@ namespace TwinCat_Motion_ADS
             SetupBinds();
             if (!string.IsNullOrEmpty(amsNetIdTb.Text))
             {
-                Plc = new PLC(amsNetIdTb.Text, 852); //5.65.74.200.1.1
-                                                     //Plc = new PLC("5.65.74.200.1.1", 852);
+                Plc = new PLC(amsNetIdTb.Text, 852); 
                 Plc.setupPLC();
                 if (Plc.AdsState == AdsState.Invalid)
                 {
@@ -88,6 +75,54 @@ namespace TwinCat_Motion_ADS
             tabbedWindow.Content = NcAxisView;
            
         }
+        #region ScaleValue Depdency Property
+        public static readonly DependencyProperty ScaleValueProperty = DependencyProperty.Register("ScaleValue", typeof(double), typeof(MainWindow), new UIPropertyMetadata(1.0, new PropertyChangedCallback(OnScaleValueChanged), new CoerceValueCallback(OnCoerceScaleValue)));
+
+        private static object OnCoerceScaleValue(DependencyObject o, object value)
+        {
+            MainWindow mainWindow = o as MainWindow;
+            if (mainWindow != null)
+                return mainWindow.OnCoerceScaleValue((double)value);
+            else return value;
+        }
+
+        private static void OnScaleValueChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            MainWindow mainWindow = o as MainWindow;
+            if (mainWindow != null)
+                mainWindow.OnScaleValueChanged((double)e.OldValue, (double)e.NewValue);
+        }
+
+        protected virtual double OnCoerceScaleValue(double value)
+        {
+            if (double.IsNaN(value))
+                return 1.0f;
+
+            value = Math.Max(0.1, value);
+            return value;
+        }
+
+        protected virtual void OnScaleValueChanged(double oldValue, double newValue) { }
+
+        public double ScaleValue
+        {
+            get => (double)GetValue(ScaleValueProperty);
+            set => SetValue(ScaleValueProperty, value);
+        }
+        #endregion
+
+        private void MainGrid_SizeChanged(object sender, EventArgs e) => CalculateScale();
+
+        private void CalculateScale()
+        {
+            double yScale = ActualHeight / 1000f;
+            double xScale = ActualWidth / 1920f;
+            double value = Math.Min(xScale, yScale);
+
+            ScaleValue = (double)OnCoerceScaleValue(myMainWindow, value);
+        }
+
+
 
         private void SetupBinds()
         {
@@ -130,14 +165,15 @@ namespace TwinCat_Motion_ADS
             UpdateMeasurementDeviceMenu();
         }
 
+
         private void DeviceMenu_Click(object sender, RoutedEventArgs e)
         {
             MenuItem mI = sender as MenuItem;
             int i = 0;
             int deviceIndex = 0;
-            foreach(var device in measurementMenuItems)
+            foreach (var device in measurementMenuItems)
             {
-                if(mI == device)
+                if (mI == device)
                 {
                     deviceIndex = i;
                 }
@@ -154,7 +190,7 @@ namespace TwinCat_Motion_ADS
             MenuItem newMenuItem = new();
 
             //This binding seems to be bugged, works fine but does not update. - I think due to the style used
-            int testInt = MeasurementDevices.NumberOfDevices - 1;
+            //int testInt = MeasurementDevices.NumberOfDevices - 1;
 
 
             newMenuItem.Click += new RoutedEventHandler(DeviceMenu_Click);
@@ -164,13 +200,17 @@ namespace TwinCat_Motion_ADS
 
             int deviceIndex = MeasurementDevices.NumberOfDevices - 1;
 
-            if(!suppress)
+            if (!suppress)
             {
                 measurementDeviceWindow newMeasureWindow = new(deviceIndex, MeasurementDevices.MeasurementDeviceList[deviceIndex]);
                 newMeasureWindow.Show();
             }
-            
-
+        }
+        public void RemoveMeasurementMenuItem(int index)
+        {
+            measurementMenuItems.RemoveAt(index); //interal list doesn't contain default items
+            index += 4; //need to account for the 4 default items in the menu (Add, import, export, seperator)
+            MeasureDevicesMenu.Items.RemoveAt(index);            
         }
 
         private void ImportDevices_Click(object sender, RoutedEventArgs e)
@@ -196,12 +236,13 @@ namespace TwinCat_Motion_ADS
         {
             MeasureDevicesMenu.Items.Refresh();
             int counter = 0;
-            foreach(MenuItem mi in measurementMenuItems)
+            foreach (MenuItem mi in measurementMenuItems)
             {
                 mi.Header = MeasurementDevices.MeasurementDeviceList[counter].Name;
                 counter++;
             }
         }
+
 
         private void ExportDevices_Click(object sender, RoutedEventArgs e)
         {
@@ -257,153 +298,25 @@ namespace TwinCat_Motion_ADS
             if (TestSuiteWindow != null)
             {
                 TestSuiteWindow.Close();
-            }           
-        }
-    }
-
-    public class ListBoxStatusItem
-    {
-        public string timestamp { get; set; }
-        public string statusMessage { get; set; }
-        public ListBoxStatusItem(string status)
-        {
-            statusMessage = status;
-            timestamp = DateTime.Now.ToString();
-        }
-    }
-
-    public class ListBoxWriter : TextWriter
-    {
-        private ListBox list;
-        private StringBuilder content = new StringBuilder();
-
-        public ListBoxWriter(ListBox list)
-        {
-            this.list = list;
-        }
-
-        public override void Write(char value)
-        {
-            base.Write(value);
-            content.Append(value);
-            if (value == '\n')
-            {
-                ListBoxStatusItem temp = new(content.ToString());
-                //((ObservableCollection<string>)(list.ItemsSource)).Add(content.ToString());
-                ((ObservableCollection<ListBoxStatusItem>)(list.ItemsSource)).Add(temp);
-                //list.Items.Add(content.ToString());
-                content = new StringBuilder();
             }
-        }
-
-        public override Encoding Encoding
-        {
-            get { return System.Text.Encoding.UTF8; }
-        }
-    }
-
-    class ListBoxBehavior
-    {
-        static readonly Dictionary<ListBox, Capture> Associations =
-               new Dictionary<ListBox, Capture>();
-
-        public static bool GetScrollOnNewItem(DependencyObject obj)
-        {
-            return (bool)obj.GetValue(ScrollOnNewItemProperty);
-        }
-
-        public static void SetScrollOnNewItem(DependencyObject obj, bool value)
-        {
-            obj.SetValue(ScrollOnNewItemProperty, value);
-        }
-
-        public static readonly DependencyProperty ScrollOnNewItemProperty =
-            DependencyProperty.RegisterAttached(
-                "ScrollOnNewItem",
-                typeof(bool),
-                typeof(ListBoxBehavior),
-                new UIPropertyMetadata(false, OnScrollOnNewItemChanged));
-
-        public static void OnScrollOnNewItemChanged(
-            DependencyObject d,
-            DependencyPropertyChangedEventArgs e)
-        {
-            var listBox = d as ListBox;
-            if (listBox == null) return;
-            bool oldValue = (bool)e.OldValue, newValue = (bool)e.NewValue;
-            if (newValue == oldValue) return;
-            if (newValue)
+            //Disconnect and close any open measurement device windows
+            foreach (var Window in App.Current.Windows)
             {
-                listBox.Loaded += ListBox_Loaded;
-                listBox.Unloaded += ListBox_Unloaded;
-                var itemsSourcePropertyDescriptor = TypeDescriptor.GetProperties(listBox)["ItemsSource"];
-                itemsSourcePropertyDescriptor.AddValueChanged(listBox, ListBox_ItemsSourceChanged);
-            }
-            else
-            {
-                listBox.Loaded -= ListBox_Loaded;
-                listBox.Unloaded -= ListBox_Unloaded;
-                if (Associations.ContainsKey(listBox))
-                    Associations[listBox].Dispose();
-                var itemsSourcePropertyDescriptor = TypeDescriptor.GetProperties(listBox)["ItemsSource"];
-                itemsSourcePropertyDescriptor.RemoveValueChanged(listBox, ListBox_ItemsSourceChanged);
-            }
-        }
-
-        private static void ListBox_ItemsSourceChanged(object sender, EventArgs e)
-        {
-            var listBox = (ListBox)sender;
-            if (Associations.ContainsKey(listBox))
-                Associations[listBox].Dispose();
-            Associations[listBox] = new Capture(listBox);
-        }
-
-        static void ListBox_Unloaded(object sender, RoutedEventArgs e)
-        {
-            var listBox = (ListBox)sender;
-            if (Associations.ContainsKey(listBox))
-                Associations[listBox].Dispose();
-            listBox.Unloaded -= ListBox_Unloaded;
-        }
-
-        static void ListBox_Loaded(object sender, RoutedEventArgs e)
-        {
-            var listBox = (ListBox)sender;
-            var incc = listBox.Items as INotifyCollectionChanged;
-            if (incc == null) return;
-            listBox.Loaded -= ListBox_Loaded;
-            Associations[listBox] = new Capture(listBox);
-        }
-
-        class Capture : IDisposable
-        {
-            private readonly ListBox listBox;
-            private readonly INotifyCollectionChanged incc;
-
-            public Capture(ListBox listBox)
-            {
-                this.listBox = listBox;
-                incc = listBox.ItemsSource as INotifyCollectionChanged;
-                if (incc != null)
+                if (Window is measurementDeviceWindow)
                 {
-                    incc.CollectionChanged += incc_CollectionChanged;
+                    ((measurementDeviceWindow)Window).MDevice.Disconnect();
+                    ((measurementDeviceWindow)Window).Close();
                 }
             }
-
-            void incc_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+            //Disconnect from any remaining connected devices (allows proper disposing)
+            foreach (var md in this.MeasurementDevices.MeasurementDeviceList)
             {
-                if (e.Action == NotifyCollectionChangedAction.Add)
+                if(md.Connected)
                 {
-                    listBox.ScrollIntoView(e.NewItems[0]);
-                    listBox.SelectedItem = e.NewItems[0];
+                    md.Disconnect();
                 }
             }
-
-            public void Dispose()
-            {
-                if (incc != null)
-                    incc.CollectionChanged -= incc_CollectionChanged;
-            }
+            
         }
     }
 }
