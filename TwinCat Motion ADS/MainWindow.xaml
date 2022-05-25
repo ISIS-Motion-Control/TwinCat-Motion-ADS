@@ -8,8 +8,7 @@
         Title="IBEX Lite" WindowState="Maximized" Icon="ImageAssets/ibexHead.jpg" WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
         Width="1920"
-        Height="1000"
-        
+        Height="1000"      
         Background="Transparent" Closing="Window_Closing">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="btv" />
@@ -96,22 +95,20 @@
         </Style>
 
     </Window.Resources>
-    
-    
+
     <Border CornerRadius="10" Background="#FF9FC1C9" Focusable="True">
-           
-    <Grid x:Name="mainWindowGrid" Focusable="True">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="1100*"/>
-            <ColumnDefinition Width="820*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
+        <Grid x:Name="mainWindowGrid" Focusable="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="1100*"/>
+                <ColumnDefinition Width="820*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
                 <RowDefinition Height="30"/>
                 <RowDefinition Height="30"/>
-            <RowDefinition Height="50"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
             <Border Background="#005A9E" Grid.Row="0" Grid.ColumnSpan="3"/>
             <Menu IsMainMenu="True" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" 
                   HorizontalAlignment="Left" Height="30" Background="{x:Null}">
@@ -122,7 +119,7 @@
                     <Separator/>
                 </MenuItem>
                 <MenuItem x:Name="TestSuiteMenu" Header="Test Suite" Height="30" Width="195" Template="{StaticResource VsOnline}" Click="TestSuiteMenu_Click" >
-                    
+
                 </MenuItem>
             </Menu>
             <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
@@ -137,11 +134,11 @@
                              FontSize="24"
                              Height="30"
                              Style="{StaticResource MenuButtonTheme}" Click="RadioButton_Click"/>
-                
+
 
             </StackPanel>
-        
-        <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
+
+            <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
                 <StackPanel Orientation="Horizontal">
                     <TextBox x:Name="amsNetIdTb"  
                              Height="20"
@@ -159,9 +156,9 @@
                 </StackPanel>
             </StackPanel>
 
-        <StackPanel x:Name="StackPanel___MainWindow" Orientation="Vertical" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" Grid.RowSpan="2" Focusable="True">
+            <StackPanel x:Name="StackPanel___MainWindow" Orientation="Vertical" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" Grid.RowSpan="2" Focusable="True">
                 <ContentControl x:Name="tabbedWindow" d:IsHidden="True"/>
-        </StackPanel>
+            </StackPanel>
             <ListBox x:Name="consoleListBox" Grid.Column="2" Grid.Row="2" Grid.RowSpan="2" local:ListBoxBehavior.ScrollOnNewItem="True" Margin="0,0,5,5" ScrollViewer.VerticalScrollBarVisibility="Visible">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
