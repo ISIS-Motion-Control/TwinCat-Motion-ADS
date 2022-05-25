@@ -7,12 +7,11 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace TwinCat_Motion_ADS
 {
-    //abstract defines this as an inheritance only class
     public abstract class TestAdmin : INotifyPropertyChanged
     {
         //PLC object to which the test axis belongs
@@ -36,11 +35,8 @@ namespace TwinCat_Motion_ADS
 
         //Directory for saving test csv
         public string TestDirectory { get; set; } = string.Empty;
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+        
+        
         //Request test pause
         private bool _pauseTest = false;
         public bool PauseTest
@@ -72,11 +68,34 @@ namespace TwinCat_Motion_ADS
             }
             return true;
         }
+
+        public async Task<bool> CancelTestTask(CancellationToken ct)
+        {
+            return await Task.Run(() =>
+            {
+                while (true)
+                {
+                    if (IsTestCancelled())
+                    {
+                        return true;
+                    }
+                    if (ct.IsCancellationRequested)
+                    {
+                        return false;
+                    }
+                }
+            });           
+        }
+
         public bool IsTestCancelled()
         {
             if(CancelTest)
             {
-                Console.WriteLine("Test cancelled");
+                Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background,
+                    new Action(() => {Console.WriteLine("Test cancelled");}));
+                TestProgress = 0;
+                EstimatedTimeRemaining.TimeRemaining = "";
+                EstimatedTimeRemaining.EstimatedEndTime = DateTime.Now;
                 PauseTest = false;
                 CancelTest = false;
                 return true;
@@ -106,14 +125,18 @@ namespace TwinCat_Motion_ADS
                 Valid = false;
                 return false;
             }
-            //check some motion parameters???
 
             Valid = true;
             return true;
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
 
-        #region CSV STUFf
+        #region CSV STUFF FOR AIR TESTS
 
 
         public void StartCSVAIR(string fp, MeasurementDevices md)

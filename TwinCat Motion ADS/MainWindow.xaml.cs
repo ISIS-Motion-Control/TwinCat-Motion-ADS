@@ -315,8 +315,12 @@ namespace TwinCat_Motion_ADS
                 {
                     md.Disconnect();
                 }
-            }
-            
+            }          
+        }
+
+        private void clearScreenButton_Click(object sender, RoutedEventArgs e)
+        {
+            consoleStringList.Clear();
         }
     }
 }
