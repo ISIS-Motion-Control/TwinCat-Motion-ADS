@@ -24,7 +24,5 @@
             </ComboBox>
         </StackPanel>
         <StackPanel x:Name="deviceSettings"/>
-
-
     </StackPanel>
 </Window>
