@@ -22,7 +22,11 @@ namespace TwinCat_Motion_ADS
         public string ID
         {
             get { return _id; }
-            set { _id = value; }
+            set 
+            {
+                if (checkConnection()) return;
+                _id = value; 
+            }
         }
         private int _port;
 

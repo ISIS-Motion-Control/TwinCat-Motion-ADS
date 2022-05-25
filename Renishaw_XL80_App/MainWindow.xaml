@@ -1,0 +1,202 @@
+﻿<Window x:Class="Renishaw_XL80_App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Renishaw_XL80_App"
+        mc:Ignorable="d"
+        Title="XL80 Configurator" Height="720" Width="910" WindowStyle="ThreeDBorderWindow" Loaded="Window_Loaded" Closing="Window_Closing">
+
+    <StackPanel Orientation="Horizontal">
+        <Border BorderBrush="Black" BorderThickness="1" Margin="10,10,10,10" HorizontalAlignment="Left" Background="AliceBlue">
+            <StackPanel Width="400" Orientation="Vertical" >
+                <StackPanel x:Name="sp_LaserInfo">
+                    <TextBlock Text="XL80 Laser" FontSize="16" Margin="25,0,0,0"/>
+                    <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                        <Border Height="20" Margin="5,0,0,0">
+                            <TextBlock Text="Reading" Width="120" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBox x:Name="m_laserReadingTextBox" Width="120" Margin="0,0,5,5" Height="20"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                        <Border Height="20" Margin="5,0,0,0">
+                            <TextBlock Text="Material Exp.Coeff." Width="120" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBox x:Name="textbox_materialCoeff" Width="90" Margin="0,0,5,5" Height="20" LostFocus="textbox_materialCoeff_LostFocus" Text="0.00"/>
+                        <Button x:Name="button_downloadMatExpCoeff" Width="20" Height="20" Margin="0,0,5,5" Click="button_downloadMatExpCoeff_Click">
+                            <StackPanel>
+                                <Image  Source="downloadArrow.png"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                        <Border Height="20" Margin="5,0,0,0">
+                            <TextBlock Text="Preset" Width="120" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBox x:Name="textbox_preset" Width="90" Margin="0,0,5,5" Height="20" LostFocus="textbox_preset_LostFocus" Text="0.00"/>
+                        <Button x:Name="button_downloadPreset" Width="20" Height="20" Margin="0,0,5,5" Click="button_downloadPreset_Click">
+                            <StackPanel>
+                                <Image  Source="downloadArrow.png"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                        <Border Height="20" Margin="5,0,0,0">
+                            <TextBlock Text="Averaging" Width="120" VerticalAlignment="Center" />
+                        </Border>
+                        <ComboBox x:Name="comboBox_laserAveraging" Height="20" Width="120" SelectedIndex="0" SelectionChanged="comboBox_laserAveraging_SelectionChanged">
+                            <ComboBoxItem Content="None"/>
+                            <ComboBoxItem Content="Fast"/>
+                            <ComboBoxItem Content="Slow"/>
+                        </ComboBox>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <StackPanel x:Name="SP_LaserButtons_Col1" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0">
+                        <Button x:Name="button_LaserConnect" Width="120" Height="30" Content="Connect" Margin="0,0,0,5" Click="button_LaserConnect_Click"/>
+                        <Button x:Name="button_LaserToggleDirection" Width="120" Height="30" Content="Toggle Direction" Margin="0,0,0,5" Click="button_LaserToggleDirection_Click"/>
+
+
+                        <Button x:Name="button_LaserClearScreen" Width="120" Height="30" Content="Clear Screen" Margin="0,0,0,5" Click="button_LaserClearScreen_Click"/>
+                        <Button x:Name="button_LaserCalibInfo" Width="120" Height="30" Content="Read Calibration Info" Margin="0,0,0,5" Click="button_LaserCalibInfo_Click"/>
+                        <Button x:Name="button_LaserReset" Width="120" Height="30" Content="Reset Laser" Margin="0,0,0,5" Click="button_LaserReset_Click"/>
+
+                    </StackPanel>
+                    <StackPanel x:Name="SP_LaserButtons_Col2" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0">
+                        <Button x:Name="button_LaserDisconnect" Width="120" Height="30" Content="Disconnect" Margin="0,0,0,5" Click="button_LaserDisconnect_Click"/>
+                        <Button x:Name="button_LaserSetDatum" Width="120" Height="30" Content="Set Datum" Margin="0,0,0,5" Click="button_LaserSetDatum_Click"/>
+                        <Button x:Name="button_LaserReadPreset" Width="120" Height="30" Content="Read Preset" Margin="0,0,0,5" Click="button_LaserReadPreset_Click"/>
+                        <Button x:Name="button_LaserConnectionStatus" Width="120" Height="30" Content="Connection Status" Margin="0,0,0,5" Click="button_LaserConnectionStatus_Click"/>
+                        <Button x:Name="button_LaserAveraging" Width="120" Height="30" Content="Read Averaging" Margin="0,0,0,5" Click="button_LaserAveraging_Click"/>
+
+                    </StackPanel>
+                    <StackPanel x:Name="SP_LaserButtons_Col3" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0">
+                        <Button x:Name="button_LaserVersion" Width="120" Height="30" Content="Version" Margin="0,0,0,5" Click="button_LaserVersion_Click"/>
+                        <Button x:Name="button_LaserGetSingleReading" Width="120" Height="30" Content="Get Reading" Margin="0,0,0,5" Click="button_LaserGetSingleReading_Click"/>
+                        <Button x:Name="button_LaserDeviceInfo" Width="120" Height="30" Content="Read Device Info" Margin="0,0,0,5" Click="button_LaserDeviceInfo_Click"/>
+                        <Button x:Name="button_LaserMaterialExpCoeff" Width="120" Height="30" Content="Read Mat. Exp. Coeff" Margin="0,0,0,5" Click="button_LaserMaterialExpCoeff_Click"/>
+                        <Button x:Name="button_LaserTrigger" Width="120" Height="30" Content="Trigger" Margin="0,0,0,5" Click="button_LaserTrigger_Click"/>
+
+                    </StackPanel>
+
+                </StackPanel>
+                <ListBox x:Name="consoleListBox" local:ListBoxBehavior.ScrollOnNewItem="True" Margin="0,5,0,5" ScrollViewer.VerticalScrollBarVisibility="Visible" Width="360" Height="315">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="220"/>
+                                    <ColumnDefinition Width="100"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="16"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding statusMessage}" FontSize="10" />
+                                <TextBlock Grid.Column="1" Text="{Binding timestamp}" FontSize="10" Margin="20,0,0,0" TextAlignment="Right"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+            </StackPanel>
+        </Border>
+        <Border BorderBrush="Black" BorderThickness="1" Margin="10,10,10,10" HorizontalAlignment="Left" Background="AliceBlue">
+            <StackPanel Width="460" Orientation="Vertical">
+                <StackPanel x:Name="sp_WeatherInfo">
+                    <TextBlock Text="XC80 Weather Station" FontSize="16" Margin="25,0,0,0"/>
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="Air Temp" Width="80" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xcAirTemp" Width="100" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="Air Pressure" Width="80" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xcAirPressure" Width="100" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="Air Humidity" Width="80" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xcAirHumidity" Width="100" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="Material Temp. 1" Width="120" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xcMatTemp1" Width="120" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="Material Temp. 2" Width="120" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xcMatTemp2" Width="120" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="Material Temp. 3" Width="120" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xcMatTemp3" Width="120" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="Material Temp. Avg." Width="120" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xcMatTempAverage" Width="120" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+
+
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <StackPanel x:Name="SP_WeatherButtons_Col1" HorizontalAlignment="Left" Margin="5,5,0,0">
+                        <Button x:Name="button_weatherConnect" Width="140" Height="30" Content="Connect" Margin="0,0,0,5" Click="button_weatherConnect_Click"/>
+                        <Button x:Name="button_weatherClearScreen" Width="140" Height="30" Content="Clear Screen" Margin="0,0,0,5" Click="button_weatherClearScreen_Click"/>
+                        <Button x:Name="button_weatherConnectionStatus" Width="140" Height="30" Content="Connection Status" Margin="0,0,0,5" Click="button_weatherConnectionStatus_Click"/>
+                        <Button x:Name="button_weatherMaterialRead" Width="140" Height="30" Content="Material Read" Margin="0,0,0,5" Click="button_weatherMaterialRead_Click"/>
+
+                    </StackPanel>
+                    <StackPanel x:Name="SP_WeatherButtons_Col2" HorizontalAlignment="Left" Margin="5,5,0,0">
+                        <Button x:Name="button_weatherDisconnect" Width="140" Height="30" Content="Disconnect" Margin="0,0,0,5" Click="button_weatherDisconnect_Click"/>
+                        <Button x:Name="button_weatherDeviceInfo" Width="140" Height="30" Content="Read Device Info" Margin="0,0,0,5" Click="button_weatherDeviceInfo_Click"/>
+                        <Button x:Name="button_weatherBrowse" Width="140" Height="30" Content="Browse" Margin="0,0,0,5" Click="button_weatherBrowse_Click"/>
+
+                    </StackPanel>
+                    <StackPanel x:Name="SP_WeatherButtons_Col3"  HorizontalAlignment="Left" Margin="5,5,0,0">
+                        <Button x:Name="button_weatherVersion" Width="140" Height="30" Content="Version" Margin="0,0,0,5" Click="button_weatherVersion_Click"/>
+                        <Button x:Name="button_weatherCalibInfo" Width="140" Height="30" Content="Read Calibration Info" Margin="0,0,0,5" Click="button_weatherCalibInfo_Click"/>
+                        <Button x:Name="button_weatherEnviron" Width="140" Height="30" Content="Environ Read" Margin="0,0,0,5" Click="button_weatherEnviron_Click"/>
+
+                    </StackPanel>
+
+                </StackPanel>
+                <ListBox x:Name="consoleListBoxWeather" local:ListBoxBehavior.ScrollOnNewItem="True" Margin="0,35,0,5" ScrollViewer.VerticalScrollBarVisibility="Visible" Width="420" Height="315">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="220"/>
+                                    <ColumnDefinition Width="100"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="16"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding statusMessage}" FontSize="10" />
+                                <TextBlock Grid.Column="1" Text="{Binding timestamp}" FontSize="10" Margin="20,0,0,0" TextAlignment="Right"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</Window>

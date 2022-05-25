@@ -488,6 +488,7 @@ namespace TwinCat_Motion_ADS
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
         
+        
     }
 
     public enum TestTypes 
