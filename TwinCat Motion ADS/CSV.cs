@@ -51,5 +51,4 @@ namespace TwinCat_Motion_ADS
             ElapsedTime = elapsedTime;
         }
     }
-
 }

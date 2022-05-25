@@ -1290,7 +1290,6 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-
         private async Task<bool> UniDirectionalSingleCycle(NcTestSettings ts, uint currentCycle, double TargetPosition, MeasurementDevices md, string csvFile, uint additionalSteps = 0, bool reverseStepCount = false)
         {
             string approachUp;
@@ -1545,17 +1544,7 @@ namespace TwinCat_Motion_ADS
 
         private void SaveSettingsFile(NcTestSettings testSettings, string filePath, string testType)
         {
-            XmlDocument doc = new();
-            XmlNode rootNode = doc.CreateElement("Settings");
-            doc.AppendChild(rootNode);
-
-            TestListItem tli = new("1");
-            tli.AxisID = AxisID.ToString();
-            tli.TestSettings = testSettings;
-            
-            TestSuite.AddFields(doc,tli, rootNode);
-            rootNode.SelectSingleNode("testType").InnerText = testType; //Need to manually go in and change what test type was run
-            doc.Save(filePath);
+            testSettings.ExportSettingsXml(filePath, "1", testType);
         }
         #endregion
     }
