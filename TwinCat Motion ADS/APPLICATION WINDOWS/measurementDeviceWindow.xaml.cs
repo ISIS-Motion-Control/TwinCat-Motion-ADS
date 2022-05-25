@@ -14,7 +14,7 @@ namespace TwinCat_Motion_ADS
     public partial class measurementDeviceWindow : Window
     {
         int DeviceIndex;     
-        I_MeasurementDevice MDevice;
+        public I_MeasurementDevice MDevice;
         public ObservableCollection<DeviceTypes> DeviceTypeList = new(Enum.GetValues(typeof(DeviceTypes)).Cast<DeviceTypes>());
 
         public measurementDeviceWindow(int deviceIndex, I_MeasurementDevice mDevice)

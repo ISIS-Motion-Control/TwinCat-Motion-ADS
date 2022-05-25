@@ -32,9 +32,6 @@ using System.Windows.Threading;
 
 namespace Renishaw_XL80_App
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     [CallbackBehavior(UseSynchronizationContext = false)]
     public partial class MainWindow : Window, ILaserSystemCallback, IWeatherStationCallback
     {      
@@ -45,17 +42,18 @@ namespace Renishaw_XL80_App
         [DllImport("user32.dll")]
         private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
+        
+        //Local hosts are required to establish and setup the USB connection
+        LocalXCHost xcHost = null;
+        LocalXLHost xlHost = null;
+
+        //Measurement systems and custom renishaw classes
         private WeatherStationClient m_ws;
         private LaserSystemClient m_laser;
         private Edlen m_edlen;
         private MaterialExpansion m_expansion;
 
-        LocalXCHost xcHost = null;
-
-        LocalXLHost xlHost = null;
-
         private bool _Connected;
-
         public bool Connected
         {
             get { return _Connected; }
@@ -63,7 +61,6 @@ namespace Renishaw_XL80_App
         }
 
         private bool _WeatherConnected;
-
         public bool WeatherConnected
         {
             get { return _WeatherConnected; }
@@ -73,20 +70,19 @@ namespace Renishaw_XL80_App
 
         private SynchronizationContext m_SynchronizationContext;
 
+        //Named pipe server elements required to connect to main commissioning application
         NamedPipeClientStream client = new NamedPipeClientStream("RenishawXL80_Pipe");
         StreamReader reader;
         StreamWriter writer;
         bool SendInProgress = false;
 
-        ListBoxWriter lbw_Weather;
-        public ObservableCollection<ListBoxStatusItem> consoleStringList_Weather = new ObservableCollection<ListBoxStatusItem>();
-
-
+        //Custom "console" text writer class to allow writing timestamped data to a listbox
         ListBoxWriter lbw;
+        ListBoxWriter lbw_Weather;
         public ObservableCollection<ListBoxStatusItem> consoleStringList = new ObservableCollection<ListBoxStatusItem>();
-
+        public ObservableCollection<ListBoxStatusItem> consoleStringList_Weather = new ObservableCollection<ListBoxStatusItem>();
         
-
+        //constructor
         public MainWindow()
         {
             InitializeComponent();
@@ -117,6 +113,7 @@ namespace Renishaw_XL80_App
             }
         }
 
+       
         private async void SendMessage(string value)
         {
             if (SendInProgress) return;
@@ -143,90 +140,90 @@ namespace Renishaw_XL80_App
             while (true)
             {
                 cmd = await reader.ReadLineAsync();
-
+                string measure = string.Empty;
                 switch (cmd)
                 {
                     case "1":
                         recordLaser = Laser.GetLatestReading();
-                        SendMessage((recordLaser.ValueOf*1000D).ToString("F6"));
+                        measure = Connected ? (recordLaser.ValueOf * 1000D).ToString("F6") : "Disconnected";
                         break;
 
                     case "2":
-                        SendMessage(recordLaser.Valid.ToString());
+                        measure = Connected ? recordLaser.Valid.ToString() : "Disconnected";
                         break;
 
                     case "3":
-                        SendMessage(recordLaser.SignalStrength.ToString());
+                        measure = Connected ? recordLaser.SignalStrength.ToString() : "Disconnected";
                         break;
 
                     case "4":
                         recordEnviron = WeatherStation.GetEnvironmentalRecord();
-                        SendMessage(recordEnviron.AirTemperature.ValueOf.ToString());
+                        measure = WeatherConnected ? recordEnviron.AirTemperature.ValueOf.ToString() : "Disconnected";
                         break;
 
                     case "5":
-                        SendMessage(recordEnviron.AirTemperature.Valid.ToString());
+                        measure = WeatherConnected ? recordEnviron.AirTemperature.Valid.ToString() : "Disconnected";
                         break;
 
                     case "6":
-                        SendMessage(recordEnviron.AirPressure.ValueOf.ToString());
+                        measure = WeatherConnected ? recordEnviron.AirPressure.ValueOf.ToString() : "Disconnected";
                         break;
 
                     case "7":
-                        SendMessage(recordEnviron.AirPressure.Valid.ToString());
+                        measure = WeatherConnected ? recordEnviron.AirPressure.Valid.ToString() : "Disconnected";
                         break;
 
                     case "8":
-                        SendMessage(recordEnviron.AirHumidity.ValueOf.ToString());
+                        measure = WeatherConnected ? recordEnviron.AirHumidity.ValueOf.ToString() : "Disconnected";
                         break;
 
                     case "9":
-                        SendMessage(recordEnviron.AirHumidity.Valid.ToString());
+                        measure = WeatherConnected ? recordEnviron.AirHumidity.Valid.ToString() : "Disconnected";
                         break;
 
                     case "10":
                         recordMaterial = WeatherStation.GetMaterialTemperatureRecord();
-                        SendMessage(recordMaterial.AverageMaterialTemperature.ValueOf.ToString());
+                        measure = WeatherConnected ? recordMaterial.AverageMaterialTemperature.ValueOf.ToString() : "Disconnected";
                         break;
 
                     case "11":
-                        SendMessage(recordMaterial.AverageMaterialTemperature.Valid.ToString());
+                        measure = WeatherConnected ? recordMaterial.AverageMaterialTemperature.Valid.ToString() : "Disconnected";
                         break;
 
                     case "12":
-                        SendMessage(recordMaterial[0].Valid.ToString());
+                        measure = WeatherConnected ? recordMaterial[0].ValueOf.ToString() : "Disconnected";
                         break;
 
                     case "13":
-                        SendMessage(recordMaterial[0].Valid.ToString());
+                        measure = WeatherConnected ? recordMaterial[0].Valid.ToString() : "Disconnected";
                         break;
 
                     case "14":
-                        SendMessage(recordMaterial[1].Valid.ToString());
+                        measure = WeatherConnected ? recordMaterial[1].ValueOf.ToString() : "Disconnected";
                         break;
 
                     case "15":
-                        SendMessage(recordMaterial[1].Valid.ToString());
+                        measure = WeatherConnected ? recordMaterial[1].Valid.ToString() : "Disconnected";
                         break;
 
                     case "16":
-                        SendMessage(recordMaterial[2].Valid.ToString());
+                        measure = WeatherConnected ? recordMaterial[2].ValueOf.ToString() : "Disconnected";
                         break;
 
                     case "17":
-                        SendMessage(recordMaterial[2].Valid.ToString());
+                        measure = WeatherConnected ? recordMaterial[2].Valid.ToString() : "Disconnected";
                         break;
 
 
                     case "Weather":
-                        SendMessage(WeatherConnected.ToString());
+                        measure = WeatherConnected.ToString();
                         break;
 
                     case "Laser":
-                        SendMessage(Connected.ToString());
+                        measure = Connected.ToString();
                         break;
                 }
-
+                SendMessage(measure);
             }
 
         }
@@ -242,6 +239,10 @@ namespace Renishaw_XL80_App
             if (xlHost != null)
             {
                 xlHost.Dispose();
+            }
+            if (xcHost != null)
+            {
+                xcHost.Dispose();
             }
         }
 
@@ -604,6 +605,7 @@ namespace Renishaw_XL80_App
             return true;
         }
 
+        #region Weather Station Buttons
         private void button_weatherConnect_Click(object sender, RoutedEventArgs e)
         {
             DeviceInfo info = new DeviceInfo();
@@ -688,6 +690,7 @@ namespace Renishaw_XL80_App
             lbw_Weather.WriteLine("Material temperature[1]: " + record[1].ToString());
             lbw_Weather.WriteLine("Material temperature[2]: " + record[2].ToString());
         }
+        #endregion
     }
 
     public class ListBoxStatusItem
