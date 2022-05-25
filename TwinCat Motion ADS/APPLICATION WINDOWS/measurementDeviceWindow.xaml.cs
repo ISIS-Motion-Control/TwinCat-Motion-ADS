@@ -210,6 +210,14 @@ namespace TwinCat_Motion_ADS
             deviceSettings.Children.Add(buttonsStackPanel);
             deviceSettings.Children.Add(extraButtonsStackPanel);
             deviceSettings.Children.Add(statusStackPanel);
+
+
+            Button deleteDeviceButton = new();
+            //Setup buttons
+            XamlUI.SetupButton(ref deleteDeviceButton, "Delete Device");
+            //Setup event handlers
+            deleteDeviceButton.Click += new RoutedEventHandler(DeleteDevice);
+            deviceSettings.Children.Add(deleteDeviceButton);
         }
 
         public void CommonRs232Window()
@@ -262,6 +270,19 @@ namespace TwinCat_Motion_ADS
         public void UpdateChannels(object sender, EventArgs e)
         {
             MDevice.UpdateChannelList();
+        }
+
+        public void DeleteDevice(object sender, EventArgs e)
+        {
+            if(MDevice.Connected)
+            {
+                Console.WriteLine("Cannot delete connected device");
+                return;
+            }
+            MDevice = null;
+            ((MainWindow)Application.Current.MainWindow).MeasurementDevices.RemoveDevice(DeviceIndex);
+            ((MainWindow)Application.Current.MainWindow).RemoveMeasurementMenuItem(DeviceIndex);
+            this.Close();
         }
 
         public async void TestRead(object sender, EventArgs e)
@@ -321,7 +342,10 @@ namespace TwinCat_Motion_ADS
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            ((MainWindow)(Application.Current.MainWindow)).measurementMenuItems[DeviceIndex].Header = MDevice.Name;
+            if(MDevice != null)
+            {
+                ((MainWindow)(Application.Current.MainWindow)).measurementMenuItems[DeviceIndex].Header = MDevice.Name;
+            }            
         }
 
         private void DeviceType_DropDownClosed(object sender, EventArgs e)

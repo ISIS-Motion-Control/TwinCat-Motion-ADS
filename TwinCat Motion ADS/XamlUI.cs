@@ -40,7 +40,11 @@ namespace TwinCat_Motion_ADS
 
         public static void CheckBoxBinding(string content, DependencyObject item, object source, string pp, BindingMode bm = BindingMode.TwoWay)
         {
-            //((CheckBox)item).Content = content;
+            try
+            {
+                ((CheckBox)item).Content = content; //Textblock element added to some checkboxes for better alignment but not in procedurally generated ones
+            }
+            catch { }
             Binding checkBoxBind = new();
             checkBoxBind.Mode = bm;
             checkBoxBind.Source = source;
