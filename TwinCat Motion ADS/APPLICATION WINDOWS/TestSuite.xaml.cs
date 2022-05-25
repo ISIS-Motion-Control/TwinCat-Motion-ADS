@@ -253,44 +253,11 @@ namespace TwinCat_Motion_ADS
             {
                 XmlNode testNode = xmlDoc.CreateElement("Test");
                 rootNode.AppendChild(testNode);
+                test.TestSettings.AddSettingsFields(xmlDoc, testNode, test.TestType.GetStringValue(), test.AxisID);
 
-                AddFields(xmlDoc, test, testNode);
+                //AddFields(xmlDoc, test, testNode);
             }
             xmlDoc.Save(selectedFile);
-        }
-
-        public static void AddFields(XmlDocument xmlDoc, TestListItem test, XmlNode parentNode)
-        {
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "testType", test.TestType.GetStringValue());
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "testTitle", test.TestSettings.TestTitle.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "axisId", test.AxisID);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "velocity", test.TestSettings.Velocity.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "timeout", test.TestSettings.Timeout.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "cycles", test.TestSettings.Cycles.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "cycleDelaySeconds", test.TestSettings.CycleDelaySeconds.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalVelocity", test.TestSettings.ReversalVelocity.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalExtraTime", test.TestSettings.ReversalExtraTimeSeconds.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalSettleTime", test.TestSettings.ReversalSettleTimeSeconds.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "initialSetpoint", test.TestSettings.InitialSetpoint.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "numberOfSteps", test.TestSettings.NumberOfSteps.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "stepSize", test.TestSettings.StepSize.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "settleTime", test.TestSettings.SettleTimeSeconds.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalDistance", test.TestSettings.ReversalDistance.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "overshootDistance", test.TestSettings.OvershootDistance.UiVal);
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "endSetpoint", test.TestSettings.EndSetpoint.UiVal);
-        }
-
-        public static void CreateAndAppendXmlNode(XmlNode parentNode, XmlDocument doc, string ndName, string ndValue)
-        {
-            var node = CreateXmlNode(doc, ndName, ndValue);
-            parentNode.AppendChild(node);
-        }
-
-        public static XmlNode CreateXmlNode(XmlDocument doc, string ndName, string ndValue)
-        {
-            XmlNode xmlNode = doc.CreateElement(ndName);
-            xmlNode.InnerText = ndValue;
-            return xmlNode;
         }
 
         private void LoadFileButton_Click(object sender, RoutedEventArgs e)
@@ -331,7 +298,8 @@ namespace TwinCat_Motion_ADS
                 testCounter++;
             }
         }
-         public static void ImportSingleTestSettings(TestListItem tli, XmlNode testNode)
+        
+        public static void ImportSingleTestSettings(TestListItem tli, XmlNode testNode)
         {
             tli.TestSettings.TestTitle.UiVal = testNode.SelectSingleNode("testTitle").InnerText;
             tli.AxisID = testNode.SelectSingleNode("axisId").InnerText;
