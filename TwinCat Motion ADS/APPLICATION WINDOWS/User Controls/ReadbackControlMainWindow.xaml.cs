@@ -7,9 +7,9 @@ namespace TwinCat_Motion_ADS
     /// <summary>
     /// Interaction logic for SettingControl.xaml
     /// </summary>
-    public partial class SettingControlMainWindow : UserControl
+    public partial class ReadbackControlMainWindow : UserControl
     {
-        public SettingControlMainWindow()
+        public ReadbackControlMainWindow()
         {
             InitializeComponent();
             this.DataContext = this;
@@ -18,6 +18,6 @@ namespace TwinCat_Motion_ADS
         public string SetName { get; set; }
         public int BoxWidth { get; set; } = 200;
         public string strTests { get; set; }
-        public int TextWidth { get; set; } = 260;
+        public int TextWidth { get; set; } = 220;
     }
 }

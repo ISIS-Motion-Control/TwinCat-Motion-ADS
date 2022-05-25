@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -14,10 +11,6 @@ using System.Collections.Generic;
 
 namespace TwinCat_Motion_ADS
 {
-   
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public PLC Plc;
@@ -51,7 +44,6 @@ namespace TwinCat_Motion_ADS
         {
             InitializeComponent();
 
-
             lbw = new(consoleListBox);
             consoleListBox.ItemsSource = consoleStringList;
             Console.SetOut(lbw);
@@ -60,8 +52,7 @@ namespace TwinCat_Motion_ADS
             SetupBinds();
             if (!string.IsNullOrEmpty(amsNetIdTb.Text))
             {
-                Plc = new PLC(amsNetIdTb.Text, 852); //5.65.74.200.1.1
-                                                     //Plc = new PLC("5.65.74.200.1.1", 852);
+                Plc = new PLC(amsNetIdTb.Text, 852); 
                 Plc.setupPLC();
                 if (Plc.AdsState == AdsState.Invalid)
                 {
@@ -84,6 +75,54 @@ namespace TwinCat_Motion_ADS
             tabbedWindow.Content = NcAxisView;
            
         }
+        #region ScaleValue Depdency Property
+        public static readonly DependencyProperty ScaleValueProperty = DependencyProperty.Register("ScaleValue", typeof(double), typeof(MainWindow), new UIPropertyMetadata(1.0, new PropertyChangedCallback(OnScaleValueChanged), new CoerceValueCallback(OnCoerceScaleValue)));
+
+        private static object OnCoerceScaleValue(DependencyObject o, object value)
+        {
+            MainWindow mainWindow = o as MainWindow;
+            if (mainWindow != null)
+                return mainWindow.OnCoerceScaleValue((double)value);
+            else return value;
+        }
+
+        private static void OnScaleValueChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            MainWindow mainWindow = o as MainWindow;
+            if (mainWindow != null)
+                mainWindow.OnScaleValueChanged((double)e.OldValue, (double)e.NewValue);
+        }
+
+        protected virtual double OnCoerceScaleValue(double value)
+        {
+            if (double.IsNaN(value))
+                return 1.0f;
+
+            value = Math.Max(0.1, value);
+            return value;
+        }
+
+        protected virtual void OnScaleValueChanged(double oldValue, double newValue) { }
+
+        public double ScaleValue
+        {
+            get => (double)GetValue(ScaleValueProperty);
+            set => SetValue(ScaleValueProperty, value);
+        }
+        #endregion
+
+        private void MainGrid_SizeChanged(object sender, EventArgs e) => CalculateScale();
+
+        private void CalculateScale()
+        {
+            double yScale = ActualHeight / 1000f;
+            double xScale = ActualWidth / 1920f;
+            double value = Math.Min(xScale, yScale);
+
+            ScaleValue = (double)OnCoerceScaleValue(myMainWindow, value);
+        }
+
+
 
         private void SetupBinds()
         {
@@ -256,13 +295,21 @@ namespace TwinCat_Motion_ADS
             {
                 TestSuiteWindow.Close();
             }
-            
+            //Disconnect and close any open measurement device windows
             foreach (var Window in App.Current.Windows)
             {
                 if (Window is measurementDeviceWindow)
                 {
                     ((measurementDeviceWindow)Window).MDevice.Disconnect();
                     ((measurementDeviceWindow)Window).Close();
+                }
+            }
+            //Disconnect from any remaining connected devices (allows proper disposing)
+            foreach (var md in this.MeasurementDevices.MeasurementDeviceList)
+            {
+                if(md.Connected)
+                {
+                    md.Disconnect();
                 }
             }
             

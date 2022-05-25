@@ -40,7 +40,7 @@ namespace TwinCat_Motion_ADS
 
         public static void CheckBoxBinding(string content, DependencyObject item, object source, string pp, BindingMode bm = BindingMode.TwoWay)
         {
-            ((CheckBox)item).Content = content;
+            //((CheckBox)item).Content = content;
             Binding checkBoxBind = new();
             checkBoxBind.Mode = bm;
             checkBoxBind.Source = source;

@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         Title="IBEX Lite" WindowState="Maximized" Icon="ImageAssets/ibexHead.jpg" WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
+        Name="myMainWindow"
         Width="1920"
         Height="1000"      
         Background="Transparent" Closing="Window_Closing">
@@ -97,9 +98,15 @@
     </Window.Resources>
 
     <Border CornerRadius="10" Background="#FF9FC1C9" Focusable="True">
-        <Grid x:Name="mainWindowGrid" Focusable="True">
+        <Grid x:Name="mainWindowGrid" Focusable="True" SizeChanged="MainGrid_SizeChanged">
+            <Grid.LayoutTransform>
+                <ScaleTransform x:Name="ApplicationScaleTransform"
+                        CenterX="0"
+                        CenterY="0"
+                        ScaleX="{Binding ElementName=myMainWindow, Path=ScaleValue}"
+                        ScaleY="{Binding ElementName=myMainWindow, Path=ScaleValue}" />
+            </Grid.LayoutTransform>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="1100*"/>
                 <ColumnDefinition Width="820*"/>
             </Grid.ColumnDefinitions>
@@ -109,8 +116,8 @@
                 <RowDefinition Height="50"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <Border Background="#005A9E" Grid.Row="0" Grid.ColumnSpan="3"/>
-            <Menu IsMainMenu="True" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" 
+            <Border Background="#005A9E" Grid.Row="0" Grid.ColumnSpan="2"/>
+            <Menu IsMainMenu="True" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
                   HorizontalAlignment="Left" Height="30" Background="{x:Null}">
                 <MenuItem x:Name="MeasureDevicesMenu" Header="Measurement Devices" Height="30" Width="195" Template="{StaticResource VsOnline}" Click="MeasureDevicesMenu_Click">
                     <MenuItem Header="Add new device..." Click="AddNewDevice" Template="{StaticResource VsMenuSub}"/>
@@ -118,67 +125,43 @@
                     <MenuItem Header="Export devices..." Click="ExportDevices_Click" Template="{StaticResource VsMenuSub}"/>
                     <Separator/>
                 </MenuItem>
-                <MenuItem x:Name="TestSuiteMenu" Header="Test Suite" Height="30" Width="195" Template="{StaticResource VsOnline}" Click="TestSuiteMenu_Click" >
-
-                </MenuItem>
+                <MenuItem x:Name="TestSuiteMenu" Header="Test Suite" Height="30" Width="195" Template="{StaticResource VsOnline}" Click="TestSuiteMenu_Click"/>
             </Menu>
+            <!-- Tabbed view selection -->
             <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
-                <RadioButton x:Name="NcAxis" Content="NC Axis"
-                             Foreground="White"
-                             FontSize="24"
-                             Height="30"
-                             Style="{StaticResource MenuButtonTheme}"
-                             IsChecked="True" Click="RadioButton_Click"/>
-                <RadioButton x:Name="AirAxis" Content="Air Axis"
-                             Foreground="White"
-                             FontSize="24"
-                             Height="30"
-                             Style="{StaticResource MenuButtonTheme}" Click="RadioButton_Click"/>
-
-
+                <RadioButton x:Name="NcAxis" Content="NC Axis" Foreground="White" FontSize="24" Height="30" Style="{StaticResource MenuButtonTheme}" IsChecked="True" Click="RadioButton_Click"/>
+                <RadioButton x:Name="AirAxis" Content="Air Axis" Foreground="White" FontSize="24" Height="30" Style="{StaticResource MenuButtonTheme}" Click="RadioButton_Click"/>
+            </StackPanel>
+            
+            <!-- PLC AMS NET ID INPUT AND BUTTON -->
+            <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="1">
+                <TextBox x:Name="amsNetIdTb" Height="20" Width="150" VerticalAlignment="Top" Margin="10,5,0,0"/>
+                <Button x:Name="connect2PlcButton" Focusable="False" Content="Connect to PLC" Click="ConnectToPlc_Click" Height="20" FontSize="16" VerticalAlignment="Top" Margin="10,5,0,0" Style="{StaticResource myDefaultButton}"/>
             </StackPanel>
 
-            <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
-                <StackPanel Orientation="Horizontal">
-                    <TextBox x:Name="amsNetIdTb"  
-                             Height="20"
-                         Width="150"
-                             VerticalAlignment="Top"
-                             Margin="10,5,0,0"/>
-                    <Button x:Name="connect2PlcButton" 
-                            Focusable="False" 
-                            Content="Connect to PLC" 
-                            Click="ConnectToPlc_Click" 
-                            Height="20"
-                            VerticalAlignment="Top"
-                            Margin="10,5,0,0"
-                        Style="{StaticResource myDefaultButton}"/>
-                </StackPanel>
+            <!-- Content control window -->
+            <StackPanel x:Name="StackPanel___MainWindow" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="1" Margin="0,0,0,0" Grid.RowSpan="1" Focusable="True">
+                <ContentControl x:Name="tabbedWindow" d:IsHidden="True" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </StackPanel>
-
-            <StackPanel x:Name="StackPanel___MainWindow" Orientation="Vertical" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" Grid.RowSpan="2" Focusable="True">
-                <ContentControl x:Name="tabbedWindow" d:IsHidden="True"/>
-            </StackPanel>
-            <ListBox x:Name="consoleListBox" Grid.Column="2" Grid.Row="2" Grid.RowSpan="2" local:ListBoxBehavior.ScrollOnNewItem="True" Margin="0,0,5,5" ScrollViewer.VerticalScrollBarVisibility="Visible">
+            
+            <!-- Console List Box -->
+            <ListBox x:Name="consoleListBox" Grid.Column="2" Grid.Row="1" Grid.RowSpan="3" local:ListBoxBehavior.ScrollOnNewItem="True" Margin="15" ScrollViewer.VerticalScrollBarVisibility="Visible">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid Margin="0,2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="560"/>
-                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="20"/>
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding statusMessage}" />
-
                             <TextBlock Grid.Column="1" Text="{Binding timestamp}" Margin="20,0,0,0" TextAlignment="Right"/>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-
-
         </Grid>
     </Border>
 </Window>
