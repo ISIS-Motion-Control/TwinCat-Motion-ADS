@@ -1,5 +1,6 @@
 ﻿using Ookii.Dialogs.Wpf;
 using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -25,6 +26,8 @@ namespace TwinCat_Motion_ADS
             windowData = (MainWindow)Application.Current.MainWindow;
             //testAxis = new(1, windowData.Plc);
             SetupBinds();
+            TestSelectionComboBox.ItemsSource = Enum.GetValues(typeof(TestTypes)).Cast<TestTypes>();
+            TestSelectionComboBox.SelectedItem = NcTestSettings.TestType.Val;
         }
 
 
@@ -336,6 +339,16 @@ namespace TwinCat_Motion_ADS
         private void ncWindowGrid_MouseDown(object sender, MouseButtonEventArgs e)
         {
             ncWindowGrid.Focus();
+        }
+
+        private void RunSelectedTestButton_Click(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine(NcTestSettings.TestType.Val);
+        }
+
+        private void TestSelectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            NcTestSettings.TestType.UiVal = ((TestTypes)TestSelectionComboBox.SelectedItem).GetStringValue();
         }
     }
 }

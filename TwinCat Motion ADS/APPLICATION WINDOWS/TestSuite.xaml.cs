@@ -74,7 +74,7 @@ namespace TwinCat_Motion_ADS
 
             if(TestList.SelectedIndex != -1)
             {
-                if(testItems[TestList.SelectedIndex].TestType == TestTypes.NoneSelected || testItems[TestList.SelectedIndex].TestType == TestTypes.UserPrompt)
+                if(testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.NoneSelected || testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.UserPrompt)
                 {
                     enableFlag = false;
                 }
@@ -92,7 +92,7 @@ namespace TwinCat_Motion_ADS
 
             if (TestList.SelectedIndex != -1)
             {
-                if (testItems[TestList.SelectedIndex].TestType == TestTypes.EndToEnd)
+                if (testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.EndToEnd)
                 {
                     enableFlag = true;
                 }
@@ -108,7 +108,7 @@ namespace TwinCat_Motion_ADS
 
             if (TestList.SelectedIndex != -1)
             {
-                if (testItems[TestList.SelectedIndex].TestType == TestTypes.UnidirectionalAccuracy || testItems[TestList.SelectedIndex].TestType == TestTypes.BidirectionalAccuracy || testItems[TestList.SelectedIndex].TestType == TestTypes.ScalingTest || testItems[TestList.SelectedIndex].TestType == TestTypes.BacklashDetection)
+                if (testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.UnidirectionalAccuracy || testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.BidirectionalAccuracy || testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.ScalingTest || testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.BacklashDetection)
                 {
                     enableFlag = true;
                 }
@@ -126,7 +126,7 @@ namespace TwinCat_Motion_ADS
 
             if (TestList.SelectedIndex != -1)
             {
-                if (testItems[TestList.SelectedIndex].TestType == TestTypes.BidirectionalAccuracy)
+                if (testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.BidirectionalAccuracy)
                 {
                     enableFlag = true;
                 }
@@ -140,7 +140,7 @@ namespace TwinCat_Motion_ADS
 
             if (TestList.SelectedIndex != -1)
             {
-                if (testItems[TestList.SelectedIndex].TestType == TestTypes.ScalingTest)
+                if (testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.ScalingTest)
                 {
                     enableFlag = true;
                 }
@@ -161,7 +161,7 @@ namespace TwinCat_Motion_ADS
                 UpdateEnabledUIElements();
                 return;
             }
-            SettingTestType.SelectedItem = testItems[TestList.SelectedIndex].TestType;
+            SettingTestType.SelectedItem = testItems[TestList.SelectedIndex].TestSettings.TestType.Val;
 
             XamlUI.TextboxBinding(SettingTitle.SettingValue, testItems[TestList.SelectedIndex].TestSettings.TestTitle, "UiVal");
             XamlUI.TextboxBinding(SettingAxisNumber.SettingValue, testItems[TestList.SelectedIndex], "AxisID");
@@ -186,7 +186,7 @@ namespace TwinCat_Motion_ADS
         private void SettingTestType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             //Update testItem Test type from combo box
-            testItems[TestList.SelectedIndex].TestType = (TestTypes)SettingTestType.SelectedItem;
+            testItems[TestList.SelectedIndex].TestSettings.TestType.Val = (TestTypes)SettingTestType.SelectedItem;
             UpdateEnabledUIElements();
         }
 
@@ -253,7 +253,7 @@ namespace TwinCat_Motion_ADS
             {
                 XmlNode testNode = xmlDoc.CreateElement("Test");
                 rootNode.AppendChild(testNode);
-                test.TestSettings.AddSettingsFields(xmlDoc, testNode, test.TestType.GetStringValue(), test.AxisID);
+                test.TestSettings.AddSettingsFields(xmlDoc, testNode, test.TestSettings.TestType.Val.GetStringValue(), test.AxisID);
 
                 //AddFields(xmlDoc, test, testNode);
             }
@@ -289,7 +289,7 @@ namespace TwinCat_Motion_ADS
                 Enum.TryParse(testTypeXml, out importedType);
 
                 //Select the test type
-                testItems[testCounter].TestType = importedType;
+                testItems[testCounter].TestSettings.TestType.Val = importedType;
 
                 //Import all the settings
                 ImportSingleTestSettings(testItems[testCounter], test);
@@ -345,7 +345,7 @@ namespace TwinCat_Motion_ADS
                 
                 NcAxis.UpdateAxisInstance(Convert.ToUInt32(test.AxisID),wd.Plc);
                 bool testResult;
-                switch (test.TestType)
+                switch (test.TestSettings.TestType.Val)
                 {
                     case TestTypes.EndToEnd:
                         testResult = await NcAxis.LimitToLimitTestwithReversingSequence(test.TestSettings, wd.MeasurementDevices);
@@ -417,7 +417,6 @@ namespace TwinCat_Motion_ADS
             }
             statusListItems.Add("All tests finished");
             TestList.IsEnabled = true;
-
         }
     }
 
@@ -432,50 +431,16 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        private TestTypes _testType;
-        public TestTypes TestType
-        {
-            get { return _testType; }
-            set { _testType = value;
-                OnPropertyChanged();
-            }
-        }
-
-
-
         public NcTestSettings TestSettings { get; set; }
         public TestListItem(string axisID)
         {
             AxisID = axisID;
             TestSettings = new();
-            TestType = TestTypes.NoneSelected;
         }
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
-        
-        
+        }    
     }
-
-    public enum TestTypes 
-    {
-        [StringValue("EndToEnd")]
-        EndToEnd,
-        [StringValue("UnidirectionalAccuracy")]
-        UnidirectionalAccuracy,
-        [StringValue("BidirectionalAccuracy")]
-        BidirectionalAccuracy,
-        [StringValue("ScalingTest")]
-        ScalingTest,
-        [StringValue("BacklashDetection")]
-        BacklashDetection,
-        [StringValue("UserPrompt")]
-        UserPrompt,
-        [StringValue("NoneSelected")]
-        NoneSelected
-    }
-
-
 }
