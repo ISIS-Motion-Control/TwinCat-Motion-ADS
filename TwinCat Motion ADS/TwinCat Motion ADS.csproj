@@ -25,6 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="APPLICATION WINDOWS\Backlash.png" />
+    <None Remove="APPLICATION WINDOWS\Bidirectional.png" />
+    <None Remove="APPLICATION WINDOWS\End2End.png" />
+    <None Remove="APPLICATION WINDOWS\Scaling.png" />
+    <None Remove="APPLICATION WINDOWS\Unidirectional.png" />
     <None Remove="babyIbex.jpg" />
     <None Remove="ibexHead.jpg" />
   </ItemGroup>
@@ -44,6 +49,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="APPLICATION WINDOWS\Backlash.png" />
+    <Resource Include="APPLICATION WINDOWS\Bidirectional.png" />
+    <Resource Include="APPLICATION WINDOWS\End2End.png" />
+    <Resource Include="APPLICATION WINDOWS\Scaling.png" />
+    <Resource Include="APPLICATION WINDOWS\Unidirectional.png" />
     <Resource Include="ImageAssets\babyIbex.jpg" />
     <Resource Include="ImageAssets\ibexHead.jpg" />
   </ItemGroup>
