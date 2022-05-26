@@ -1,0 +1,52 @@
+﻿<Window x:Class="TwinCat_Motion_ADS.HelpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TwinCat_Motion_ADS"
+        mc:Ignorable="d"
+        Title="What do you need help for?" Height="600" Width="1000">
+
+    <Window.Resources>
+        <!-- style the VSOnline -->
+        <ControlTemplate x:Key="VsOnline" TargetType="MenuItem">
+            <Border BorderThickness="1" Background="White" BorderBrush="#E0E0E0">
+                <StackPanel Height="30" Width="120" Orientation="Horizontal" Background="#005A9E" x:Name="sPanel" >
+                    <Label Content="{TemplateBinding Header}" Margin="1,0,0,0" Foreground="White" FontSize="16" />
+
+                    <!-- sub items -->
+                    <Popup IsOpen="{TemplateBinding IsSubmenuOpen}" AllowsTransparency="True" Focusable="False">
+                        <Border BorderThickness="1" Background="White" BorderBrush="#E0E0E0">
+                            <StackPanel IsItemsHost="True" />
+                        </Border>
+                    </Popup>
+                </StackPanel>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" TargetName="sPanel" Value="#5c8ddb" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="120"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <!--Left side menu-->
+        <Menu Grid.Column="0" Background="#005A90">
+            <MenuItem x:Name="EndToEnd" Header="End To End" Template="{StaticResource VsOnline}" Click="MenuSelect_Click"/>
+            <MenuItem x:Name="Unidirectional" Header="Unidirectional" Template="{StaticResource VsOnline}" Click="MenuSelect_Click"/>
+            <MenuItem x:Name="Bidirectional" Header="Bidirectional" Template="{StaticResource VsOnline}" Click="MenuSelect_Click"/>
+            <MenuItem x:Name="Scaling" Header="Scaling" Template="{StaticResource VsOnline}" Click="MenuSelect_Click"/>
+            <MenuItem x:Name="Backlash" Header="Backlash" Template="{StaticResource VsOnline}" Click="MenuSelect_Click"/>
+
+        </Menu>
+        <ContentControl x:Name="helpWindow" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="2"/>
+
+
+    </Grid>
+</Window>

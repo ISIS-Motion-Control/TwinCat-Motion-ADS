@@ -13,16 +13,20 @@ namespace TwinCat_Motion_ADS
 {
     public partial class MainWindow : Window
     {
+        #region Properties
         public PLC Plc;
         public string selectedFolder = string.Empty;
         public TestSuite TestSuiteWindow;
+        public HelpWindow HelpWindow;
         public NcAxisView NcAxisView;
         public AirAxisView AirAxisView;
         public bool windowClosing = false;
 
         public MeasurementDevices MeasurementDevices = new();
         public List<MenuItem> measurementMenuItems = new();
-
+        
+        ListBoxWriter lbw;
+        public ObservableCollection<ListBoxStatusItem> consoleStringList = new();
 
         private string _amsNetID;
         public string AmsNetID
@@ -36,10 +40,9 @@ namespace TwinCat_Motion_ADS
                 Properties.Settings.Default.Save();
             }
         }
+        #endregion
 
-        ListBoxWriter lbw;
-        public ObservableCollection<ListBoxStatusItem> consoleStringList = new();
-
+        #region Constructor
         public MainWindow()
         {
             InitializeComponent();
@@ -75,6 +78,8 @@ namespace TwinCat_Motion_ADS
             tabbedWindow.Content = NcAxisView;
            
         }
+        #endregion
+
         #region ScaleValue Depdency Property
         public static readonly DependencyProperty ScaleValueProperty = DependencyProperty.Register("ScaleValue", typeof(double), typeof(MainWindow), new UIPropertyMetadata(1.0, new PropertyChangedCallback(OnScaleValueChanged), new CoerceValueCallback(OnCoerceScaleValue)));
 
@@ -111,6 +116,7 @@ namespace TwinCat_Motion_ADS
         }
         #endregion
 
+        #region Window methods
         private void MainGrid_SizeChanged(object sender, EventArgs e) => CalculateScale();
 
         private void CalculateScale()
@@ -122,43 +128,50 @@ namespace TwinCat_Motion_ADS
             ScaleValue = (double)OnCoerceScaleValue(myMainWindow, value);
         }
 
-
-
-        private void SetupBinds()
+        private void Window_Closing(object sender, CancelEventArgs e)
         {
-            Binding amsNetBinding = new();
-            amsNetBinding.Source = this;
-            amsNetBinding.Path = new PropertyPath("AmsNetID"); ;
-            amsNetBinding.Mode = BindingMode.TwoWay;
-            amsNetBinding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            BindingOperations.SetBinding(amsNetIdTb, TextBox.TextProperty, amsNetBinding);
+            if (NcAxisView.testAxis != null)
+            {
+                if (NcAxisView.testAxis.testRunning)
+                {
+                    MessageBoxResult dialogResult = MessageBox.Show("You have a test running do you want to exit?", "Please Don't Leave Me", MessageBoxButton.YesNo);
+                    if (dialogResult == MessageBoxResult.No)
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
+                }
+            }
+            //bit of a 'hacky' method. Due to the test suite window being hidden and not actually closed I need a way for that window to check if the whole application is closing
+            windowClosing = true;
+            //Because I hide the window
+            if (TestSuiteWindow != null)
+            {
+                TestSuiteWindow.Close();
+            }
+            //Disconnect and close any open measurement device windows
+            foreach (var Window in App.Current.Windows)
+            {
+                if (Window is measurementDeviceWindow)
+                {
+                    ((measurementDeviceWindow)Window).MDevice.Disconnect();
+                    ((measurementDeviceWindow)Window).Close();
+                }
+            }
+            //Disconnect from any remaining connected devices (allows proper disposing)
+            foreach (var md in this.MeasurementDevices.MeasurementDeviceList)
+            {
+                if (md.Connected)
+                {
+                    md.Disconnect();
+                }
+            }
         }
 
-        private void ConnectToPlc_Click(object sender, RoutedEventArgs e)
-        {
-            Console.WriteLine("Connecting to PLC...");
-            Plc = new PLC(amsNetIdTb.Text, 852);
-            Plc.setupPLC();
-            if (Plc.AdsState == AdsState.Invalid)
-            {
-                Console.WriteLine("Ads state is invalid");
-            }
-            else if (Plc.AdsState == AdsState.Stop)
-            {
-                Console.WriteLine("Device connected but PLC not running");
-            }
-            else if (Plc.AdsState == AdsState.Run)
-            {
-                Console.WriteLine("Device connected and running");
-            }
-        }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+        #endregion
 
+        #region Measurement Device Menu
         private void AddNewDevice(object sender, RoutedEventArgs e)
         {
             MeasurementDevices.AddDevice(DeviceTypes.NoneSelected);
@@ -210,7 +223,7 @@ namespace TwinCat_Motion_ADS
         {
             measurementMenuItems.RemoveAt(index); //interal list doesn't contain default items
             index += 4; //need to account for the 4 default items in the menu (Add, import, export, seperator)
-            MeasureDevicesMenu.Items.RemoveAt(index);            
+            MeasureDevicesMenu.Items.RemoveAt(index);
         }
 
         private void ImportDevices_Click(object sender, RoutedEventArgs e)
@@ -253,7 +266,37 @@ namespace TwinCat_Motion_ADS
             if (fbd.ShowDialog() == true)
             {
                 selectedFile = fbd.FileName;
-                MeasurementDevices.ExportDeviceesXml(selectedFile);
+                MeasurementDevices.ExportDevicesXml(selectedFile);
+            }
+        }
+        #endregion
+
+        private void SetupBinds()
+        {
+            Binding amsNetBinding = new();
+            amsNetBinding.Source = this;
+            amsNetBinding.Path = new PropertyPath("AmsNetID"); ;
+            amsNetBinding.Mode = BindingMode.TwoWay;
+            amsNetBinding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(amsNetIdTb, TextBox.TextProperty, amsNetBinding);
+        }
+
+        private void ConnectToPlc_Click(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("Connecting to PLC...");
+            Plc = new PLC(amsNetIdTb.Text, 852);
+            Plc.setupPLC();
+            if (Plc.AdsState == AdsState.Invalid)
+            {
+                Console.WriteLine("Ads state is invalid");
+            }
+            else if (Plc.AdsState == AdsState.Stop)
+            {
+                Console.WriteLine("Device connected but PLC not running");
+            }
+            else if (Plc.AdsState == AdsState.Run)
+            {
+                Console.WriteLine("Device connected and running");
             }
         }
 
@@ -277,46 +320,25 @@ namespace TwinCat_Motion_ADS
                 tabbedWindow.Content = AirAxisView;
             }
         }
-
-        private void Window_Closing(object sender, CancelEventArgs e)
+        
+        private void clearScreenButton_Click(object sender, RoutedEventArgs e)
         {
-            if(NcAxisView.testAxis!=null)
+            consoleStringList.Clear();
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
+        private void HelpMenu_Click(object sender, RoutedEventArgs e)
+        {
+            if(HelpWindow == null)
             {
-                if(NcAxisView.testAxis.testRunning)
-                {
-                    MessageBoxResult dialogResult = MessageBox.Show("You have a test running do you want to exit?", "Please Don't Leave Me", MessageBoxButton.YesNo);
-                    if(dialogResult == MessageBoxResult.No)
-                    {
-                        e.Cancel = true;
-                        return;
-                    }
-                }
+                HelpWindow = new();
             }
-            //bit of a 'hacky' method. Due to the test suite window being hidden and not actually closed I need a way for that window to check if the whole application is closing
-            windowClosing = true;
-            //Because I hide the window
-            if (TestSuiteWindow != null)
-            {
-                TestSuiteWindow.Close();
-            }
-            //Disconnect and close any open measurement device windows
-            foreach (var Window in App.Current.Windows)
-            {
-                if (Window is measurementDeviceWindow)
-                {
-                    ((measurementDeviceWindow)Window).MDevice.Disconnect();
-                    ((measurementDeviceWindow)Window).Close();
-                }
-            }
-            //Disconnect from any remaining connected devices (allows proper disposing)
-            foreach (var md in this.MeasurementDevices.MeasurementDeviceList)
-            {
-                if(md.Connected)
-                {
-                    md.Disconnect();
-                }
-            }
-            
+            HelpWindow.Show();
         }
     }
 }
