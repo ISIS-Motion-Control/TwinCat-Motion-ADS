@@ -17,6 +17,7 @@ namespace TwinCat_Motion_ADS
         public PLC Plc;
         public string selectedFolder = string.Empty;
         public TestSuite TestSuiteWindow;
+        public HelpWindow HelpWindow;
         public NcAxisView NcAxisView;
         public AirAxisView AirAxisView;
         public bool windowClosing = false;
@@ -329,6 +330,15 @@ namespace TwinCat_Motion_ADS
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
+        private void HelpMenu_Click(object sender, RoutedEventArgs e)
+        {
+            if(HelpWindow == null)
+            {
+                HelpWindow = new();
+            }
+            HelpWindow.Show();
         }
     }
 }

@@ -8,29 +8,29 @@ namespace TwinCat_Motion_ADS.MVVM.View.Tests
     [TestClass()]
     public class TestSuiteTests
     {
-        [TestMethod()]
+        //[TestMethod()]
         public void GivenXmlDocUsingCreateXmlNodeThenNodeWithTextInserted()
         {
             string nodeName = "testNodeName";
             string nodeValue = "testNodeValue";
             XmlDocument xmlDoc = new();
-            var result = TestSuite.CreateXmlNode(xmlDoc, nodeName, nodeValue);
-            Assert.AreEqual(result.Name, nodeName);
-            Assert.AreEqual(result.InnerText, nodeValue);
+            //var result = TestSuite.CreateXmlNode(xmlDoc, nodeName, nodeValue);
+            //Assert.AreEqual(result.Name, nodeName);
+            //Assert.AreEqual(result.InnerText, nodeValue);
         }
 
-        [TestMethod()]
+        //[TestMethod()]
         public void GivenXmlNodeUsingCreateAndAppendXmlNodeThenChildNodeAddedToParentNode()
         {
             string nodeName = "testNodeName";
             string nodeValue = "testNodeValue";
             XmlDocument xmlDoc = new();
             XmlNode parentNode = xmlDoc.CreateElement("ParentNode");
-            TestSuite.CreateAndAppendXmlNode(parentNode, xmlDoc, nodeName, nodeValue);
-            Assert.IsNotNull(parentNode.SelectSingleNode(nodeName));
+            //TestSuite.CreateAndAppendXmlNode(parentNode, xmlDoc, nodeName, nodeValue);
+            //Assert.IsNotNull(parentNode.SelectSingleNode(nodeName));
         }
 
-        [TestMethod()]
+        //[TestMethod()]
         public void GivenXmlDocumentUsingAddFieldsThenSaveTestToXml()
         {
             XmlDocument xmlDoc = new();
@@ -42,9 +42,9 @@ namespace TwinCat_Motion_ADS.MVVM.View.Tests
 
             //TestSuite.AddFields(xmlDoc, testListItem, parentNode);
 
-            XmlDocument testAgainstDoc = new();
-            testAgainstDoc.LoadXml(xmlString);           
-            Assert.AreEqual(testAgainstDoc.OuterXml, xmlDoc.OuterXml);
+            //XmlDocument testAgainstDoc = new();
+            //testAgainstDoc.LoadXml(xmlString);           
+            //Assert.AreEqual(testAgainstDoc.OuterXml, xmlDoc.OuterXml);
         }
     }
 }
