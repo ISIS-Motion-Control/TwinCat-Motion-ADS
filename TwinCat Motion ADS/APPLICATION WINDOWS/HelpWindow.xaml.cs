@@ -19,11 +19,11 @@ namespace TwinCat_Motion_ADS
     /// </summary>
     public partial class HelpWindow : Window
     {
-        public HelpScreen_EndToEnd HelpScreen_EndToEnd = new();
-        public HelpScreen_Unidirectional HelpScreen_Unidirectional = new();
-        public HelpScreen_Bidirectional HelpScreen_Bidirectional = new();
-        public HelpScreen_Scaling HelpScreen_Scaling = new();
-        public HelpScreen_Backlash HelpScreen_Backlash = new();
+        public HelpScreen_EndToEnd helpScreen_EndToEnd = new();
+        public HelpScreen_Unidirectional helpScreen_Unidirectional = new();
+        public HelpScreen_Bidirectional helpScreen_Bidirectional = new();
+        public HelpScreen_Scaling helpScreen_Scaling = new();
+        public HelpScreen_Backlash helpScreen_Backlash = new();
 
         public HelpWindow()
         {
@@ -35,27 +35,27 @@ namespace TwinCat_Motion_ADS
             if(((MenuItem)sender) == EndToEnd)
             {
                 Console.WriteLine("Hit : END2END");
-                helpWindow.Content = HelpScreen_EndToEnd;
+                helpWindow.Content = helpScreen_EndToEnd;
             }
             if (((MenuItem)sender) == Unidirectional)
             {
                 Console.WriteLine("Hit : UNI");
-                helpWindow.Content = HelpScreen_Unidirectional;
+                helpWindow.Content = helpScreen_Unidirectional;
             }
             if (((MenuItem)sender) == Bidirectional)
             {
-                Console.WriteLine("Hit : BiDi");
-                helpWindow.Content = HelpScreen_Bidirectional;
+                Console.WriteLine("Hit : BiDi");                
+                helpWindow.Content = helpScreen_Bidirectional;
             }
             if (((MenuItem)sender) == Scaling)
             {
                 Console.WriteLine("Hit : Scaling");
-                helpWindow.Content = HelpScreen_Scaling;
+                helpWindow.Content = helpScreen_Scaling;
             }
             if (((MenuItem)sender) == Backlash)
             {
                 Console.WriteLine("Hit : Backlash");
-                helpWindow.Content = HelpScreen_Backlash;
+                helpWindow.Content = helpScreen_Backlash;
             }
         }
     }

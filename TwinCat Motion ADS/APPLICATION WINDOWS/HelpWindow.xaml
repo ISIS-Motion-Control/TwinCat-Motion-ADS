@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
-        Title="HelpWindow" Height="450" Width="800">
+        Title="What do you need help for?" Height="600" Width="1000">
 
     <Window.Resources>
         <!-- style the VSOnline -->
