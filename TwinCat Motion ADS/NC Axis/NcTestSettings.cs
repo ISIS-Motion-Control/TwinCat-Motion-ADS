@@ -84,7 +84,6 @@ namespace TwinCat_Motion_ADS
             TestSuite.ImportSingleTestSettings(tli, testSettings);
             TestTitle.UiVal = tli.TestSettings.TestTitle.UiVal;
             Velocity.UiVal = tli.TestSettings.Velocity.UiVal;
-
             Timeout.UiVal = tli.TestSettings.Timeout.UiVal; ;
             Cycles.UiVal = tli.TestSettings.Cycles.UiVal; ;
             CycleDelaySeconds.UiVal = tli.TestSettings.CycleDelaySeconds.UiVal; ;
@@ -97,7 +96,6 @@ namespace TwinCat_Motion_ADS
             SettleTimeSeconds.UiVal = tli.TestSettings.SettleTimeSeconds.UiVal; ;
             ReversalDistance.UiVal = tli.TestSettings.ReversalDistance.UiVal; ;
             OvershootDistance.UiVal = tli.TestSettings.OvershootDistance.UiVal; ;
-
             EndSetpoint.UiVal = tli.TestSettings.EndSetpoint.UiVal;
         }    
 
@@ -144,14 +142,10 @@ namespace TwinCat_Motion_ADS
             return xmlNode;
         }
 
-
-
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
-    }
-
-    
+    }   
 }
