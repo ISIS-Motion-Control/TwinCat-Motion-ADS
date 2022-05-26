@@ -36,6 +36,7 @@ namespace TwinCat_Motion_ADS
             ReversalDistance.UiVal = Properties.Settings.Default.reversalDistance;
             OvershootDistance.UiVal = Properties.Settings.Default.overshootDistance;
             EndSetpoint.UiVal = Properties.Settings.Default.endSetpoint;
+            TestType.UiVal = Properties.Settings.Default.testType;
         }
 
         public void ResetSettings()
@@ -56,6 +57,7 @@ namespace TwinCat_Motion_ADS
             ReversalDistance.UiVal = "0";
             OvershootDistance.UiVal = "0";
             EndSetpoint.UiVal = "0";
+            TestType.UiVal = TestTypes.NoneSelected.GetStringValue();
         }
        
         public SettingString TestTitle { get; set; } = new("testTitle");
@@ -73,6 +75,8 @@ namespace TwinCat_Motion_ADS
         public SettingDouble ReversalDistance { get; set; } = new("reversalDistance");
         public SettingDouble OvershootDistance = new("overshootDistance");
         public SettingDouble EndSetpoint { get; set; } = new("endSetpoint");
+
+        public SettingTestType TestType { get; set; } = new("testType");
 
         //Method to import test settings (Export method is in test suite, is this right?)
         public void ImportSettingsXML(string ImportSettingsFile)
@@ -147,5 +151,23 @@ namespace TwinCat_Motion_ADS
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
-    }   
+    }
+
+    public enum TestTypes
+    {
+        [StringValue("EndToEnd")]
+        EndToEnd,
+        [StringValue("UnidirectionalAccuracy")]
+        UnidirectionalAccuracy,
+        [StringValue("BidirectionalAccuracy")]
+        BidirectionalAccuracy,
+        [StringValue("ScalingTest")]
+        ScalingTest,
+        [StringValue("BacklashDetection")]
+        BacklashDetection,
+        [StringValue("UserPrompt")]
+        UserPrompt,
+        [StringValue("NoneSelected")]
+        NoneSelected
+    }
 }

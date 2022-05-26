@@ -74,5 +74,8 @@
     <Setting Name="endSetpoint" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="testType" Type="System.String" Scope="User">
+      <Value Profile="(Default)">EndToEnd</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

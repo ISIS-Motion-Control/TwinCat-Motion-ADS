@@ -216,6 +216,48 @@ namespace TwinCat_Motion_ADS
     }
 
     //Class to handle UI elements of setting elements of type string - not strictly necessary, more for standardisation of rest of code.
+    public class SettingTestType : INotifyPropertyChanged
+    {
+        PropertyDescriptor pd;
+        public SettingTestType(string settingName)
+        {
+            pd = TypeDescriptor.GetProperties(Properties.Settings.Default)[settingName];
+        }
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private string _uiVal; //textSetting
+        public string UiVal
+        {
+            get { return _uiVal; }
+            set
+            {
+                if(Enum.TryParse<TestTypes>(value, out _))
+                {
+                    _val = Enum.Parse<TestTypes>(value);
+                    _uiVal = value;
+                    pd.SetValue(Properties.Settings.Default, value);
+                    OnPropertyChanged();
+                }
+            }
+        }
+        private TestTypes _val;
+        public TestTypes Val
+        {
+            get { return _val; }
+            set
+            {
+                _val = value;
+                UiVal = value.GetStringValue();
+                OnPropertyChanged();
+            }
+        }
+    }
+    
+    
     public class SettingString : INotifyPropertyChanged
     {
         PropertyDescriptor pd;
