@@ -36,10 +36,12 @@ namespace TwinCat_Motion_ADS
             ReversalDistance.UiVal = Properties.Settings.Default.reversalDistance;
             OvershootDistance.UiVal = Properties.Settings.Default.overshootDistance;
             EndSetpoint.UiVal = Properties.Settings.Default.endSetpoint;
+            TestType.UiVal = Properties.Settings.Default.testType;
         }
 
         public void ResetSettings()
         {
+            //Reset all settings to default values
             TestTitle.UiVal = "New Test";
             Velocity.UiVal = "0";
             Timeout.UiVal = "0";
@@ -55,9 +57,9 @@ namespace TwinCat_Motion_ADS
             ReversalDistance.UiVal = "0";
             OvershootDistance.UiVal = "0";
             EndSetpoint.UiVal = "0";
+            TestType.UiVal = TestTypes.NoneSelected.GetStringValue();
         }
-
-        //Method to import and export test settings
+       
         public SettingString TestTitle { get; set; } = new("testTitle");
         public SettingDouble Velocity { get; set; } = new("velocity");
         public SettingUint Timeout { get; set; } = new("timeout");
@@ -74,7 +76,9 @@ namespace TwinCat_Motion_ADS
         public SettingDouble OvershootDistance = new("overshootDistance");
         public SettingDouble EndSetpoint { get; set; } = new("endSetpoint");
 
-        
+        public SettingTestType TestType { get; set; } = new("testType");
+
+        //Method to import test settings (Export method is in test suite, is this right?)
         public void ImportSettingsXML(string ImportSettingsFile)
         {
             XmlDocument doc = new();
@@ -84,7 +88,6 @@ namespace TwinCat_Motion_ADS
             TestSuite.ImportSingleTestSettings(tli, testSettings);
             TestTitle.UiVal = tli.TestSettings.TestTitle.UiVal;
             Velocity.UiVal = tli.TestSettings.Velocity.UiVal;
-
             Timeout.UiVal = tli.TestSettings.Timeout.UiVal; ;
             Cycles.UiVal = tli.TestSettings.Cycles.UiVal; ;
             CycleDelaySeconds.UiVal = tli.TestSettings.CycleDelaySeconds.UiVal; ;
@@ -97,9 +100,51 @@ namespace TwinCat_Motion_ADS
             SettleTimeSeconds.UiVal = tli.TestSettings.SettleTimeSeconds.UiVal; ;
             ReversalDistance.UiVal = tli.TestSettings.ReversalDistance.UiVal; ;
             OvershootDistance.UiVal = tli.TestSettings.OvershootDistance.UiVal; ;
-
             EndSetpoint.UiVal = tli.TestSettings.EndSetpoint.UiVal;
         }    
+
+        public void ExportSettingsXml(string ExportSettingsFile, string axisNum)
+        {
+            XmlDocument doc = new();
+            XmlNode rootNode = doc.CreateElement("Settings");
+            doc.AppendChild(rootNode);
+            AddSettingsFields(doc, rootNode, axisNum);
+            doc.Save(ExportSettingsFile);
+        }
+
+        public void AddSettingsFields(XmlDocument xmlDoc, XmlNode parentNode, string axisNum)
+        {
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "testType", this.TestType.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "testTitle", this.TestTitle.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "axisId", axisNum.ToString());
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "velocity", this.Velocity.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "timeout", this.Timeout.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "cycles", this.Cycles.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "cycleDelaySeconds", this.CycleDelaySeconds.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalVelocity", this.ReversalVelocity.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalExtraTime", this.ReversalExtraTimeSeconds.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalSettleTime", this.ReversalSettleTimeSeconds.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "initialSetpoint", this.InitialSetpoint.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "numberOfSteps", this.NumberOfSteps.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "stepSize", this.StepSize.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "settleTime", this.SettleTimeSeconds.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "reversalDistance", this.ReversalDistance.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "overshootDistance", this.OvershootDistance.UiVal);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "endSetpoint", this.EndSetpoint.UiVal);
+        }
+
+        private static void CreateAndAppendXmlNode(XmlNode parentNode, XmlDocument doc, string ndName, string ndValue)
+        {
+            var node = CreateXmlNode(doc, ndName, ndValue);
+            parentNode.AppendChild(node);
+        }
+
+        private static XmlNode CreateXmlNode(XmlDocument doc, string ndName, string ndValue)
+        {
+            XmlNode xmlNode = doc.CreateElement(ndName);
+            xmlNode.InnerText = ndValue;
+            return xmlNode;
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
@@ -108,5 +153,21 @@ namespace TwinCat_Motion_ADS
         }
     }
 
-    
+    public enum TestTypes
+    {
+        [StringValue("EndToEnd")]
+        EndToEnd,
+        [StringValue("UnidirectionalAccuracy")]
+        UnidirectionalAccuracy,
+        [StringValue("BidirectionalAccuracy")]
+        BidirectionalAccuracy,
+        [StringValue("ScalingTest")]
+        ScalingTest,
+        [StringValue("BacklashDetection")]
+        BacklashDetection,
+        [StringValue("UserPrompt")]
+        UserPrompt,
+        [StringValue("NoneSelected")]
+        NoneSelected
+    }
 }

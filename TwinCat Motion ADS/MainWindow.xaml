@@ -70,9 +70,9 @@
         <!-- style the VSOnline -->
         <ControlTemplate x:Key="VsOnline" TargetType="MenuItem">
             <Border BorderThickness="1" Background="White" BorderBrush="#E0E0E0">
-                <StackPanel TextBlock.FontSize="15px" Height="40" Orientation="Horizontal" Background="#005A9E" x:Name="sPanel" >
-                    <Label Content="{TemplateBinding Header}" Margin="5" Foreground="White"  />
-                    <Image Source="icon_down.png" Height="20" Margin="0,0,5,0" />
+                <StackPanel Height="30" Orientation="Horizontal" Background="#005A9E" x:Name="sPanel" >
+                    <Label Content="{TemplateBinding Header}" Margin="5,0,0,0" Foreground="White" FontSize="18" />
+                    <Image Source="ImageAssets/ibexHead.jpg" Height="20" Margin="5,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>
 
                     <!-- sub items -->
                     <Popup IsOpen="{TemplateBinding IsSubmenuOpen}" AllowsTransparency="True" Focusable="False">
@@ -119,13 +119,14 @@
             <Border Background="#005A9E" Grid.Row="0" Grid.ColumnSpan="2"/>
             <Menu IsMainMenu="True" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
                   HorizontalAlignment="Left" Height="30" Background="{x:Null}">
-                <MenuItem x:Name="MeasureDevicesMenu" Header="Measurement Devices" Height="30" Width="195" Template="{StaticResource VsOnline}" Click="MeasureDevicesMenu_Click">
+                <MenuItem x:Name="MeasureDevicesMenu" Header="Measurement Devices" Height="30" Width="220" Template="{StaticResource VsOnline}" Click="MeasureDevicesMenu_Click">
                     <MenuItem Header="Add new device..." Click="AddNewDevice" Template="{StaticResource VsMenuSub}"/>
                     <MenuItem Header="Import devices..." Click="ImportDevices_Click" Template="{StaticResource VsMenuSub}"/>
                     <MenuItem Header="Export devices..." Click="ExportDevices_Click" Template="{StaticResource VsMenuSub}"/>
                     <Separator/>
                 </MenuItem>
-                <MenuItem x:Name="TestSuiteMenu" Header="Test Suite" Height="30" Width="195" Template="{StaticResource VsOnline}" Click="TestSuiteMenu_Click"/>
+                <MenuItem x:Name="TestSuiteMenu" Header="Test Suite" Height="30" Width="220" Template="{StaticResource VsOnline}" Click="TestSuiteMenu_Click"/>
+                <MenuItem x:Name="HelpMenu" Header="Help" Height="30" Width="220" Template="{StaticResource VsOnline}" Click="HelpMenu_Click"/>
             </Menu>
             <!-- Tabbed view selection -->
             <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
@@ -137,6 +138,7 @@
             <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="1">
                 <TextBox x:Name="amsNetIdTb" Height="20" Width="150" VerticalAlignment="Top" Margin="10,5,0,0"/>
                 <Button x:Name="connect2PlcButton" Focusable="False" Content="Connect to PLC" Click="ConnectToPlc_Click" Height="20" FontSize="16" VerticalAlignment="Top" Margin="10,5,0,0" Style="{StaticResource myDefaultButton}"/>
+                <Button x:Name="clearScreenButton" Focusable="False" Content="Clear Screen" Click="clearScreenButton_Click" Height="20" FontSize="16" VerticalAlignment="Top" Margin="10,5,0,0" Style="{StaticResource myDefaultButton}"/>
             </StackPanel>
 
             <!-- Content control window -->

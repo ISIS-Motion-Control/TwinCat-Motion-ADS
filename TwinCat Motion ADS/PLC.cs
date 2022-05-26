@@ -5,12 +5,14 @@ namespace TwinCat_Motion_ADS
 {
     public class PLC
     {
+        #region Properties
         private AdsClient _tcAds = new AdsClient();
         public AdsClient TcAds
         {
             get { return _tcAds; }
             set { _tcAds = value; }
         }
+
         private AdsState _adsState;
         public AdsState AdsState
         {
@@ -28,14 +30,17 @@ namespace TwinCat_Motion_ADS
                 _id = value; 
             }
         }
-        private int _port;
 
+        private int _port;
         public int Port
         {
             get { return _port; }
             set { _port = value; }
         }
 
+        #endregion
+
+        #region Constructor
         public PLC(string amsID, int port)
         {
             ID = amsID;
@@ -47,9 +52,9 @@ namespace TwinCat_Motion_ADS
             catch
             {
                 //Do Nothing - Usually means invalid AMS NET ID format
-            }
-                
+            }               
         }
+        #endregion
 
         public bool Connect()
         {
@@ -112,14 +117,12 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-
         public AdsState setupPLC()
         {
             if (checkConnection())
             { Console.WriteLine("Port open"); };
             //Connect();
-            return checkAdsState();
-            
+            return checkAdsState();            
         }
     }
 }

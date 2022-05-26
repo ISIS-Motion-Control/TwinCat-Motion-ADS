@@ -1,5 +1,8 @@
 ﻿using Ookii.Dialogs.Wpf;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -23,8 +26,21 @@ namespace TwinCat_Motion_ADS
         {
             InitializeComponent();
             windowData = (MainWindow)Application.Current.MainWindow;
-            //testAxis = new(1, windowData.Plc);
             SetupBinds();
+            //Cannot use our usual list of enums for item source as it cannot be modified
+            //Instead create a temporary holder for the list and create a new list from this with the UserPrompt type removed
+            //TestSelectionComboBox.ItemsSource = Enum.GetValues(typeof(TestTypes)).Cast<TestTypes>();
+            var tmpArray = Enum.GetValues(typeof(TestTypes)).Cast<TestTypes>();
+            List<TestTypes> cbSourceList = new();
+            foreach(var tmp in tmpArray)
+            {
+                cbSourceList.Add(tmp);
+            }
+            cbSourceList.Remove(TestTypes.UserPrompt);
+            
+            //Set source for combobox items
+            TestSelectionComboBox.ItemsSource = cbSourceList;
+            TestSelectionComboBox.SelectedItem = NcTestSettings.TestType.Val;
         }
 
 
@@ -45,14 +61,14 @@ namespace TwinCat_Motion_ADS
         {
             //Binds all the UI elemets to properties in the NC Axis
             XamlUI.TextBlockBinding(positionReadback.SettingValue, testAxis, "AxisPosition");
-            XamlUI.CheckBoxBinding(((TextBlock)enabledCheck.Content).Text, enabledCheck, testAxis, "AxisEnabled", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding(((TextBlock)fwEnabledCheck.Content).Text, fwEnabledCheck, testAxis, "AxisFwEnabled", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding(((TextBlock)bwEnabledCheck.Content).Text, bwEnabledCheck, testAxis, "AxisBwEnabled", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding(((TextBlock)errorCheck.Content).Text, errorCheck, testAxis, "Error", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding(((TextBlock)validAxis.Content).Text, validAxis, testAxis, "Valid", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)enabledCheck.Content, enabledCheck, testAxis, "AxisEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)fwEnabledCheck.Content, fwEnabledCheck, testAxis, "AxisFwEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)bwEnabledCheck.Content, bwEnabledCheck, testAxis, "AxisBwEnabled", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)errorCheck.Content, errorCheck, testAxis, "Error", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)validAxis.Content, validAxis, testAxis, "Valid", BindingMode.OneWay);
             XamlUI.TextBlockBinding(currentAxisReadback.SettingValue, testAxis, "AxisID","D");
-            XamlUI.CheckBoxBinding(((TextBlock)testCancelledCheck.Content).Text, testCancelledCheck, testAxis, "CancelTest", BindingMode.OneWay);
-            XamlUI.CheckBoxBinding(((TextBlock)testPausedCheck.Content).Text, testPausedCheck, testAxis, "PauseTest", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)testCancelledCheck.Content, testCancelledCheck, testAxis, "CancelTest", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding((string)testPausedCheck.Content, testPausedCheck, testAxis, "PauseTest", BindingMode.OneWay);
             
             
 
@@ -336,6 +352,205 @@ namespace TwinCat_Motion_ADS
         private void ncWindowGrid_MouseDown(object sender, MouseButtonEventArgs e)
         {
             ncWindowGrid.Focus();
+        }
+
+        private async void RunSelectedTestButton_Click(object sender, RoutedEventArgs e)
+        {
+            windowData.mainWindowGrid.Focus();
+            if (testAxis == null)
+            {
+                Console.WriteLine("No axis initialised");
+                return;
+            }
+            if (selectedFolder == string.Empty)
+            {
+                Console.WriteLine("No save directory selected");
+                return;
+            }
+            SetEnableOnUiElements(true);
+            switch(TestSelectionComboBox.SelectedItem)
+            {
+                case TestTypes.EndToEnd:
+                    if (await testAxis.LimitToLimitTestwithReversingSequence(NcTestSettings, windowData.MeasurementDevices))
+                    {
+                        Console.WriteLine("Test Complete");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Test did not complete");
+                    }
+                    break;
+                case TestTypes.UnidirectionalAccuracy:
+                    if (await testAxis.UniDirectionalAccuracyTest(NcTestSettings, windowData.MeasurementDevices))
+                    { }
+                    else
+                    {
+                        Console.WriteLine("Test did not complete");
+                    }
+                    break;
+                case TestTypes.BidirectionalAccuracy:
+                    if (await testAxis.BiDirectionalAccuracyTest(NcTestSettings, windowData.MeasurementDevices))
+                    { }
+                    else
+                    {
+                        Console.WriteLine("Test did not complete");
+                    }
+                    break;
+                case TestTypes.ScalingTest:
+                    if (await testAxis.ScalingTest(NcTestSettings, windowData.MeasurementDevices))
+                    { }
+                    else
+                    {
+                        Console.WriteLine("Test did not complete");
+                    }
+                    break;
+                case TestTypes.BacklashDetection:
+                    if (await testAxis.BacklashDetectionTest(NcTestSettings, windowData.MeasurementDevices))
+                    { }
+                    else
+                    {
+                        Console.WriteLine("Test did not complete");
+                    }
+                    break;
+                default:
+                    break;
+            }
+            SetEnableOnUiElements();
+        }
+
+        private void TestSelectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            NcTestSettings.TestType.UiVal = ((TestTypes)TestSelectionComboBox.SelectedItem).GetStringValue();
+            SetEnableOnUiElements();
+        }
+
+        private void SetEnableOnUiElements(bool lockout = false)
+        {
+            if (lockout)
+            {
+                SettingTitle.IsEnabled = false;
+                SettingTimeout.IsEnabled = false;
+                SettingVelocity.IsEnabled = false;
+                SettingCycles.IsEnabled = false;
+                SettingCycleDelay.IsEnabled = false;
+                SettingReversalVelocity.IsEnabled = false;
+                SettingReversalExtraSeconds.IsEnabled = false;
+                SettingReversalSettlingSeconds.IsEnabled = false;
+                SettingInitialSetpoint.IsEnabled = false;
+                SettingEndSetpoint.IsEnabled = false;
+                SettingAccuracySteps.IsEnabled = false;
+                SettingStepSize.IsEnabled = false;
+                SettingSettlingTime.IsEnabled = false;
+                SettingReversalDistance.IsEnabled = false;
+                SettingOvershootDistance.IsEnabled = false;
+                return;
+            }
+
+            switch (NcTestSettings.TestType.Val)
+            {
+                case TestTypes.EndToEnd:
+                    SettingTitle.IsEnabled = true;
+                    SettingCycles.IsEnabled = true;
+                    SettingCycleDelay.IsEnabled = true;
+                    SettingVelocity.IsEnabled = true;
+                    SettingTimeout.IsEnabled = true;                                        
+                    SettingReversalVelocity.IsEnabled = true;
+                    SettingReversalExtraSeconds.IsEnabled = true;
+                    SettingReversalSettlingSeconds.IsEnabled = true;
+                    SettingInitialSetpoint.IsEnabled = false;
+                    SettingEndSetpoint.IsEnabled = false;
+                    SettingAccuracySteps.IsEnabled = false;
+                    SettingStepSize.IsEnabled = false;
+                    SettingSettlingTime.IsEnabled = false;
+                    SettingReversalDistance.IsEnabled = false;
+                    SettingOvershootDistance.IsEnabled = false;
+                    break;
+                case TestTypes.UnidirectionalAccuracy:
+                    SettingTitle.IsEnabled = true;
+                    SettingCycles.IsEnabled = true;
+                    SettingCycleDelay.IsEnabled = true;
+                    SettingVelocity.IsEnabled = true;
+                    SettingTimeout.IsEnabled = true;
+                    SettingReversalVelocity.IsEnabled = false;
+                    SettingReversalExtraSeconds.IsEnabled = false;
+                    SettingReversalSettlingSeconds.IsEnabled = false;
+                    SettingInitialSetpoint.IsEnabled = true;
+                    SettingEndSetpoint.IsEnabled = false;
+                    SettingAccuracySteps.IsEnabled = true;
+                    SettingStepSize.IsEnabled = true;
+                    SettingSettlingTime.IsEnabled = true;
+                    SettingReversalDistance.IsEnabled = true;
+                    SettingOvershootDistance.IsEnabled = false;
+                    break;
+                case TestTypes.BidirectionalAccuracy:
+                    SettingTitle.IsEnabled = true;
+                    SettingCycles.IsEnabled = true;
+                    SettingCycleDelay.IsEnabled = true;
+                    SettingVelocity.IsEnabled = true;
+                    SettingTimeout.IsEnabled = true;
+                    SettingReversalVelocity.IsEnabled = false;
+                    SettingReversalExtraSeconds.IsEnabled = false;
+                    SettingReversalSettlingSeconds.IsEnabled = false;
+                    SettingInitialSetpoint.IsEnabled = true;
+                    SettingEndSetpoint.IsEnabled = false;
+                    SettingAccuracySteps.IsEnabled = true;
+                    SettingStepSize.IsEnabled = true;
+                    SettingSettlingTime.IsEnabled = true;
+                    SettingReversalDistance.IsEnabled = true;
+                    SettingOvershootDistance.IsEnabled = true;
+                    break;
+                case TestTypes.ScalingTest:
+                    SettingTitle.IsEnabled = true;
+                    SettingCycles.IsEnabled = true;
+                    SettingCycleDelay.IsEnabled = true;
+                    SettingVelocity.IsEnabled = true;
+                    SettingTimeout.IsEnabled = true;
+                    SettingReversalVelocity.IsEnabled = false;
+                    SettingReversalExtraSeconds.IsEnabled = false;
+                    SettingReversalSettlingSeconds.IsEnabled = false;
+                    SettingInitialSetpoint.IsEnabled = true;
+                    SettingEndSetpoint.IsEnabled = true;
+                    SettingAccuracySteps.IsEnabled = true;
+                    SettingStepSize.IsEnabled = true;
+                    SettingSettlingTime.IsEnabled = true;
+                    SettingReversalDistance.IsEnabled = true;
+                    SettingOvershootDistance.IsEnabled = false;
+                    break;
+                case TestTypes.BacklashDetection:
+                    SettingTitle.IsEnabled = true;
+                    SettingCycles.IsEnabled = true;
+                    SettingCycleDelay.IsEnabled = true;
+                    SettingVelocity.IsEnabled = true;
+                    SettingTimeout.IsEnabled = true;
+                    SettingReversalVelocity.IsEnabled = false;
+                    SettingReversalExtraSeconds.IsEnabled = false;
+                    SettingReversalSettlingSeconds.IsEnabled = false;
+                    SettingInitialSetpoint.IsEnabled = true;
+                    SettingEndSetpoint.IsEnabled = false;
+                    SettingAccuracySteps.IsEnabled = true;
+                    SettingStepSize.IsEnabled = true;
+                    SettingSettlingTime.IsEnabled = true;
+                    SettingReversalDistance.IsEnabled = true;
+                    SettingOvershootDistance.IsEnabled = false;
+                    break;
+                case TestTypes.NoneSelected:
+                    SettingTitle.IsEnabled = true;
+                    SettingCycles.IsEnabled = true;
+                    SettingCycleDelay.IsEnabled = true;
+                    SettingVelocity.IsEnabled = true;
+                    SettingTimeout.IsEnabled = true;
+                    SettingReversalVelocity.IsEnabled = true;
+                    SettingReversalExtraSeconds.IsEnabled = true;
+                    SettingReversalSettlingSeconds.IsEnabled = true;
+                    SettingInitialSetpoint.IsEnabled = true;
+                    SettingEndSetpoint.IsEnabled = true;
+                    SettingAccuracySteps.IsEnabled = true;
+                    SettingStepSize.IsEnabled = true;
+                    SettingSettlingTime.IsEnabled = true;
+                    SettingReversalDistance.IsEnabled = true;
+                    SettingOvershootDistance.IsEnabled = true;
+                    break;
+            }
         }
     }
 }

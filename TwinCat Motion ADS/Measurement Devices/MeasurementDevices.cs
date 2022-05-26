@@ -237,6 +237,9 @@ namespace TwinCat_Motion_ADS
                     case DeviceTypes.Timestamp:
                         Console.WriteLine("Importing Timestamp");
                         break;
+                    case DeviceTypes.RenishawXL80:
+                        Console.WriteLine("Importing Xl80");
+                        break;
                     default:
                         break;
                 }
@@ -247,7 +250,7 @@ namespace TwinCat_Motion_ADS
             return devices.Count;            
         }
 
-        public void ExportDeviceesXml(string selectedFile)
+        public void ExportDevicesXml(string selectedFile)
         {
             XmlDocument xmlDoc = new XmlDocument();
             XmlNode rootNode = xmlDoc.CreateElement("MeasurementDevices");
@@ -334,6 +337,9 @@ namespace TwinCat_Motion_ADS
                         deviceNode.AppendChild(varPathNode);
                         break;
                     case DeviceTypes.Timestamp:
+                        //No settings to export
+                        break;
+                    case DeviceTypes.RenishawXL80:
                         //No settings to export
                         break;
                 }
