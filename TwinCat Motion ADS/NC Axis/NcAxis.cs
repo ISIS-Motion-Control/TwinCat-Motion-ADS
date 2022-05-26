@@ -812,7 +812,7 @@ namespace TwinCat_Motion_ADS
             if (!SanityCheckSettings(testSettings, TestTypes.EndToEnd)) return false;
             //Update the progress scaler values based on current test and settings
             ResetAndCalculateProgressScalers(testSettings, TestTypes.EndToEnd);
-            
+            testSettings.TestType.Val = TestTypes.EndToEnd;
             //Check for pause or cancellation request
             await PauseTask(CancellationToken.None);
             if (IsTestCancelled()) return false;
@@ -820,7 +820,7 @@ namespace TwinCat_Motion_ADS
             //Setup test CSV and setting files
             string settingFileFullPath = GenerateSettingsPath(testSettings);
             string csvFileFullPath = GenerateCSVPath(testSettings);
-            SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.EndToEnd.GetStringValue());           
+            SaveSettingsFile(testSettings, settingFileFullPath);           
             StartCSV(csvFileFullPath, devices);
 
             //Set the test is running flag
@@ -947,7 +947,7 @@ namespace TwinCat_Motion_ADS
             if (!SanityCheckSettings(testSettings, TestTypes.UnidirectionalAccuracy)) return false;
             //Update the progress scaler values based on current test and settings
             ResetAndCalculateProgressScalers(testSettings, TestTypes.UnidirectionalAccuracy);
-
+            testSettings.TestType.Val = TestTypes.UnidirectionalAccuracy;
             //Check for pause or cancellation request
             await PauseTask(CancellationToken.None);
             if (IsTestCancelled()) return false;
@@ -955,7 +955,7 @@ namespace TwinCat_Motion_ADS
             //Setup test CSV and setting files
             string settingFileFullPath = GenerateSettingsPath(testSettings);
             string csvFileFullPath = GenerateCSVPath(testSettings);
-            SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.UnidirectionalAccuracy.GetStringValue());
+            SaveSettingsFile(testSettings, settingFileFullPath);
             StartCSV(csvFileFullPath, devices);
 
             //Set the test is running flag
@@ -1028,7 +1028,7 @@ namespace TwinCat_Motion_ADS
             if (!SanityCheckSettings(testSettings, TestTypes.BidirectionalAccuracy)) return false;
             //Update the progress scaler values based on current test and settings
             ResetAndCalculateProgressScalers(testSettings, TestTypes.BidirectionalAccuracy);
-
+            testSettings.TestType.Val = TestTypes.BidirectionalAccuracy;
             //Check for pause or cancellation request
             await PauseTask(CancellationToken.None);
             if (IsTestCancelled()) return false;
@@ -1036,7 +1036,7 @@ namespace TwinCat_Motion_ADS
             //Setup test CSV and setting files
             string settingFileFullPath = GenerateSettingsPath(testSettings);
             string csvFileFullPath = GenerateCSVPath(testSettings);
-            SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.BidirectionalAccuracy.GetStringValue());
+            SaveSettingsFile(testSettings, settingFileFullPath);
             StartCSV(csvFileFullPath, devices);
 
             //Set the test is running flag
@@ -1141,7 +1141,7 @@ namespace TwinCat_Motion_ADS
             if (!SanityCheckSettings(testSettings, TestTypes.ScalingTest)) return false;
             //Update the progress scaler values based on current test and settings
             ResetAndCalculateProgressScalers(testSettings, TestTypes.ScalingTest);
-
+            testSettings.TestType.Val = TestTypes.ScalingTest;
             //Check for pause or cancellation request
             await PauseTask(CancellationToken.None);
             if (IsTestCancelled()) return false;
@@ -1149,7 +1149,7 @@ namespace TwinCat_Motion_ADS
             //Setup test CSV and setting files
             string settingFileFullPath = GenerateSettingsPath(testSettings);
             string csvFileFullPath = GenerateCSVPath(testSettings);
-            SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.ScalingTest.GetStringValue());
+            SaveSettingsFile(testSettings, settingFileFullPath);
             StartCSV(csvFileFullPath, devices);
 
             //Set the test is running flag
@@ -1227,7 +1227,7 @@ namespace TwinCat_Motion_ADS
             if (!SanityCheckSettings(testSettings, TestTypes.BacklashDetection)) return false;
             //Update the progress scaler values based on current test and settings
             ResetAndCalculateProgressScalers(testSettings, TestTypes.BacklashDetection);
-
+            testSettings.TestType.Val = TestTypes.BacklashDetection;
             //Check for pause or cancellation request
             await PauseTask(CancellationToken.None);
             if (IsTestCancelled()) return false;
@@ -1235,7 +1235,7 @@ namespace TwinCat_Motion_ADS
             //Setup test CSV and setting files
             string settingFileFullPath = GenerateSettingsPath(testSettings);
             string csvFileFullPath = GenerateCSVPath(testSettings);
-            SaveSettingsFile(testSettings, settingFileFullPath, TestTypes.BacklashDetection.GetStringValue());
+            SaveSettingsFile(testSettings, settingFileFullPath);
             StartCSV(csvFileFullPath, devices);
 
             //Start stopwatch for time of test
@@ -1542,9 +1542,9 @@ namespace TwinCat_Motion_ADS
             
         }
 
-        private void SaveSettingsFile(NcTestSettings testSettings, string filePath, string testType)
+        private void SaveSettingsFile(NcTestSettings testSettings, string filePath)
         {
-            testSettings.ExportSettingsXml(filePath, "1", testType);
+            testSettings.ExportSettingsXml(filePath, "1");
         }
         #endregion
     }

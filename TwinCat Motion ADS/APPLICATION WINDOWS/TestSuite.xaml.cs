@@ -253,7 +253,7 @@ namespace TwinCat_Motion_ADS
             {
                 XmlNode testNode = xmlDoc.CreateElement("Test");
                 rootNode.AppendChild(testNode);
-                test.TestSettings.AddSettingsFields(xmlDoc, testNode, test.TestSettings.TestType.Val.GetStringValue(), test.AxisID);
+                test.TestSettings.AddSettingsFields(xmlDoc, testNode, test.AxisID);
 
                 //AddFields(xmlDoc, test, testNode);
             }

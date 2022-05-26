@@ -60,11 +60,6 @@
                         <!--Column 2 buttons-->
                         <StackPanel x:Name="testButtons" Margin="15,0,0,0">
                             <Button x:Name="folderDirSelect" Focusable="False" Content="Select Directory" Click="SelectFolderDirectory_Click" Margin="0,0,0,0" Style="{StaticResource myDefaultButton}"/>
-                            <Button x:Name="end2endTestWithReversal" Focusable="False" Content="End2EndwRev Test" Click="LimitToLimitTest_Click" Margin="0,10,0,0" Style="{StaticResource myBlueButton}"/>
-                            <Button x:Name="uniDirecitonalTest" Focusable="False" Content="uniDirectional" Click="UniDirecitonalTest_Click" Margin="0,10,0,0" Style="{StaticResource myBlueButton}"/>
-                            <Button x:Name="biDirecitonalTest" Focusable="False" Content="biDirectional" Click="BiDirecitonalTest_Click" Margin="0,10,0,0" Style="{StaticResource myBlueButton}"/>
-                            <Button x:Name="ScalingTestButton" Focusable="False" Content="ScalingTest" Click="ScalingTestButton_Click" Margin="0,10,0,0" Style="{StaticResource myBlueButton}"/>
-                            <Button x:Name="BacklashTestButton" Focusable="False" Content="BacklashTest" Click="BacklashTestButton_Click" Margin="0,10,0,0" Style="{StaticResource myBlueButton}"/>
                             <Button x:Name="cancelTest" Focusable="False" Content="Cancel Test" Click="CancelTest_Click" Margin="0,10,0,0" Style="{StaticResource myDefaultButton}"/>
                             <CheckBox x:Name="testCancelledCheck" HorizontalAlignment="Left" VerticalAlignment="Center" IsEnabled="False" Margin="5,5,0,0" Style="{StaticResource checkBoxTheme}" Content="Cancelled"/>
 
@@ -75,13 +70,10 @@
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <ComboBox x:Name="TestSelectionComboBox" Width="205" SelectionChanged="TestSelectionComboBox_SelectionChanged"/>
-                        <Button x:Name="RunSelectedTestButton" Focusable="False" Content="Run Selected" Click="RunSelectedTestButton_Click" Margin="5,0,0,0" Style="{StaticResource myBlueButton}"/>
+                        <ComboBox x:Name="TestSelectionComboBox" Width="285" SelectionChanged="TestSelectionComboBox_SelectionChanged" FontSize="24"/>
+                        <Button x:Name="RunSelectedTestButton" Focusable="False" Content="Run" Click="RunSelectedTestButton_Click" Margin="5,0,0,0" Style="{StaticResource myBlueButton}" Width="100"/>
 
                     </StackPanel>
-                    
-
-
                 </StackPanel>
                 
                 

@@ -103,18 +103,18 @@ namespace TwinCat_Motion_ADS
             EndSetpoint.UiVal = tli.TestSettings.EndSetpoint.UiVal;
         }    
 
-        public void ExportSettingsXml(string ExportSettingsFile, string axisNum, string testType)
+        public void ExportSettingsXml(string ExportSettingsFile, string axisNum)
         {
             XmlDocument doc = new();
             XmlNode rootNode = doc.CreateElement("Settings");
             doc.AppendChild(rootNode);
-            AddSettingsFields(doc, rootNode, testType, axisNum);
+            AddSettingsFields(doc, rootNode, axisNum);
             doc.Save(ExportSettingsFile);
         }
 
-        public void AddSettingsFields(XmlDocument xmlDoc, XmlNode parentNode, string testType, string axisNum)
+        public void AddSettingsFields(XmlDocument xmlDoc, XmlNode parentNode, string axisNum)
         {
-            CreateAndAppendXmlNode(parentNode, xmlDoc, "testType", testType);
+            CreateAndAppendXmlNode(parentNode, xmlDoc, "testType", this.TestType.UiVal);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "testTitle", this.TestTitle.UiVal);
             CreateAndAppendXmlNode(parentNode, xmlDoc, "axisId", axisNum.ToString());
             CreateAndAppendXmlNode(parentNode, xmlDoc, "velocity", this.Velocity.UiVal);
