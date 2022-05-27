@@ -51,7 +51,11 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
                 writer = new StreamWriter(RenishawServer);
                 string exeName = "Renishaw_XL80_App.exe";
                 string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, exeName);
+                //string exePath = "Renishaw_XL80_App.exe";
+                //Console.WriteLine(path);
+                //return true;
                 RenishawClient = Process.Start(path);
+                //RenishawClient = Process.Start(exePath);
                 CancellationTokenSource ct = new();
                 RenishawServer.WaitForConnectionAsync(ct.Token);
                 //Task connectionTask = Task.Run(() => RenishawServer.WaitForConnection(),ct.Token);
