@@ -8,6 +8,7 @@ using System.IO;
 using System.Globalization;
 using System.Windows;
 using System.Xml;
+using TwinCat_Motion_ADS.MeasurementDevice;
 
 namespace TwinCat_Motion_ADS
 {

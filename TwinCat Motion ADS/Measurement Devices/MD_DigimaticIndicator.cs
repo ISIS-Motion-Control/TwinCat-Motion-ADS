@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System;
 
-namespace TwinCat_Motion_ADS
+namespace TwinCat_Motion_ADS.MeasurementDevice
 {
     public class MD_DigimaticIndicator : BaseRs232MeasurementDevice, I_MeasurementDevice
     {

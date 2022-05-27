@@ -49,11 +49,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="APPLICATION WINDOWS\Backlash.png" />
-    <Resource Include="APPLICATION WINDOWS\Bidirectional.png" />
-    <Resource Include="APPLICATION WINDOWS\End2End.png" />
-    <Resource Include="APPLICATION WINDOWS\Scaling.png" />
-    <Resource Include="APPLICATION WINDOWS\Unidirectional.png" />
+    <Resource Include="APPLICATION WINDOWS\Help screen windows\ImageAssets\Backlash.png" />
+    <Resource Include="APPLICATION WINDOWS\Help screen windows\ImageAssets\Bidirectional.png" />
+    <Resource Include="APPLICATION WINDOWS\Help screen windows\ImageAssets\End2End.png" />
+    <Resource Include="APPLICATION WINDOWS\Help screen windows\ImageAssets\Scaling.png" />
+    <Resource Include="APPLICATION WINDOWS\Help screen windows\ImageAssets\Unidirectional.png" />
     <Resource Include="ImageAssets\babyIbex.jpg" />
     <Resource Include="ImageAssets\ibexHead.jpg" />
   </ItemGroup>
@@ -80,15 +80,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Update="APPLICATION WINDOWS\HelpScreen_Backlash.xaml">
+    <Page Update="APPLICATION WINDOWS\Help screen windows\HelpScreen_Backlash.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="APPLICATION WINDOWS\HelpScreen_Scaling.xaml">
+    <Page Update="APPLICATION WINDOWS\Help screen windows\HelpScreen_Scaling.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="APPLICATION WINDOWS\HelpScreen_Bidirectional.xaml">
+    <Page Update="APPLICATION WINDOWS\Help screen windows\HelpScreen_Bidirectional.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
     <Page Update="APPLICATION WINDOWS\HelpScreen_Unidirectional;.xaml">

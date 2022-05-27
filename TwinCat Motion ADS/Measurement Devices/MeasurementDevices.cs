@@ -4,7 +4,7 @@ using System.Configuration;
 using System.Windows;
 using System.Xml;
 
-namespace TwinCat_Motion_ADS
+namespace TwinCat_Motion_ADS.MeasurementDevice
 {
     [SettingsSerializeAs(SettingsSerializeAs.Xml)]
     public class MeasurementDevices

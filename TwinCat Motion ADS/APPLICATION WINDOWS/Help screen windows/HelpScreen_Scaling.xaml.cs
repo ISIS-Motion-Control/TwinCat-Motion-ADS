@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace TwinCat_Motion_ADS
+namespace TwinCat_Motion_ADS.Application_Windows
 {
     /// <summary>
     /// Interaction logic for HelpScreen_EndToEnd.xaml
     /// </summary>
-    public partial class HelpScreen_EndToEnd : UserControl
+    public partial class HelpScreen_Scaling : UserControl
     {
-        public HelpScreen_EndToEnd()
+        public HelpScreen_Scaling()
         {
             InitializeComponent();
         }

@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System;
 
-namespace TwinCat_Motion_ADS
+namespace TwinCat_Motion_ADS.MeasurementDevice
 {    
     public class MD_KeyenceTM3000 : BaseRs232MeasurementDevice, I_MeasurementDevice
     {

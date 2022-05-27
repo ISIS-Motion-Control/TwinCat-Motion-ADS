@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using TwinCAT.Ads;
 using System.Collections.ObjectModel;
 
-namespace TwinCat_Motion_ADS
+namespace TwinCat_Motion_ADS.MeasurementDevice
 {
     public class MD_MotionControllerChannel : BaseMeasurementDevice, I_MeasurementDevice
     {
