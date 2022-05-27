@@ -12,7 +12,7 @@ using System.Linq;
 using System.Diagnostics;
 using Nito.AsyncEx.Synchronous;
 
-namespace TwinCat_Motion_ADS
+namespace TwinCat_Motion_ADS.MeasurementDevice
 {
     public class MD_RenishawXL80 : BaseMeasurementDevice, I_MeasurementDevice
     {
@@ -143,7 +143,6 @@ namespace TwinCat_Motion_ADS
             writer.WriteLine("Laser");
             writer.Flush();
             messageBack = reader.ReadLine();
-            Console.WriteLine(messageBack);
             if (messageBack == "True")
             {
                 Tuple<string, int> ch1 = ("XL80_Measure", 1).ToTuple();
@@ -157,7 +156,6 @@ namespace TwinCat_Motion_ADS
             writer.WriteLine("Weather");
             writer.Flush();
             messageBack = reader.ReadLine();
-            Console.WriteLine(messageBack);
             if (messageBack == "True")
             {
                 Tuple<string, int> ch4 = ("AirTemp_Measure", 4).ToTuple();
@@ -194,10 +192,7 @@ namespace TwinCat_Motion_ADS
                 ChannelList.Add(ch16);
                 Tuple<string, int> ch17 = ("MaterialTemp3_Valid", 17).ToTuple();
                 ChannelList.Add(ch17);
-
-
             }
-
             NumberOfChannels = ChannelList.Count;
         }
     }

@@ -68,32 +68,32 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DeviceStream">
-      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\DeviceStream.dll</HintPath>
+      <HintPath>bin\Debug\DeviceStream.dll</HintPath>
     </Reference>
     <Reference Include="Interop.DX10SERVERLib">
-      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\Interop.DX10SERVERLib.dll</HintPath>
+      <HintPath>bin\Debug\Interop.DX10SERVERLib.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="LocalHost">
-      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\LocalHost.dll</HintPath>
+      <HintPath>bin\Debug\LocalHost.dll</HintPath>
     </Reference>
     <Reference Include="Renishaw.Calibration">
-      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\Renishaw.Calibration.dll</HintPath>
+      <HintPath>bin\Debug\Renishaw.Calibration.dll</HintPath>
     </Reference>
     <Reference Include="Renishaw.Calibration.ServiceModel">
-      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\Renishaw.Calibration.ServiceModel.dll</HintPath>
+      <HintPath>bin\Debug\Renishaw.Calibration.ServiceModel.dll</HintPath>
     </Reference>
     <Reference Include="Renishaw.IO">
-      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\Renishaw.IO.dll</HintPath>
+      <HintPath>bin\Debug\Renishaw.IO.dll</HintPath>
     </Reference>
     <Reference Include="RenishawDX10Service">
-      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\RenishawDX10Service.dll</HintPath>
+      <HintPath>bin\Debug\RenishawDX10Service.dll</HintPath>
     </Reference>
     <Reference Include="RenishawLaserService">
-      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\RenishawLaserService.dll</HintPath>
+      <HintPath>bin\Debug\RenishawLaserService.dll</HintPath>
     </Reference>
     <Reference Include="RenishawWeatherStationService">
-      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\RenishawWeatherStationService.dll</HintPath>
+      <HintPath>bin\Debug\RenishawWeatherStationService.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -108,16 +108,16 @@
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
     <Reference Include="UsbIo">
-      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\UsbIo.dll</HintPath>
+      <HintPath>bin\Debug\UsbIo.dll</HintPath>
     </Reference>
     <Reference Include="UsbTmc">
-      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\UsbTmc.dll</HintPath>
+      <HintPath>bin\Debug\UsbTmc.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="XLLaserSystem">
-      <HintPath>..\..\..\..\..\..\Documents\LaserApi 1.4\bin\Debug\XLLaserSystem.dll</HintPath>
+      <HintPath>bin\Debug\XLLaserSystem.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

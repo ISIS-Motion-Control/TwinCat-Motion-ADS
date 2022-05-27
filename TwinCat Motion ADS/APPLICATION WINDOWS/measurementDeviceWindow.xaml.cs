@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using TwinCat_Motion_ADS.MeasurementDevice;
 
 namespace TwinCat_Motion_ADS
 {

@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using TwinCat_Motion_ADS.Application_Windows;
 
 namespace TwinCat_Motion_ADS
 {
@@ -34,27 +35,22 @@ namespace TwinCat_Motion_ADS
         {
             if(((MenuItem)sender) == EndToEnd)
             {
-                Console.WriteLine("Hit : END2END");
                 helpWindow.Content = helpScreen_EndToEnd;
             }
             if (((MenuItem)sender) == Unidirectional)
             {
-                Console.WriteLine("Hit : UNI");
                 helpWindow.Content = helpScreen_Unidirectional;
             }
             if (((MenuItem)sender) == Bidirectional)
             {
-                Console.WriteLine("Hit : BiDi");                
                 helpWindow.Content = helpScreen_Bidirectional;
             }
             if (((MenuItem)sender) == Scaling)
             {
-                Console.WriteLine("Hit : Scaling");
                 helpWindow.Content = helpScreen_Scaling;
             }
             if (((MenuItem)sender) == Backlash)
             {
-                Console.WriteLine("Hit : Backlash");
                 helpWindow.Content = helpScreen_Backlash;
             }
         }

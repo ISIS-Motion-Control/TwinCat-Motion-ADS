@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Nito.AsyncEx;
 
-namespace TwinCat_Motion_ADS
+namespace TwinCat_Motion_ADS.MeasurementDevice
 {
     public class MD_Beckhoff : BaseMeasurementDevice, I_MeasurementDevice
     {

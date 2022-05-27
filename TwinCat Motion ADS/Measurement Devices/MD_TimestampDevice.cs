@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TwinCat_Motion_ADS
+namespace TwinCat_Motion_ADS.MeasurementDevice
 {    
     public class MD_TimestampDevice : BaseMeasurementDevice, I_MeasurementDevice
     {

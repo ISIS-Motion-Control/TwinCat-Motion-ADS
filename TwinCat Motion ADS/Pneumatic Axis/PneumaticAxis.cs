@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using TwinCat_Motion_ADS.MeasurementDevice;
 
 namespace TwinCat_Motion_ADS
 {

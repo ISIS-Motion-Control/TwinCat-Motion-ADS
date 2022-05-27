@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TwinCat_Motion_ADS
+namespace TwinCat_Motion_ADS.MeasurementDevice
 {
     public interface I_MeasurementDevice
     {
