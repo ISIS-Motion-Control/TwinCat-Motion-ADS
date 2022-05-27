@@ -7,6 +7,7 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon />
     <StartupObject />
+    <AssemblyName>TwinCAT ADS Commissioning Tools</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
