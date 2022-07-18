@@ -20,9 +20,26 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Windows.Threading;
+using Renishaw.IO.Bluetooth;
+using Renishaw.IO;
+using System.Threading.Tasks;
+using Renishaw.Calibration.Devices.XR;
 
 namespace Renishaw_XL80_App
 {
+    public class MyDelay : IDelay
+    {
+        public async Task Delay(int milliseconds)
+        {
+            await Task.Delay(milliseconds);
+        }
+
+        public async Task Delay(int milliseconds, CancellationToken token)
+        {
+            await Task.Delay(milliseconds, token);;
+        }
+    }
+
     [CallbackBehavior(UseSynchronizationContext = false)]
     public partial class MainWindow : Window, ILaserSystemCallback, IWeatherStationCallback
     {      
@@ -32,17 +49,21 @@ namespace Renishaw_XL80_App
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
         [DllImport("user32.dll")]
         private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
-
         
         //Local hosts are required to establish and setup the USB connection
         LocalXCHost xcHost = null;
         LocalXLHost xlHost = null;
+        BluetoothDeviceDiscoverer discoverer = new Renishaw.IO.Bluetooth.BluetoothDeviceDiscoverer();
+        
 
         //Measurement systems and custom renishaw classes
         private WeatherStationClient m_ws;
         private LaserSystemClient m_laser;
+
+
         private Edlen m_edlen;
         private MaterialExpansion m_expansion;
+
 
         private bool _Connected;
         public bool Connected
@@ -76,6 +97,7 @@ namespace Renishaw_XL80_App
         //constructor
         public MainWindow()
         {
+            
             InitializeComponent();
             m_SynchronizationContext = SynchronizationContext.Current;
             
@@ -91,7 +113,7 @@ namespace Renishaw_XL80_App
             //Set default console to the laser listbox
             Console.SetOut(lbw);
 
-            ConnectToServer();
+            //ConnectToServer();
 
             try
             {
@@ -102,9 +124,116 @@ namespace Renishaw_XL80_App
             {
                 MessageBox.Show("Unable to create XLHost");
             }
+            
+        }
+        public BluetoothEndPoint XR20_Endpoint;
+        public XR20BluetoothConnector xrConnector;
+
+        private async void button_XR20Test_Click(object sender, RoutedEventArgs e)
+        {
+            bluetoothDevices.Add(BluetoothDeviceType.XR20_W);
+            await TestXR20Code();
+        }
+        private List<BluetoothDeviceType> bluetoothDevices = new List<Renishaw.IO.Bluetooth.BluetoothDeviceType>();
+
+        private async Task TestXR20Code()
+        {
+            await discoverer.ScanForBluetoothDevicesAsync(bluetoothDevices, testCallback, CancellationToken.None);
+        }
+        public MyDelay myDelay = new MyDelay();
+        XRDevice xrDevice;
+        private async void testCallback(DiscoveredBluetoothDevice device)
+        {
+            MessageBox.Show("Got a hit");
+            MessageBox.Show(device.SerialNumber);
+            XR20_Endpoint = device.EndPoint;
+            Renishaw.Calibration.Devices.Infrastructure.BluetoothConnector bleConnector = new Renishaw.Calibration.Devices.Infrastructure.BluetoothConnector();
+
+            
+            xrConnector = new XR20BluetoothConnector(bleConnector, myDelay);    //we do want this
+   
+            ITimer myTimer = new RealTimer();
+            xrDevice = new XRDevice(XR20_Endpoint, xrConnector, myTimer);
+            await xrDevice.Open();
+            MessageBox.Show("Up to here");
+            MessageBox.Show(xrDevice.SerialNumber);
+            
+
+        }
+        private async void button_XR20Test_Copy_Click(object sender, RoutedEventArgs e)
+        {
+            if (xrDevice == null) return;
+            await xrDevice.MoveRelativeAsync(90, 3, CancellationToken.None);
+            MessageBox.Show("Move Done");
+        }
+        private async void button_Unlock_Click(object sender, RoutedEventArgs e)
+        {
+            if (xrDevice == null) return;
+            try
+            {
+                await xrDevice.UnlockAsync(CancellationToken.None);
+            }
+            catch
+            {
+                MessageBox.Show("UnlockTimeout");
+                return;
+            }
+            await xrDevice.UnlockAsync(CancellationToken.None);
+            MessageBox.Show("Unlock Done");
+        }
+        private async void button_lock_Click(object sender, RoutedEventArgs e)
+        {
+            if (xrDevice == null) return;
+            try
+            {
+                await xrDevice.LockAsync(CancellationToken.None);
+            }
+            catch
+            {
+                MessageBox.Show("Lock Timeout");
+                return;
+            }           
+            MessageBox.Show("Lock Done");
+        }
+        private async void button_reference_Click(object sender, RoutedEventArgs e)
+        {
+            if (xrDevice == null) return;
+            try
+            {
+                Task refTask = xrDevice.ReferenceAsync(CancellationToken.None);
+                
+                //await xrDevice.StartSweepAsync(Renishaw.Calibration.Devices.Constants.RotaryDirectionKind.Clockwise, 15);
+                await refTask;
+            }
+            catch
+            {
+                MessageBox.Show("Reference Timeout");
+                return;
+            }
+            MessageBox.Show("Reference Done");
+        }
+        private void button_XR20_Reading_Click(object sender, RoutedEventArgs e)
+        {
+            if (xrDevice == null) return;
+            XR20Reading reading = xrDevice.LatestReading;
+            
+            MessageBox.Show(reading.Position.ToString());
+        }
+        private async void button_XR20_Zero_Click(object sender, RoutedEventArgs e)
+        {
+            if (xrDevice == null) return;
+            try
+            {
+                await xrDevice.MoveAbsoluteAsync(0,15,CancellationToken.None);
+            }
+            catch
+            {
+                MessageBox.Show("Zero Timeout");
+                return;
+            }
+            MessageBox.Show("Zero Done");
         }
 
-       
         private async void SendMessage(string value)
         {
             if (SendInProgress) return;
@@ -681,7 +810,13 @@ namespace Renishaw_XL80_App
             lbw_Weather.WriteLine("Material temperature[1]: " + record[1].ToString());
             lbw_Weather.WriteLine("Material temperature[2]: " + record[2].ToString());
         }
+
+
+
+
         #endregion
+
+       
     }
 
     public class ListBoxStatusItem

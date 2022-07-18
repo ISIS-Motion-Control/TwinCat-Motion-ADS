@@ -68,7 +68,9 @@
                         <Button x:Name="button_LaserReadPreset" Width="120" Height="30" Content="Read Preset" Margin="0,0,0,5" Click="button_LaserReadPreset_Click"/>
                         <Button x:Name="button_LaserConnectionStatus" Width="120" Height="30" Content="Connection Status" Margin="0,0,0,5" Click="button_LaserConnectionStatus_Click"/>
                         <Button x:Name="button_LaserAveraging" Width="120" Height="30" Content="Read Averaging" Margin="0,0,0,5" Click="button_LaserAveraging_Click"/>
-
+                        <Button x:Name="button_Unlock" Width="120" Height="30" Content="XR20 Unlock" Margin="0,0,0,5" Click="button_Unlock_Click"/>
+                        <Button x:Name="button_lock" Width="120" Height="30" Content="XR20 lock" Margin="0,0,0,5" Click="button_lock_Click"/>
+                        <Button x:Name="button_reference" Width="120" Height="30" Content="XR20 Reference" Margin="0,0,0,5"/>
                     </StackPanel>
                     <StackPanel x:Name="SP_LaserButtons_Col3" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0">
                         <Button x:Name="button_LaserVersion" Width="120" Height="30" Content="Version" Margin="0,0,0,5" Click="button_LaserVersion_Click"/>
@@ -76,7 +78,10 @@
                         <Button x:Name="button_LaserDeviceInfo" Width="120" Height="30" Content="Read Device Info" Margin="0,0,0,5" Click="button_LaserDeviceInfo_Click"/>
                         <Button x:Name="button_LaserMaterialExpCoeff" Width="120" Height="30" Content="Read Mat. Exp. Coeff" Margin="0,0,0,5" Click="button_LaserMaterialExpCoeff_Click"/>
                         <Button x:Name="button_LaserTrigger" Width="120" Height="30" Content="Trigger" Margin="0,0,0,5" Click="button_LaserTrigger_Click"/>
-
+                        <Button x:Name="button_XR20Test" Width="120" Height="30" Content="Xr20" Click="button_XR20Test_Click"/>
+                        <Button x:Name="button_XR20Test_Copy" Width="120" Height="30" Content="Xr20Do STuff" Click="button_XR20Test_Copy_Click" />
+                        <Button x:Name="button_XR20_Reading" Width="120" Height="30" Content="Xr20 Reading" Click="button_XR20_Reading_Click" />
+                        <Button x:Name="button_XR20_Zero" Width="120" Height="30" Content="Xr20 Go to 0" Click="button_XR20_Zero_Click"  />
                     </StackPanel>
 
                 </StackPanel>

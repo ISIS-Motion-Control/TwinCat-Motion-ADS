@@ -335,10 +335,9 @@ namespace TwinCat_Motion_ADS
 
         private void HelpMenu_Click(object sender, RoutedEventArgs e)
         {
-            if(HelpWindow == null)
-            {
-                HelpWindow = new();
-            }
+            HelpWindow = new();
+
+            
             HelpWindow.Show();
         }
     }
