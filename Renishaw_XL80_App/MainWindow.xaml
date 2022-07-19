@@ -70,7 +70,10 @@
                         <Button x:Name="button_LaserAveraging" Width="120" Height="30" Content="Read Averaging" Margin="0,0,0,5" Click="button_LaserAveraging_Click"/>
                         <Button x:Name="button_Unlock" Width="120" Height="30" Content="XR20 Unlock" Margin="0,0,0,5" Click="button_Unlock_Click"/>
                         <Button x:Name="button_lock" Width="120" Height="30" Content="XR20 lock" Margin="0,0,0,5" Click="button_lock_Click"/>
-                        <Button x:Name="button_reference" Width="120" Height="30" Content="XR20 Reference" Margin="0,0,0,5"/>
+                        <Button x:Name="button_reference" Width="120" Height="30" Content="XR20 Reference" Margin="0,0,0,5" Click="button_reference_Click"/>
+                        <Button x:Name="button_test1" Width="120" Height="30" Content="XR20 Test1" Margin="0,0,0,5" Click="button_test1_Click"/>
+                        <Button x:Name="button_test2" Width="120" Height="30" Content="XR20 Test2" Margin="0,0,0,5" Click="button_test2_Click"/>
+                        <Button x:Name="button_test3" Width="120" Height="30" Content="XR20 Test3" Margin="0,0,0,5"/>
                     </StackPanel>
                     <StackPanel x:Name="SP_LaserButtons_Col3" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0">
                         <Button x:Name="button_LaserVersion" Width="120" Height="30" Content="Version" Margin="0,0,0,5" Click="button_LaserVersion_Click"/>

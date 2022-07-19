@@ -150,21 +150,30 @@ namespace Renishaw_XL80_App
             Renishaw.Calibration.Devices.Infrastructure.BluetoothConnector bleConnector = new Renishaw.Calibration.Devices.Infrastructure.BluetoothConnector();
 
             
-            xrConnector = new XR20BluetoothConnector(bleConnector, myDelay);    //we do want this
+            xrConnector = new XR20BluetoothConnector(bleConnector, myDelay);    //we do want this just don't connect!
    
             ITimer myTimer = new RealTimer();
             xrDevice = new XRDevice(XR20_Endpoint, xrConnector, myTimer);
             await xrDevice.Open();
-            MessageBox.Show("Up to here");
-            MessageBox.Show(xrDevice.SerialNumber);
-            
-
+            SubscribeToEvent(xrDevice);
         }
+        private void SubscribeToEvent(XRDevice xrDevice) => xrDevice.LatestReadingUpdated += this.MyEventHandler;
+        private void MyEventHandler(object sender, EventArgs args)
+        {
+            XR20Reading reading = (sender as XRDevice).LatestReading;
+            Application.Current.Dispatcher.BeginInvoke(
+            DispatcherPriority.Background,
+            new Action(() => {
+                Console.WriteLine(reading.Position + " : " + reading.Status);
+            }));
+        }
+
         private async void button_XR20Test_Copy_Click(object sender, RoutedEventArgs e)
         {
             if (xrDevice == null) return;
             await xrDevice.MoveRelativeAsync(90, 3, CancellationToken.None);
             MessageBox.Show("Move Done");
+            await xrDevice.DisableServosAsync(CancellationToken.None);
         }
         private async void button_Unlock_Click(object sender, RoutedEventArgs e)
         {
@@ -204,6 +213,11 @@ namespace Renishaw_XL80_App
                 
                 //await xrDevice.StartSweepAsync(Renishaw.Calibration.Devices.Constants.RotaryDirectionKind.Clockwise, 15);
                 await refTask;
+                if (refTask.IsCompleted)
+                {
+                    MessageBox.Show("Did complete task");
+                }
+                await xrDevice.DisableServosAsync(CancellationToken.None);
             }
             catch
             {
@@ -233,6 +247,8 @@ namespace Renishaw_XL80_App
             }
             MessageBox.Show("Zero Done");
         }
+        
+        
 
         private async void SendMessage(string value)
         {
@@ -354,7 +370,7 @@ namespace Renishaw_XL80_App
             SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_SYSMENU);
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void Window_Closing(object sender, CancelEventArgs e)
         {
             if (xlHost != null)
             {
@@ -814,9 +830,26 @@ namespace Renishaw_XL80_App
 
 
 
+
         #endregion
 
-       
+        private void button_reference_Click_1(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void button_test1_Click(object sender, RoutedEventArgs e)
+        {
+            ConnectionStatus status = new ConnectionStatus();
+            status = xrDevice.ConnectionStatus;
+            MessageBox.Show(status.ToString());
+            
+        }
+
+        private void button_test2_Click(object sender, RoutedEventArgs e)
+        {
+            xrDevice.ClearSign();
+        }
     }
 
     public class ListBoxStatusItem
