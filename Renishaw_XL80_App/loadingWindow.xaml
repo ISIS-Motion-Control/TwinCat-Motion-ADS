@@ -1,0 +1,17 @@
+﻿<Window x:Class="Renishaw_XL80_App.loadingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Renishaw_XL80_App"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
+        mc:Ignorable="d"
+        Title="loadingWindow" Height="250" Width="700" Loaded="Window_Loaded">
+    <StackPanel>
+        <Border BorderBrush="Black">
+            <Image gif:ImageBehavior.AnimatedSource="searchingGif.gif" Height="200"/>
+        </Border>
+        <Button x:Name="button_cancelSearch" Width="140" Height="30" Content="Cancel search" Margin="0,0,0,5" Click="button_cancelSearch_Click" />
+    </StackPanel>
+    
+</Window>
