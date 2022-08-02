@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using TwinCat_Motion_ADS.MeasurementDevice;
+using TwinCat_Motion_ADS.APPLICATION_WINDOWS;
 
 namespace TwinCat_Motion_ADS
 {
@@ -21,6 +22,7 @@ namespace TwinCat_Motion_ADS
         public HelpWindow HelpWindow;
         public NcAxisView NcAxisView;
         public AirAxisView AirAxisView;
+        public AutomationView AutomationView;
         public bool windowClosing = false;
 
         public MeasurementDevices MeasurementDevices = new();
@@ -76,6 +78,7 @@ namespace TwinCat_Motion_ADS
             }
             NcAxisView = new();
             AirAxisView = new();
+            AutomationView = new();
             tabbedWindow.Content = NcAxisView;
            
         }
@@ -319,6 +322,10 @@ namespace TwinCat_Motion_ADS
             else if(((RadioButton)sender)== AirAxis)
             {
                 tabbedWindow.Content = AirAxisView;
+            }
+            else if(((RadioButton)sender)== Automation)
+            {
+                tabbedWindow.Content = AutomationView;
             }
         }
         

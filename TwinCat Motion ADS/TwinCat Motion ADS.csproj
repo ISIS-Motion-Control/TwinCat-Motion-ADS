@@ -35,8 +35,21 @@
   </ItemGroup>
 
   <ItemGroup>
+    <COMReference Include="TCatSysManagerLib">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>3</VersionMinor>
+      <VersionMajor>3</VersionMajor>
+      <Guid>3c49d6c3-93dc-11d0-b162-00a0248c244b</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Beckhoff.TwinCAT.Ads" Version="5.0.458" />
     <PackageReference Include="CsvHelper" Version="27.1.1" />
+    <PackageReference Include="envdte" Version="17.2.32505.113" />
     <PackageReference Include="Nito.AsyncEx.Context" Version="5.1.2" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="3.1.0" />
     <PackageReference Include="System.IO.Ports" Version="5.0.1" />
