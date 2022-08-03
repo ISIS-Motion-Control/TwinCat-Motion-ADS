@@ -77,7 +77,13 @@ namespace TwinCat_Motion_ADS.APPLICATION_WINDOWS
 
         private void Button_SelectConfig_Click(object sender, RoutedEventArgs e)
         {
+            var fbd = new VistaFolderBrowserDialog();
 
+            if (fbd.ShowDialog() == true)
+            {
+                autoInterface.ConfigFolder = fbd.SelectedPath;
+            }
+            Console.WriteLine(fbd.SelectedPath);
         }
 
         private void Button_SetupSolution_Click(object sender, RoutedEventArgs e)
