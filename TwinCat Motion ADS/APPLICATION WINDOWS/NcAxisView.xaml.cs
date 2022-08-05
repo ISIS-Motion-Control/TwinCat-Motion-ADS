@@ -2,7 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -551,6 +554,18 @@ namespace TwinCat_Motion_ADS
                     SettingOvershootDistance.IsEnabled = true;
                     break;
             }
+        }
+
+
+        
+        
+        
+
+        
+        private void HTTPTest_Click(object sender, RoutedEventArgs e)
+        {
+           
+            testAxis.SendHttpRequest("My Test System", "Axis Error");
         }
     }
 }

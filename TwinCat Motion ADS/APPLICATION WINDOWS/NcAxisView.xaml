@@ -74,6 +74,8 @@
                         <Button x:Name="RunSelectedTestButton" Focusable="False" Content="Run" Click="RunSelectedTestButton_Click" Margin="5,0,0,0" Style="{StaticResource myBlueButton}" Width="100"/>
 
                     </StackPanel>
+                    <Button x:Name="HTTPTest" Content="Send HTTP Request" Height="20" FontSize="16" Margin="10,5,0,0" Click="HTTPTest_Click"/>
+
                 </StackPanel>
 
 
