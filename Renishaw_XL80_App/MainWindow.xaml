@@ -3,9 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
         xmlns:local="clr-namespace:Renishaw_XL80_App"
         mc:Ignorable="d"
-        Title="XL80 Configurator" Height="720" Width="910" WindowStyle="ThreeDBorderWindow" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="XL80 Configurator" Height="720" Width="1385" WindowStyle="ThreeDBorderWindow" Loaded="Window_Loaded" Closing="Window_Closing">
 
     <StackPanel Orientation="Horizontal">
         <Border BorderBrush="Black" BorderThickness="1" Margin="10,10,10,10" HorizontalAlignment="Left" Background="AliceBlue">
@@ -68,7 +69,6 @@
                         <Button x:Name="button_LaserReadPreset" Width="120" Height="30" Content="Read Preset" Margin="0,0,0,5" Click="button_LaserReadPreset_Click"/>
                         <Button x:Name="button_LaserConnectionStatus" Width="120" Height="30" Content="Connection Status" Margin="0,0,0,5" Click="button_LaserConnectionStatus_Click"/>
                         <Button x:Name="button_LaserAveraging" Width="120" Height="30" Content="Read Averaging" Margin="0,0,0,5" Click="button_LaserAveraging_Click"/>
-
                     </StackPanel>
                     <StackPanel x:Name="SP_LaserButtons_Col3" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0">
                         <Button x:Name="button_LaserVersion" Width="120" Height="30" Content="Version" Margin="0,0,0,5" Click="button_LaserVersion_Click"/>
@@ -76,7 +76,6 @@
                         <Button x:Name="button_LaserDeviceInfo" Width="120" Height="30" Content="Read Device Info" Margin="0,0,0,5" Click="button_LaserDeviceInfo_Click"/>
                         <Button x:Name="button_LaserMaterialExpCoeff" Width="120" Height="30" Content="Read Mat. Exp. Coeff" Margin="0,0,0,5" Click="button_LaserMaterialExpCoeff_Click"/>
                         <Button x:Name="button_LaserTrigger" Width="120" Height="30" Content="Trigger" Margin="0,0,0,5" Click="button_LaserTrigger_Click"/>
-
                     </StackPanel>
 
                 </StackPanel>
@@ -179,6 +178,106 @@
 
                 </StackPanel>
                 <ListBox x:Name="consoleListBoxWeather" local:ListBoxBehavior.ScrollOnNewItem="True" Margin="0,35,0,5" ScrollViewer.VerticalScrollBarVisibility="Visible" Width="420" Height="315">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="220"/>
+                                    <ColumnDefinition Width="100"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="16"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding statusMessage}" FontSize="10" />
+                                <TextBlock Grid.Column="1" Text="{Binding timestamp}" FontSize="10" Margin="20,0,0,0" TextAlignment="Right"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+            </StackPanel>
+        </Border>
+        <Border BorderBrush="Black" BorderThickness="1" Margin="10,10,10,10" HorizontalAlignment="Left" Background="AliceBlue">
+            <StackPanel Width="460" Orientation="Vertical">
+                <StackPanel x:Name="sp_XR20">
+                    <TextBlock Text="XR20 Rotary Axis Calibrator" FontSize="16" Margin="25,0,0,0"/>
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="Readiing" Width="80" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xrReadingValue" Width="100" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="Status" Width="80" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xrReadingStatus" Width="100" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="Battery Level" Width="80" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xrBatteryLevel" Width="100" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="Velocity" Width="120" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xrVelocity" Width="120" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="N/A" Width="120" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xr5" Width="120" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="N/A" Width="120" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xr6" Width="120" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="5,5,0,0">
+                                <Border Height="20" Margin="5,0,0,0">
+                                    <TextBlock Text="N/A" Width="120" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBox x:Name="textbox_xr7" Width="120" Margin="0,0,5,5" Height="20"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+
+
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <StackPanel x:Name="SP_XrButtons_Col1" HorizontalAlignment="Left" Margin="5,5,0,0">
+                        <Button x:Name="button_xr_search" Width="140" Height="30" Content="Search for devices" Margin="0,0,0,5" Click="button_xr_search_Click" />
+                        <Button x:Name="button_xrClearScreen" Width="140" Height="30" Content="Clear Screen" Margin="0,0,0,5" Click="button_xrClearScreen_Click" />
+                        <Button x:Name="button_xrDatum" Width="140" Height="30" Content="Datum" Margin="0,0,0,5" Click="button_xrDatum_Click" />
+                        <Button x:Name="button_xrConnectionStatus" Width="140" Height="30" Content="Connection Status" Margin="0,0,0,5" Click="button_xrConnectionStatus_Click" />
+
+                    </StackPanel>
+                    <StackPanel x:Name="SP_XrButtons_Col2" HorizontalAlignment="Left" Margin="5,5,0,0">
+                        <Button x:Name="button_xrReference" Width="140" Height="30" Content="Reference" Margin="0,0,0,5" Click="button_xrReference_Click" />
+                        <Button x:Name="button_xrLock" Width="140" Height="30" Content="Lock Rotation" Margin="0,0,0,5" Click="button_xrLock_Click" />
+                        <Button x:Name="button_xrSweepClockwise" Width="140" Height="30" Content="Sweep+" Margin="0,0,0,5" Click="button_xrSweepClockwise_Click" />
+
+                    </StackPanel>
+                    <StackPanel x:Name="SP_XrButtons_Col3"  HorizontalAlignment="Left" Margin="5,5,0,0">
+                        <Button x:Name="button_xrDisableServos" Width="140" Height="30" Content="Disable Servos" Margin="0,0,0,5" Click="button_xrDisableServos_Click" />
+                        <Button x:Name="button_xrUnlock" Width="140" Height="30" Content="Unlock Rotation" Margin="0,0,0,5" Click="button_xrUnlock_Click" />
+                        <Button x:Name="button_xrSweepAntiClockwise" Width="140" Height="30" Content="Sweep-" Margin="0,0,0,5" Click="button_xrSweepAntiClockwise_Click" />
+
+                    </StackPanel>
+
+
+                </StackPanel>
+
+                <ListBox x:Name="consoleListBoxXr" local:ListBoxBehavior.ScrollOnNewItem="True" Margin="0,35,0,5" ScrollViewer.VerticalScrollBarVisibility="Visible" Width="420" Height="315">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid Margin="0,2">

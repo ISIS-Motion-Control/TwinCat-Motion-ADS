@@ -160,6 +160,7 @@ namespace TwinCat_Motion_ADS
                 AxisBwEnabled = (await Plc.TcAds.ReadAnyAsync<bool>(bBwEnabledHandle, CancellationToken.None)).Value;
                 Error = (await Plc.TcAds.ReadAnyAsync<bool>(bErrorHandle, CancellationToken.None)).Value;
                 Done = (await Plc.TcAds.ReadAnyAsync<bool>(bDoneHandle, CancellationToken.None)).Value;
+                Task.Delay(defaultReadTime).Wait(); //new untested line
             }
             AxisPosition = -999;
             AxisBusy = false;

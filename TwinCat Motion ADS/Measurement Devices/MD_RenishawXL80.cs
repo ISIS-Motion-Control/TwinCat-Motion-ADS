@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Diagnostics;
 using Nito.AsyncEx.Synchronous;
+using System.Windows;
 
 namespace TwinCat_Motion_ADS.MeasurementDevice
 {
@@ -51,6 +52,7 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
                 writer = new StreamWriter(RenishawServer);
                 string exeName = "Renishaw_XL80_App.exe";
                 string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, exeName);
+                MessageBox.Show(path);
                 RenishawClient = Process.Start(path);
                 CancellationTokenSource ct = new();
                 RenishawServer.WaitForConnectionAsync(ct.Token);
