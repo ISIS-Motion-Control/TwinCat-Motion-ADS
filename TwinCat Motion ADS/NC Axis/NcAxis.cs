@@ -435,6 +435,8 @@ namespace TwinCat_Motion_ADS
             };
 
             //Start a task to check the FwEnabled bool that only returns when flag is hit (fwEnabled == false)
+            //Update statuses here
+            await ReadStatusesOneShot(CancellationToken.None);
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckFwLimitTask(true,ct.Token);
             Task<bool> CancelationTask = CancelTestTask(ct.Token);
@@ -506,6 +508,8 @@ namespace TwinCat_Motion_ADS
                 return false;
             };
             //Start a task to check the BwEnabled bool that only returns when flag is hit (BwEnabled == false)
+            //Update statuses here
+            await ReadStatusesOneShot(CancellationToken.None);
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckBwLimitTask(true, ct.Token);
             Task<bool> cancellationTask = CancelTestTask(ct.Token);
@@ -578,6 +582,8 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
             //Start a task to monitor when the FwEnable signal is regained
+            //Update statuses here
+            await ReadStatusesOneShot(CancellationToken.None); // NEW LINE ADDED- WARNING
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckFwLimitTask(false, ct.Token);
             Task<bool> errorTask = CheckForError(ct.Token);
@@ -698,6 +704,8 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
             //Start a task to monitor when the FwEnable signal is regained
+            //Update statuses here
+            await ReadStatusesOneShot(CancellationToken.None); // NEW LINE ADDED- WARNING
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckBwLimitTask(false, ct.Token);
             Task<bool> errorTask = CheckForError(ct.Token);
@@ -938,7 +946,14 @@ namespace TwinCat_Motion_ADS
                     return false;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
-                SendHttpRequest(testSettings.TestTitle.Val, "Cycle " + cycleCount + " complete\nEstimated finish at " + EstimatedTimeRemaining.EstimatedEndTime.ToString());
+                if(cycleCount == 1)
+                {
+                    SendHttpRequest(testSettings.TestTitle.Val, "First cycle complete");
+                }
+                else
+                {
+                    SendHttpRequest(testSettings.TestTitle.Val, "Cycle " + cycleCount + " complete\n \nEstimated finish at " + EstimatedTimeRemaining.EstimatedEndTime.ToString());
+                }
             }
             TestProgress = 1;
             testRunning = false;
@@ -1024,7 +1039,14 @@ namespace TwinCat_Motion_ADS
                 }
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
-                SendHttpRequest(testSettings.TestTitle.Val, "Cycle " + cycleCount + " complete\nEstimated finish at " + EstimatedTimeRemaining.EstimatedEndTime.ToString());
+                if (cycleCount == 1)
+                {
+                    SendHttpRequest(testSettings.TestTitle.Val, "First cycle complete");
+                }
+                else
+                {
+                    SendHttpRequest(testSettings.TestTitle.Val, "Cycle " + cycleCount + " complete\n \nEstimated finish at " + EstimatedTimeRemaining.EstimatedEndTime.ToString());
+                }
             }
             TestProgress = 1;
             testRunning = false;
@@ -1143,7 +1165,14 @@ namespace TwinCat_Motion_ADS
                 }
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
-                SendHttpRequest(testSettings.TestTitle.Val, "Cycle " + cycleCount + " complete\nEstimated finish at " + EstimatedTimeRemaining.EstimatedEndTime.ToString());
+                if (cycleCount == 1)
+                {
+                    SendHttpRequest(testSettings.TestTitle.Val, "First cycle complete");
+                }
+                else
+                {
+                    SendHttpRequest(testSettings.TestTitle.Val, "Cycle " + cycleCount + " complete\n \nEstimated finish at " + EstimatedTimeRemaining.EstimatedEndTime.ToString());
+                }
             }
             TestProgress = 1;
             testRunning = false;
@@ -1405,12 +1434,8 @@ namespace TwinCat_Motion_ADS
             httpWebRequest.ContentType = "application/json";
             httpWebRequest.Method = "POST";
 
-
-
-
             using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
             {
-
 
                 string json = "{\"Id\":\"" + Id + "\"," + "\"Status\":\"" + Status + "\"}";
                 streamWriter.Write(json);

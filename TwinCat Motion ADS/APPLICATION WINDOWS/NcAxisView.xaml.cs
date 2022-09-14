@@ -555,17 +555,5 @@ namespace TwinCat_Motion_ADS
                     break;
             }
         }
-
-
-        
-        
-        
-
-        
-        private void HTTPTest_Click(object sender, RoutedEventArgs e)
-        {
-           
-            testAxis.SendHttpRequest("My Test System", "Axis Error");
-        }
     }
 }

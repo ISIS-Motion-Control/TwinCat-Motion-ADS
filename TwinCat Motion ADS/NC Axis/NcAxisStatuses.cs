@@ -171,5 +171,20 @@ namespace TwinCat_Motion_ADS
             Done = false;
             return;
         }
+        public async Task ReadStatusesOneShot(CancellationToken ct)
+        {
+            if (!ValidCommand())
+            {
+                return;
+            }
+            AxisPosition = (await Plc.TcAds.ReadAnyAsync<double>(fActPositionHandle, CancellationToken.None)).Value;
+            AxisBusy = (await Plc.TcAds.ReadAnyAsync<bool>(bBusyHandle, CancellationToken.None)).Value;
+            AxisEnabled = (await Plc.TcAds.ReadAnyAsync<bool>(bEnabledHandle, CancellationToken.None)).Value;
+            AxisFwEnabled = (await Plc.TcAds.ReadAnyAsync<bool>(bFwEnabledHandle, CancellationToken.None)).Value;
+            AxisBwEnabled = (await Plc.TcAds.ReadAnyAsync<bool>(bBwEnabledHandle, CancellationToken.None)).Value;
+            Error = (await Plc.TcAds.ReadAnyAsync<bool>(bErrorHandle, CancellationToken.None)).Value;
+            Done = (await Plc.TcAds.ReadAnyAsync<bool>(bDoneHandle, CancellationToken.None)).Value;
+            return;
+        }
     }
 }
