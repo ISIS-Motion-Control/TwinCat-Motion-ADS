@@ -294,6 +294,7 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> MoveVelocity(double velocity)
         {
+            await ReadStatusesOneShot(CancellationToken.None);
             if (!ValidCommand()) return false;
             if (AxisBusy)
             {
@@ -831,7 +832,7 @@ namespace TwinCat_Motion_ADS
             //Setup test CSV and setting files
             string settingFileFullPath = GenerateSettingsPath(testSettings);
             string csvFileFullPath = GenerateCSVPath(testSettings);
-            SaveSettingsFile(testSettings, settingFileFullPath);           
+            SaveSettingsFile(testSettings, settingFileFullPath);
             StartCSV(csvFileFullPath, devices);
 
             //Set the test is running flag
