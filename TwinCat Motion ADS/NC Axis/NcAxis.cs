@@ -225,6 +225,7 @@ namespace TwinCat_Motion_ADS
 
             if (await MoveAbsolute(position, velocity))
             {
+                await ReadStatusesOneShot(CancellationToken.None);
                 await Task.Delay(40);   //delay to system to allow PLC to react to move command
                 Task<bool> errorTask = CheckForError(ct.Token);
                 Task<bool> doneTask = WaitForDone(ct.Token);
