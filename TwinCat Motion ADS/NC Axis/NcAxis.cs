@@ -7,8 +7,8 @@ using CsvHelper;
 using System.IO;
 using System.Globalization;
 using System.Windows;
-using System.Xml;
 using TwinCat_Motion_ADS.MeasurementDevice;
+using System.Net;
 
 namespace TwinCat_Motion_ADS
 {
@@ -225,6 +225,7 @@ namespace TwinCat_Motion_ADS
 
             if (await MoveAbsolute(position, velocity))
             {
+                await ReadStatusesOneShot(CancellationToken.None);
                 await Task.Delay(40);   //delay to system to allow PLC to react to move command
                 Task<bool> errorTask = CheckForError(ct.Token);
                 Task<bool> doneTask = WaitForDone(ct.Token);
@@ -434,6 +435,8 @@ namespace TwinCat_Motion_ADS
             };
 
             //Start a task to check the FwEnabled bool that only returns when flag is hit (fwEnabled == false)
+            //Update statuses here
+            await ReadStatusesOneShot(CancellationToken.None);
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckFwLimitTask(true,ct.Token);
             Task<bool> CancelationTask = CancelTestTask(ct.Token);
@@ -505,6 +508,8 @@ namespace TwinCat_Motion_ADS
                 return false;
             };
             //Start a task to check the BwEnabled bool that only returns when flag is hit (BwEnabled == false)
+            //Update statuses here
+            await ReadStatusesOneShot(CancellationToken.None);
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckBwLimitTask(true, ct.Token);
             Task<bool> cancellationTask = CancelTestTask(ct.Token);
@@ -577,6 +582,8 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
             //Start a task to monitor when the FwEnable signal is regained
+            //Update statuses here
+            await ReadStatusesOneShot(CancellationToken.None); // NEW LINE ADDED- WARNING
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckFwLimitTask(false, ct.Token);
             Task<bool> errorTask = CheckForError(ct.Token);
@@ -697,6 +704,8 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
             //Start a task to monitor when the FwEnable signal is regained
+            //Update statuses here
+            await ReadStatusesOneShot(CancellationToken.None); // NEW LINE ADDED- WARNING
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckBwLimitTask(false, ct.Token);
             Task<bool> errorTask = CheckForError(ct.Token);
@@ -879,6 +888,7 @@ namespace TwinCat_Motion_ADS
                     {
                         Console.WriteLine("High limit reversal failed");
                         testRunning = false;
+                        SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                         return false;
                     }
                 }
@@ -887,6 +897,7 @@ namespace TwinCat_Motion_ADS
                     testRunning = false;
                     stopWatch.Stop();
                     Console.WriteLine("Move to high limit failed");
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }
                 //Check for pause or cancellation request
@@ -894,6 +905,7 @@ namespace TwinCat_Motion_ADS
                 if (IsTestCancelled())
                 {
                     testRunning = false;
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }
 
@@ -921,6 +933,7 @@ namespace TwinCat_Motion_ADS
                     {
                         Console.WriteLine("Low limit reversal failed");
                         testRunning = false;
+                        SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                         return false;
                     }
                 }
@@ -929,14 +942,24 @@ namespace TwinCat_Motion_ADS
                     testRunning = false;
                     stopWatch.Stop();
                     Console.WriteLine("Move to low limit failed");
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
+                if(cycleCount == 1)
+                {
+                    SendHttpRequest(testSettings.TestTitle.Val, "First cycle complete");
+                }
+                else
+                {
+                    SendHttpRequest(testSettings.TestTitle.Val, "Cycle " + cycleCount + " complete\n \nEstimated finish at " + EstimatedTimeRemaining.EstimatedEndTime.ToString());
+                }
             }
             TestProgress = 1;
             testRunning = false;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
+            SendHttpRequest(testSettings.TestTitle.Val, "Test completed");
             return true;
         }
 
@@ -985,6 +1008,7 @@ namespace TwinCat_Motion_ADS
                 if (IsTestCancelled())
                 {
                     testRunning = false;
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }
                
@@ -1001,6 +1025,7 @@ namespace TwinCat_Motion_ADS
                     Console.WriteLine("Failed to move to reversal position");
                     testRunning = false;
                     stopWatch.Stop();
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
@@ -1009,15 +1034,25 @@ namespace TwinCat_Motion_ADS
                 if (await UniDirectionalSingleCycle(testSettings, cycleCount, TargetPosition, devices, csvFileFullPath) == false)
                 {
                     testRunning = false;
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
+                if (cycleCount == 1)
+                {
+                    SendHttpRequest(testSettings.TestTitle.Val, "First cycle complete");
+                }
+                else
+                {
+                    SendHttpRequest(testSettings.TestTitle.Val, "Cycle " + cycleCount + " complete\n \nEstimated finish at " + EstimatedTimeRemaining.EstimatedEndTime.ToString());
+                }
             }
             TestProgress = 1;
             testRunning = false;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
+            SendHttpRequest(testSettings.TestTitle.Val, "Test complete");
             return true;
         }
 
@@ -1093,6 +1128,7 @@ namespace TwinCat_Motion_ADS
                     Console.WriteLine("Failed to move to reversal position");
                     testRunning = false;
                     stopWatch.Stop();
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }
                 //delay
@@ -1103,6 +1139,7 @@ namespace TwinCat_Motion_ADS
                 {
                     testRunning = false;
                     stopWatch.Stop();
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }
 
@@ -1112,6 +1149,7 @@ namespace TwinCat_Motion_ADS
                     Console.WriteLine("Failed to move to overshoot position");
                     testRunning = false;
                     stopWatch.Stop();
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }          
                 //delay
@@ -1122,15 +1160,25 @@ namespace TwinCat_Motion_ADS
                 {
                     testRunning = false;
                     stopWatch.Stop();
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
+                if (cycleCount == 1)
+                {
+                    SendHttpRequest(testSettings.TestTitle.Val, "First cycle complete");
+                }
+                else
+                {
+                    SendHttpRequest(testSettings.TestTitle.Val, "Cycle " + cycleCount + " complete\n \nEstimated finish at " + EstimatedTimeRemaining.EstimatedEndTime.ToString());
+                }
             }
             TestProgress = 1;
             testRunning = false;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed);
+            SendHttpRequest(testSettings.TestTitle.Val, "Test complete");
             return true;
         }
 
@@ -1185,6 +1233,7 @@ namespace TwinCat_Motion_ADS
                     Console.WriteLine("Failed to move to reversal position");
                     testRunning = false;
                     stopWatch.Stop();
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
@@ -1193,6 +1242,7 @@ namespace TwinCat_Motion_ADS
                 if (await UniDirectionalSingleCycle(testSettings, cycleCount, targetPosition, devices, csvFileFullPath) == false)
                 {
                     testRunning = false;
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }
 
@@ -1201,6 +1251,7 @@ namespace TwinCat_Motion_ADS
                     Console.WriteLine("Failed to move to reversal position");
                     testRunning = false;
                     stopWatch.Stop();
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
@@ -1208,15 +1259,19 @@ namespace TwinCat_Motion_ADS
                 if (await UniDirectionalSingleCycle(testSettings, cycleCount, targetPosition, devices, csvFileFullPath, testSettings.NumberOfSteps.Val) == false)
                 {
                     testRunning = false;
+                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
                     return false;
                 }
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
+
+                SendHttpRequest(testSettings.TestTitle.Val, "Cycle " + cycleCount + " complete\nEstimated finish at " + EstimatedTimeRemaining.EstimatedEndTime.ToString());
             }
             TestProgress = 1;
             testRunning = false;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
+            SendHttpRequest(testSettings.TestTitle.Val, "Test complete");
             return true;
         }
 
@@ -1369,6 +1424,27 @@ namespace TwinCat_Motion_ADS
 
 
             return true;
+        }
+
+        private static string flowURL = "https://prod-139.westeurope.logic.azure.com:443/workflows/50481148dc2546839ee6d746c2efed50/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=L7MRywsTPKwyTz9I2nEvM_1rRhNQSCHdbvxs6AYQHxQ";
+
+        public void SendHttpRequest(string Id, string Status)
+        {
+            HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(flowURL);
+            httpWebRequest.ContentType = "application/json";
+            httpWebRequest.Method = "POST";
+
+            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+            {
+
+                string json = "{\"Id\":\"" + Id + "\"," + "\"Status\":\"" + Status + "\"}";
+                streamWriter.Write(json);
+            }
+            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                var result = streamReader.ReadToEnd();
+            }
         }
 
 
