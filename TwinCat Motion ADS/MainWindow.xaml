@@ -132,6 +132,7 @@
             <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
                 <RadioButton x:Name="NcAxis" Content="NC Axis" Foreground="White" FontSize="24" Height="30" Style="{StaticResource MenuButtonTheme}" IsChecked="True" Click="RadioButton_Click"/>
                 <RadioButton x:Name="AirAxis" Content="Air Axis" Foreground="White" FontSize="24" Height="30" Style="{StaticResource MenuButtonTheme}" Click="RadioButton_Click"/>
+                <RadioButton x:Name="CsvHelper" Content="Csv Helper" Foreground="White" FontSize="24" Height="30" Style="{StaticResource MenuButtonTheme}" Click="RadioButton_Click"/>
             </StackPanel>
             
             <!-- PLC AMS NET ID INPUT AND BUTTON -->

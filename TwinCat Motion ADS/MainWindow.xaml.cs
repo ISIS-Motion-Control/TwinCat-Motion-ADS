@@ -20,6 +20,7 @@ namespace TwinCat_Motion_ADS
         public TestSuite TestSuiteWindow;
         public HelpWindow HelpWindow;
         public NcAxisView NcAxisView;
+        public CsvHelperView CsvHelperView;
         public AirAxisView AirAxisView;
         public bool windowClosing = false;
 
@@ -76,6 +77,7 @@ namespace TwinCat_Motion_ADS
             }
             NcAxisView = new();
             AirAxisView = new();
+            CsvHelperView = new();
             tabbedWindow.Content = NcAxisView;
            
         }
@@ -319,6 +321,10 @@ namespace TwinCat_Motion_ADS
             else if(((RadioButton)sender)== AirAxis)
             {
                 tabbedWindow.Content = AirAxisView;
+            }
+            else if(((RadioButton)sender)== CsvHelper)
+            {
+                tabbedWindow.Content = CsvHelperView;
             }
         }
         
