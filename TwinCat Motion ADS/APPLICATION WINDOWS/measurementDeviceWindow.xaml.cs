@@ -98,7 +98,7 @@ namespace TwinCat_Motion_ADS
                     CommonRs232Window();
                     //Create UI for COSINE error calculation
                     //Create UI elements
-                    CheckBox enableCosineCalculationCheckBox = new CheckBox();
+                    CheckBox enableCosineCalculationCheckBox = new CheckBox() { Name = "enableCosineCalculationCheckBox" };
                     Button resetCosineCalculationButton = new Button();
                     TextBox initialValue = new TextBox() { Name = "initialValue"};
                     Button initialValue_ReadIn = new Button();
@@ -115,12 +115,13 @@ namespace TwinCat_Motion_ADS
                     XamlUI.SetupTextBox(ref finalValue, "Final Value");
 
                     //Setup event handlers
+                    enableCosineCalculationCheckBox.Click += new RoutedEventHandler(EnableCosineCalculation);
                     resetCosineCalculationButton.Click += new RoutedEventHandler(ResetCosineCalculation);
                     initialValue_ReadIn.Click += new RoutedEventHandler(InitialValue_ReadIn);
                     finalValue_ReadIn.Click += new RoutedEventHandler(FinalValue_ReadIn);
 
                     //Create grid to show the UI
-                    Grid cosineCorrection = new() { Width = 300, Height = 150, HorizontalAlignment = HorizontalAlignment.Center};
+                    Grid cosineCorrection = new() { Width = 300, Height = 150, HorizontalAlignment = HorizontalAlignment.Center, Name = "cosineCorrection", IsEnabled = false, Visibility = Visibility.Collapsed };
 
                     //Define the Columns
                     ColumnDefinition colDef0 = new ColumnDefinition();
@@ -410,6 +411,38 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("Failed to disconnect");
             }
         }
+
+        public void EnableCosineCalculation(object sender, EventArgs e)
+        {
+            bool checkBoxEnabled = false;
+            foreach (CheckBox cb in FindVisualChilds<CheckBox>(this))
+            {
+                if (cb.Name == "enableCosineCalculationCheckBox")
+                {
+                    checkBoxEnabled = (bool)cb.IsChecked;
+                }
+            }
+
+            foreach (Grid gd in FindVisualChilds<Grid>(this))
+            {
+                if (gd.Name == "cosineCorrection")
+                {
+                    if (checkBoxEnabled)
+                    {
+                        gd.IsEnabled = true;
+                        gd.Visibility =Visibility.Visible;
+                    }
+                    else
+                    {
+                        gd.IsEnabled = false;
+                        gd.Visibility = Visibility.Collapsed;
+                    }
+                    
+
+                }
+            }
+        }
+
         public void ResetCosineCalculation(object sender, EventArgs e)
         {
             Console.WriteLine("COSINE Calculaion Reset");
