@@ -16,6 +16,7 @@
         <StackPanel Orientation="Horizontal">
             <Button x:Name="Button_SelectConfig" Content="Select Config" Height="25" Width="200" Click="Button_SelectConfig_Click"/>
             <Button x:Name="Button_SetupSolution" Content="Setup Solution" Height="25" Width="200" Click="Button_SetupSolution_Click"/>
+            <Button x:Name="Button_RevokeFilter" Content="Revoke Message Filter" Height="25" Width="200" Click="Button_RevokeFilter_Click"/>
         </StackPanel>
     </StackPanel>
 </UserControl>

@@ -152,8 +152,11 @@ namespace TwinCat_Motion_ADS
                 }
             }
 
+            Console.WriteLine("All axes and io removed");
+
             //Add the IO from a CSV file
             importIoList();
+            Console.WriteLine("IO devices imported");
             //Run through all device xmls and import
             importAllIoXmls();
             Console.WriteLine("IO import complete");
@@ -201,6 +204,7 @@ namespace TwinCat_Motion_ADS
             {
                 throw new ApplicationException("Issue starting controller");
             }
+            Console.WriteLine(SystemManager.IsTwinCATStarted());
             if (SystemManager.IsTwinCATStarted())
             {
                 MessageBox.Show("TwinCAT is running");
@@ -211,6 +215,7 @@ namespace TwinCat_Motion_ADS
             }
 
             Console.WriteLine("Success!");
+            Console.WriteLine(SystemManager.IsTwinCATStarted());
         }
 
         public bool plcLogin()
@@ -296,12 +301,18 @@ namespace TwinCat_Motion_ADS
             plcProject.GenerateBootProject(true);
         }
 
+        public void RevokeFilter()
+        {
+            MessageFilter.Revoke();
+        }
+
         public bool saveAs()
         {
             string solutionName = Path.GetFileNameWithoutExtension(SolutionFolderPath);
             try
             {
-                solution.SaveAs(SolutionFolderPath + @"\" + solutionName + @"\" + solutionName + ".sln");
+                solution.SaveAs(SolutionFolderPath + @"\solution.sln");
+                //solution.SaveAs(SolutionFolderPath + @"\" + solutionName + @"\" + solutionName + ".sln");
                 return true;
             }
             catch

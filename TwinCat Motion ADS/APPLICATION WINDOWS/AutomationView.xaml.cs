@@ -90,6 +90,11 @@ namespace TwinCat_Motion_ADS.APPLICATION_WINDOWS
         {
             autoInterface.SetupSytem();
         }
+
+        private void Button_RevokeFilter_Click(object sender, RoutedEventArgs e)
+        {
+            autoInterface.RevokeFilter();
+        }
     }
 
 
