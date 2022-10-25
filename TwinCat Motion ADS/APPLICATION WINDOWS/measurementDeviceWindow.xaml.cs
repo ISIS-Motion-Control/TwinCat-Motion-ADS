@@ -386,6 +386,7 @@ namespace TwinCat_Motion_ADS
             ((BaseRs232MeasurementDevice)MDevice).UpdatePortList();           
         }
 
+        
     }
 
     class KeyenceChannel

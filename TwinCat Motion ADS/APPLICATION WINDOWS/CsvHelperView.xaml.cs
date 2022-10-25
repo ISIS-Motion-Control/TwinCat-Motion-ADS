@@ -37,6 +37,7 @@ namespace TwinCat_Motion_ADS
                 OnPropertyChanged();
             }
         }
+        public ObservableCollection<string> DataHeaders = new();
 
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -49,8 +50,10 @@ namespace TwinCat_Motion_ADS
         public CsvHelperView()
         {
             InitializeComponent();
+            this.DataContext = this;
             windowData = (MainWindow)Application.Current.MainWindow;
             dt = new DataTable();
+            csvHeaderList.ItemsSource = DataHeaders;
 
         }
 
@@ -61,7 +64,7 @@ namespace TwinCat_Motion_ADS
 
 
 
-        private void LoadSettingsFile_Click(object sender, RoutedEventArgs e)
+        private void LoadCSVFile_Click(object sender, RoutedEventArgs e)
         {
             VistaOpenFileDialog fbd = new();
             fbd.Filter = "*.csv|*.CSV*";
@@ -82,17 +85,8 @@ namespace TwinCat_Motion_ADS
                     
                     dt.Load(dr);
                     csvDataGrid.DataContext = dt.DefaultView;
-                    //csvDataGrid.ItemsSource = dt.DefaultView;
                     csvDataGrid.Items.Refresh();
-                    OnPropertyChanged(nameof(dt));
-                    /*Binding comboBind = new();
-                    comboBind.Mode = BindingMode.TwoWay;
-                    comboBind.Source = this;
-                    comboBind.Path = new PropertyPath("dt");
-                    comboBind.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-                    BindingOperations.SetBinding(csvDataGrid, DataGrid.SelectedValueProperty, comboBind);*/
-
-
+                    UpdateDataHeadersList();
                 }
             }
             
@@ -106,7 +100,9 @@ namespace TwinCat_Motion_ADS
 
         private void AddErrorCol()
         {
-            AddGridColumn("Error", typeof(string));
+            AddDataColumnWindow dataWindow = new();
+            dataWindow.Show();
+            //AddGridColumn("Error", typeof(string));
             
             //DataColumn ErrorCol = new("Error", typeof(string));
             //dt.Columns.Add(ErrorCol);
@@ -137,6 +133,7 @@ namespace TwinCat_Motion_ADS
             DataColumn dataColumn = new(columnName, datatype);
             dt.Columns.Add(dataColumn);
             csvDataGrid.Columns.Add(new DataGridTextColumn() { Binding = new Binding(columnName), Header = columnName });
+            UpdateDataHeadersList();
         }
         private void DeleteGridColumn(string columnName)
         {
@@ -161,11 +158,31 @@ namespace TwinCat_Motion_ADS
                 dt.Columns.Remove(delCol);
                 csvDataGrid.Columns.Remove(delGridCol);
             }
+            UpdateDataHeadersList();
+        }
+        
+        private void UpdateDataHeadersList()
+        {
+            DataHeaders.Clear();
+            foreach (DataColumn col in dt.Columns)
+            {
+                DataHeaders.Add(col.ColumnName);
+            }
         }
 
         private void Button_Test2_Click(object sender, RoutedEventArgs e)
         {
             DeleteErrorCol();
+        }
+
+        private void Button_DeleteSelected_Click(object sender, RoutedEventArgs e)
+        {
+            if(csvHeaderList.SelectedItem == null)
+            {
+                Console.WriteLine("No item selected");
+                return;
+            }
+            DeleteGridColumn(csvHeaderList.SelectedItem.ToString());
         }
     }
 }
