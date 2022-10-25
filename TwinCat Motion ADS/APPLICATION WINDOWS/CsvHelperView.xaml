@@ -8,9 +8,12 @@
              d:DesignHeight="890" d:DesignWidth="1100">
     <Grid x:Name="csvWindowGrid" Margin="0" Focusable="True">
         <StackPanel>
-            <Button x:Name="testButton" Focusable="False" Content="Import CSV File" Style="{StaticResource myDefaultButton}" Click="LoadSettingsFile_Click"/>
-            <DataGrid x:Name="csvDataGrid" Height="200" ItemsSource="{Binding}"/>
-            <ListBox x:Name="csvHeaderList"  Height="100" ItemsSource="{Binding}" DisplayMemberPath="ColumnName"/>
+            <Button x:Name="Button_ImportCsv" Focusable="False" Content="Import CSV File" Style="{StaticResource myDefaultButton}" Click="LoadSettingsFile_Click"/>
+            <Button x:Name="Button_Test" Focusable="False" Content="Add Error" Style="{StaticResource myDefaultButton}" Click="Button_Test_Click"/>
+            <Button x:Name="Button_Test2" Focusable="False" Content="Del Error" Style="{StaticResource myDefaultButton}" Click="Button_Test2_Click"/>
+
+            <DataGrid x:Name="csvDataGrid" Height="200" ItemsSource="{Binding}" AutoGenerateColumns="True"/>
+            <ListBox x:Name="csvHeaderList"  Height="100" ItemsSource="{Binding UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Path=Columns, Source=dt}" DisplayMemberPath="ColumnName"/>
         </StackPanel>
 
 
