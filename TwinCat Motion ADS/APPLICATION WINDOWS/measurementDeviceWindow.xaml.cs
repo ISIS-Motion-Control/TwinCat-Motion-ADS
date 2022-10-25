@@ -95,6 +95,72 @@ namespace TwinCat_Motion_ADS
             {
                 case DeviceTypes.DigimaticIndicator:
                     CommonRs232Window();
+                    //Create UI for COSINE error calculation
+                    //Create UI elements
+                    CheckBox enableCosineCalculationCheckBox = new CheckBox();
+                    Button resetCosineCalculationButton = new Button();
+                    TextBox initialValue = new TextBox();
+                    Button initialValue_ReadIn = new Button();
+                    TextBox distanceTraveled = new TextBox();
+                    TextBox finalValue = new TextBox();
+                    Button finalValue_ReadIn = new Button();
+
+                    //setup UI elements
+                    XamlUI.SetupButton(ref resetCosineCalculationButton, "RESET");
+                    XamlUI.SetupButton(ref initialValue_ReadIn, "Read in");
+                    XamlUI.SetupButton(ref finalValue_ReadIn, "Read in");
+                    XamlUI.SetupTextBox(ref initialValue, "Initial Value");
+                    XamlUI.SetupTextBox(ref distanceTraveled, "Distance Traveled");
+                    XamlUI.SetupTextBox(ref finalValue, "Final Value");
+
+                    resetCosineCalculationButton.Click += new RoutedEventHandler(ResetCosineCalculation);
+
+                    //Create grid to show the UI
+                    Grid cosineCorrection = new() { Width = 300, Height = 150, HorizontalAlignment = HorizontalAlignment.Center};
+
+                    // Define the Columns
+                    ColumnDefinition colDef0 = new ColumnDefinition();
+                    ColumnDefinition colDef1 = new ColumnDefinition();
+                    cosineCorrection.ColumnDefinitions.Add(colDef0);
+                    cosineCorrection.ColumnDefinitions.Add(colDef1);
+
+                    // Define the Rows
+                    RowDefinition rowDef0 = new RowDefinition();
+                    RowDefinition rowDef1 = new RowDefinition();
+                    RowDefinition rowDef2 = new RowDefinition();
+                    RowDefinition rowDef3 = new RowDefinition();
+                    cosineCorrection.RowDefinitions.Add(rowDef0);
+                    cosineCorrection.RowDefinitions.Add(rowDef1);
+                    cosineCorrection.RowDefinitions.Add(rowDef2);
+                    cosineCorrection.RowDefinitions.Add(rowDef3);
+
+                    //Add grid to screen
+                    deviceSettings.Children.Add(enableCosineCalculationCheckBox);
+                    deviceSettings.Children.Add(cosineCorrection);
+
+                    //Add UI elements to grid
+                    cosineCorrection.Children.Add(resetCosineCalculationButton);
+                    cosineCorrection.Children.Add(initialValue);
+                    cosineCorrection.Children.Add(initialValue_ReadIn);
+                    cosineCorrection.Children.Add(distanceTraveled);
+                    cosineCorrection.Children.Add(finalValue);
+                    cosineCorrection.Children.Add(finalValue_ReadIn);
+
+                    //Order UI elements in grid
+                    Grid.SetRow(resetCosineCalculationButton, 0);
+                    Grid.SetRow(initialValue, 1);
+                    Grid.SetRow(initialValue_ReadIn, 1);
+                    Grid.SetRow(distanceTraveled, 2);
+                    Grid.SetRow(finalValue, 3);
+                    Grid.SetRow(finalValue_ReadIn, 3);
+
+                    Grid.SetColumn(initialValue, 0);
+                    Grid.SetColumn(distanceTraveled, 0);
+                    Grid.SetColumn(finalValue, 0);
+                    Grid.SetColumn(resetCosineCalculationButton, 1);
+                    Grid.SetColumn(initialValue_ReadIn, 1);
+                    Grid.SetColumn(finalValue_ReadIn, 1);
+                    
                     break;
 
                 case DeviceTypes.KeyenceTM3000:
@@ -339,6 +405,11 @@ namespace TwinCat_Motion_ADS
             {
                 Console.WriteLine("Failed to disconnect");
             }
+        }
+        public async void ResetCosineCalculation(object sender, EventArgs e)
+        {
+            Console.WriteLine("COSINE Calculaion Reset");
+
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
