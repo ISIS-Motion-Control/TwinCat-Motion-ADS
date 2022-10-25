@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
 using TwinCat_Motion_ADS.MeasurementDevice;
 
 namespace TwinCat_Motion_ADS
@@ -99,10 +100,10 @@ namespace TwinCat_Motion_ADS
                     //Create UI elements
                     CheckBox enableCosineCalculationCheckBox = new CheckBox();
                     Button resetCosineCalculationButton = new Button();
-                    TextBox initialValue = new TextBox();
+                    TextBox initialValue = new TextBox() { Name = "initialValue"};
                     Button initialValue_ReadIn = new Button();
-                    TextBox distanceTraveled = new TextBox();
-                    TextBox finalValue = new TextBox();
+                    TextBox distanceTraveled = new TextBox() { Name = "distanceTraveled" };
+                    TextBox finalValue = new TextBox() { Name = "finalValue" };
                     Button finalValue_ReadIn = new Button();
 
                     //setup UI elements
@@ -113,18 +114,21 @@ namespace TwinCat_Motion_ADS
                     XamlUI.SetupTextBox(ref distanceTraveled, "Distance Traveled");
                     XamlUI.SetupTextBox(ref finalValue, "Final Value");
 
+                    //Setup event handlers
                     resetCosineCalculationButton.Click += new RoutedEventHandler(ResetCosineCalculation);
+                    initialValue_ReadIn.Click += new RoutedEventHandler(InitialValue_ReadIn);
+                    finalValue_ReadIn.Click += new RoutedEventHandler(FinalValue_ReadIn);
 
                     //Create grid to show the UI
                     Grid cosineCorrection = new() { Width = 300, Height = 150, HorizontalAlignment = HorizontalAlignment.Center};
 
-                    // Define the Columns
+                    //Define the Columns
                     ColumnDefinition colDef0 = new ColumnDefinition();
                     ColumnDefinition colDef1 = new ColumnDefinition();
                     cosineCorrection.ColumnDefinitions.Add(colDef0);
                     cosineCorrection.ColumnDefinitions.Add(colDef1);
 
-                    // Define the Rows
+                    //Define the Rows
                     RowDefinition rowDef0 = new RowDefinition();
                     RowDefinition rowDef1 = new RowDefinition();
                     RowDefinition rowDef2 = new RowDefinition();
@@ -406,10 +410,85 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("Failed to disconnect");
             }
         }
-        public async void ResetCosineCalculation(object sender, EventArgs e)
+        public void ResetCosineCalculation(object sender, EventArgs e)
         {
             Console.WriteLine("COSINE Calculaion Reset");
+            foreach (TextBox tb in FindVisualChilds<TextBox>(this))
+            {
+                if (tb.Name == "initialValue")
+                {
+                    tb.Text = String.Empty;
+                }
+                if (tb.Name == "distanceTraveled")
+                {
+                    tb.Text = String.Empty;
+                }
+                if (tb.Name == "finalValue")
+                {
+                    tb.Text = String.Empty;
+                }
+            }
+        }
+        public async void InitialValue_ReadIn(object sender, EventArgs e)
+        {
+            
+            if (!MDevice.Connected)
+            {
+                Console.WriteLine("Not connected to a device");
+                return;
+            }
+            else
+            {
+                string measurement = string.Empty;
+                foreach (var channel in MDevice.ChannelList)
+                {
+                    measurement = await MDevice.GetChannelMeasurement(channel.Item2);
+                    Console.WriteLine(channel.Item1 + ": " + measurement);
+                }
+                foreach (TextBox tb in FindVisualChilds<TextBox>(this))
+                {
+                    if (tb.Name == "initialValue")
+                    {
+                        tb.Text = measurement;
+                    }
+                }
+            }
+        }
+        public async void FinalValue_ReadIn(object sender, EventArgs e)
+        {
+            if (!MDevice.Connected)
+            {
+                Console.WriteLine("Not connected to a device");
+                return;
+            }
+            else
+            {
+                string measurement = string.Empty;
+                foreach (var channel in MDevice.ChannelList)
+                {
+                    measurement = await MDevice.GetChannelMeasurement(channel.Item2);
+                    Console.WriteLine(channel.Item1 + ": " + measurement);
+                }
+                foreach (TextBox tb in FindVisualChilds<TextBox>(this))
+                {
+                    if (tb.Name == "finalValue")
+                    {
+                        tb.Text = measurement;
+                    }
+                }
+            }
+        }
 
+        public static IEnumerable<T> FindVisualChilds<T>(DependencyObject depObj) where T : DependencyObject
+        {
+            if (depObj == null) yield return (T)Enumerable.Empty<T>();
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
+            {
+                DependencyObject ithChild = VisualTreeHelper.GetChild(depObj, i);
+                if (ithChild == null) continue;
+                if (ithChild is T t) yield return t;
+                foreach (T childOfChild in FindVisualChilds<T>(ithChild)) yield return childOfChild;
+            }
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
