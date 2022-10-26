@@ -76,6 +76,8 @@ namespace TwinCat_Motion_ADS
         public SettingDouble XAxisMax { get; set; } = new("xAxisMax");
         public SettingDouble XAxisMin { get; set; } = new("xAxisMin");
         public SettingDouble XAxisSep { get; set; } = new("xAxisSep");
+        public SettingString YAxisTitle { get; set; } = new("yAxisTitle");
+        public SettingString XAxisTitle { get; set; } = new("xAxisTitle");
 
         public CsvHelperView()
         {
@@ -90,16 +92,22 @@ namespace TwinCat_Motion_ADS
             YAxisMax.UiVal = Properties.Settings.Default.yAxisMax;
             YAxisMin.UiVal = Properties.Settings.Default.yAxisMin;
             YAxisSep.UiVal = Properties.Settings.Default.yAxisSep;
+            YAxisTitle.UiVal = Properties.Settings.Default.yAxisTitle;
+
             XAxisMax.UiVal = Properties.Settings.Default.xAxisMax;
             XAxisMin.UiVal = Properties.Settings.Default.xAxisMin;
             XAxisSep.UiVal = Properties.Settings.Default.xAxisSep;
+            XAxisTitle.UiVal = Properties.Settings.Default.xAxisTitle;
 
             XamlUI.TextboxBinding(SettingY_Scale_Max.SettingValue, YAxisMax, "UiVal");
             XamlUI.TextboxBinding(SettingY_Scale_Min.SettingValue, YAxisMin, "UiVal");
             XamlUI.TextboxBinding(SettingY_Scale_Sep.SettingValue, YAxisSep, "UiVal");
+            XamlUI.TextboxBinding(SettingY_Title.SettingValue, YAxisTitle, "UiVal");
+
             XamlUI.TextboxBinding(SettingX_Scale_Max.SettingValue, XAxisMax, "UiVal");
             XamlUI.TextboxBinding(SettingX_Scale_Min.SettingValue, XAxisMin, "UiVal");
             XamlUI.TextboxBinding(SettingX_Scale_Sep.SettingValue, XAxisSep, "UiVal");
+            XamlUI.TextboxBinding(SettingX_Title.SettingValue, XAxisTitle, "UiVal");
         }
 
         private void SelectFolderDirectory_Click(object sender, RoutedEventArgs e)
@@ -162,6 +170,14 @@ namespace TwinCat_Motion_ADS
         
         public void CreateDataColumn(object sender, NewDataArgs e)
         {
+            foreach(DataColumn col in dt.Columns)
+            {
+                if (col.ColumnName == e.ColumnHeader)
+                {
+                    Console.WriteLine("Unique header required");
+                    return;
+                }
+            }
             AddGridColumn(e.ColumnHeader, typeof(string));
             AddDataRowsToColumn(e.ColumnHeader, e.Var1Header, e.Var2Header);
             //UpdateChart(e.ColumnHeader, e.Var2Header);
@@ -265,7 +281,7 @@ namespace TwinCat_Motion_ADS
 
         private void Button_ExportGraph_Click(object sender, RoutedEventArgs e)
         {
-            SaveToPng(TestChart, "chart.png");
+            SaveToPng(ChartArea, "chart.png");
         }
 
         private void SaveToPng(FrameworkElement visual, string fileName)
@@ -276,7 +292,8 @@ namespace TwinCat_Motion_ADS
 
         private static void EncodeVisual(FrameworkElement visual, string fileName, BitmapEncoder encoder)
         {
-            var bitmap = new RenderTargetBitmap((int)visual.ActualWidth, (int)visual.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+            Console.WriteLine((int)visual.Width);
+            var bitmap = new RenderTargetBitmap((int)(visual.ActualWidth *1.5), (int)(visual.ActualHeight * 1.4), 128, 128, PixelFormats.Pbgra32);
             bitmap.Render(visual);
             var frame = BitmapFrame.Create(bitmap);
             encoder.Frames.Add(frame);
@@ -330,10 +347,80 @@ namespace TwinCat_Motion_ADS
 
             TestChart.AxisY.Clear();
 
+            Func<double, string> formatFunc3 = (x) => string.Format("{0:0.000}", x);
+            Func<double, string> formatFunc2 = (x) => string.Format("{0:0.00}", x);
+
             LiveCharts.Wpf.Separator xSep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = XAxisSep.Val };
             LiveCharts.Wpf.Separator ySep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = YAxisSep.Val };
-            TestChart.AxisY.Add(new() { MaxValue = YAxisMax.Val, MinValue = YAxisMin.Val, Separator = ySep });
-            TestChart.AxisX.Add(new() { MaxValue = XAxisMax.Val, MinValue = XAxisMin.Val, Separator = xSep });
+            TestChart.AxisY.Add(new() { LabelFormatter = formatFunc3, Title = YAxisTitle.Val, FontSize = 12,  MaxValue = YAxisMax.Val, MinValue = YAxisMin.Val, Separator = ySep });
+            TestChart.AxisX.Add(new() { LabelFormatter = formatFunc2, Title = XAxisTitle.Val, FontSize = 12, MaxValue = XAxisMax.Val, MinValue = XAxisMin.Val, Separator = xSep });
+        }
+
+        public void CalculateAccuracy(string columnName)
+        {
+            double maxVal = 999;
+            double minVal = 999;
+            double accuracyVal;
+            foreach(DataRow row in dt.Rows)
+            {
+                if (double.TryParse((string)row[columnName], out _))
+                {
+                    if (double.Parse((string)row[columnName]) > maxVal || maxVal == 999) maxVal = double.Parse((string)row[columnName]);
+                    if (double.Parse((string)row[columnName]) < minVal || minVal == 999) minVal = double.Parse((string)row[columnName]);
+                }
+                
+            }
+            accuracyVal = maxVal - minVal;
+            Console.WriteLine(accuracyVal);
+            AccuracyVal.Text = "Accuracy: " + accuracyVal.ToString();
+        }
+
+        public void CalculateRepeatability(string errorColumn, string targetColumn)
+        {
+            //want to group things by their target
+            ObservableCollection<RepeatabilityMeasure> repeatabilityMeasures = new ObservableCollection<RepeatabilityMeasure>();
+
+            foreach( DataRow row in dt.Rows)
+            {
+                bool matchFound = false;
+                foreach(RepeatabilityMeasure targetRow in repeatabilityMeasures)
+                {
+                    if(targetRow.TargetPosition == double.Parse((string)row[targetColumn]))
+                    {
+                        matchFound = true; //Don't need to add a new entry
+                        if (double.Parse((string)row[errorColumn]) > targetRow.MaxError) targetRow.MaxError = double.Parse((string)row[errorColumn]);
+                        if (double.Parse((string)row[errorColumn]) < targetRow.MinError) targetRow.MinError = double.Parse((string)row[errorColumn]);
+                    }
+                }
+                if(!matchFound)
+                {
+                    repeatabilityMeasures.Add(new(double.Parse((string)row[targetColumn]), double.Parse((string)row[errorColumn]), double.Parse((string)row[errorColumn])));
+                }
+            }
+
+
+            double repeatVal = 999;
+            Console.WriteLine("List size is: " + repeatabilityMeasures.Count);
+            foreach(RepeatabilityMeasure measure in repeatabilityMeasures)
+            {
+                measure.Repeatability = measure.MaxError - measure.MinError;
+                if(measure.Repeatability > repeatVal || repeatVal == 999) repeatVal = measure.Repeatability;
+
+            }
+
+            Console.WriteLine(repeatVal);
+            RepeatabilityVal.Text = "Repeatability: " + repeatVal.ToString();
+        }
+
+        private void Button_CalcAcc_Click(object sender, RoutedEventArgs e)
+        {
+            if (csvHeaderList.SelectedItem == null)
+            {
+                Console.WriteLine("No item selected");
+                return;
+            }
+            CalculateAccuracy(csvHeaderList.SelectedItem.ToString());
+            CalculateRepeatability(csvHeaderList.SelectedItem.ToString(), "TargetPosition");
         }
     }
     public class NewDataArgs : EventArgs
@@ -366,6 +453,21 @@ namespace TwinCat_Motion_ADS
             ColumnHeader = columnHeader;
             Var1Header = var1Header;
             Var2Header = var2Header;
+        }
+    }
+
+    public class RepeatabilityMeasure
+    {
+        public double TargetPosition;
+        public double MaxError = 999;
+        public double MinError = 999;
+        public double Repeatability;
+
+        public RepeatabilityMeasure(double targetPosition, double maxError, double minError)
+        {
+            TargetPosition = targetPosition;
+            MaxError = maxError;
+            MinError = minError;
         }
     }
 
