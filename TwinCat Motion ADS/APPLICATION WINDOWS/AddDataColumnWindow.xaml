@@ -7,6 +7,10 @@
         mc:Ignorable="d"
         Height="250" Width="400" ResizeMode="NoResize" Topmost="True">
     <StackPanel>
+        <TextBox x:Name="ColumnTitle" Height="20" Width="150" VerticalAlignment="Top"/>
+        <ComboBox x:Name="Combo_Header1" Width="200" Height="25"/>
+        <ComboBox x:Name="Combo_Header2" Width="200" Height="25"/>
+        <Button x:Name="Button_Add" Content="Add" Width="100" Height="25" Click="Button_Add_Click"/>
         <Button x:Name="Button_Cancel" Content="Cancel" Width="100" Height="25" Click="Button_Cancel_Click"/>
     </StackPanel>
 </Window>

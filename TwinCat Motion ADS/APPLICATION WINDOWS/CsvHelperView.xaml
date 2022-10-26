@@ -4,22 +4,23 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TwinCat_Motion_ADS"
+             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
              mc:Ignorable="d" 
              d:DesignHeight="890" d:DesignWidth="1100">
-    <Grid x:Name="csvWindowGrid" Margin="0" Focusable="True">
+    <StackPanel x:Name="csvWindowGrid" Margin="0" Focusable="True">
         <StackPanel>
             <Button x:Name="Button_ImportCsv" Focusable="False" Content="Import CSV File" Style="{StaticResource myDefaultButton}" Click="LoadCSVFile_Click"/>
             <Button x:Name="Button_Test" Focusable="False" Content="Add Error" Style="{StaticResource myDefaultButton}" Click="Button_Test_Click"/>
             <Button x:Name="Button_Test2" Focusable="False" Content="Del Error" Style="{StaticResource myDefaultButton}" Click="Button_Test2_Click"/>
             <Button x:Name="Button_DeleteSelected" Focusable="False" Content="Del Selected" Style="{StaticResource myDefaultButton}" Click="Button_DeleteSelected_Click" />
+            <Button x:Name="Button_ExportGraph" Focusable="False" Content="Export Graph" Style="{StaticResource myDefaultButton}" Click="Button_ExportGraph_Click"/>
+
             <DataGrid x:Name="csvDataGrid" Height="200" ItemsSource="{Binding}" AutoGenerateColumns="True"/>
             <ListBox x:Name="csvHeaderList"  Height="100" ItemsSource="{Binding Path=DataHeaders}"/>
         </StackPanel>
-
-
-
-
-
-
-    </Grid>
+        <StackPanel>
+            <lvc:CartesianChart x:Name="TestChart" Series="{Binding SeriesCollection}" Height="400" Width="800"/>
+        </StackPanel>
+ 
+    </StackPanel>
 </UserControl>
