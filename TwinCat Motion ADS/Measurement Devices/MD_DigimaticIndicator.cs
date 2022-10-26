@@ -26,10 +26,24 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
             string measurement;
             CancellationTokenSource ct = new();
             measurement = await ReadAsync("1", ct, readDelay, defaultTimeout);
+            measurement = Convert.ToString(cosineCorrectionValue * Convert.ToDouble(measurement));
             return measurement;
         }
 
         public async Task<string> GetMeasurement()
+        {
+            if (!Connected)
+            {
+                return "No device connected"; //Nothing to disconnect from
+            }
+            ReadInProgress = true;
+            string measurement;
+            CancellationTokenSource ct = new();
+            measurement = await ReadAsync("1", ct, readDelay, defaultTimeout);
+            measurement = Convert.ToString(cosineCorrectionValue * Convert.ToDouble(measurement));
+            return measurement;
+        }
+        public async Task<string> GetMeasurement_Uncorrected()
         {
             if (!Connected)
             {
@@ -72,6 +86,13 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
                 return "*Measurement timeout*";
             }
 
+        }
+        public double cosineCorrectionValue = 1;
+        public void COSINECalculation(string adjacent_point1, string adjacent_point2, string hypotenuse)
+        {
+
+            double adjacent = Math.Abs(Convert.ToDouble(adjacent_point2) - Convert.ToDouble(adjacent_point1));
+            cosineCorrectionValue = adjacent / Math.Abs(Convert.ToDouble(hypotenuse));
         }
 
         public new bool Disconnect()

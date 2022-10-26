@@ -99,6 +99,7 @@ namespace TwinCat_Motion_ADS
                     //Create UI for COSINE error calculation
                     //Create UI elements
                     CheckBox enableCosineCalculationCheckBox = new CheckBox() { Name = "enableCosineCalculationCheckBox" };
+                    Button calculateCosineCorrectionButton = new Button();
                     Button resetCosineCalculationButton = new Button();
                     TextBox initialValue = new TextBox() { Name = "initialValue"};
                     Button initialValue_ReadIn = new Button();
@@ -107,6 +108,7 @@ namespace TwinCat_Motion_ADS
                     Button finalValue_ReadIn = new Button();
 
                     //setup UI elements
+                    XamlUI.SetupButton(ref resetCosineCalculationButton, "CALCULATE");
                     XamlUI.SetupButton(ref resetCosineCalculationButton, "RESET");
                     XamlUI.SetupButton(ref initialValue_ReadIn, "Read in");
                     XamlUI.SetupButton(ref finalValue_ReadIn, "Read in");
@@ -116,6 +118,7 @@ namespace TwinCat_Motion_ADS
 
                     //Setup event handlers
                     enableCosineCalculationCheckBox.Click += new RoutedEventHandler(EnableCosineCalculation);
+                    calculateCosineCorrectionButton.Click += new RoutedEventHandler(CalculateCosineCorrection);
                     resetCosineCalculationButton.Click += new RoutedEventHandler(ResetCosineCalculation);
                     initialValue_ReadIn.Click += new RoutedEventHandler(InitialValue_ReadIn);
                     finalValue_ReadIn.Click += new RoutedEventHandler(FinalValue_ReadIn);
@@ -144,6 +147,7 @@ namespace TwinCat_Motion_ADS
                     deviceSettings.Children.Add(cosineCorrection);
 
                     //Add UI elements to grid
+                    cosineCorrection.Children.Add(calculateCosineCorrectionButton);
                     cosineCorrection.Children.Add(resetCosineCalculationButton);
                     cosineCorrection.Children.Add(initialValue);
                     cosineCorrection.Children.Add(initialValue_ReadIn);
@@ -152,6 +156,7 @@ namespace TwinCat_Motion_ADS
                     cosineCorrection.Children.Add(finalValue_ReadIn);
 
                     //Order UI elements in grid
+                    Grid.SetRow(calculateCosineCorrectionButton, 0);
                     Grid.SetRow(resetCosineCalculationButton, 0);
                     Grid.SetRow(initialValue, 1);
                     Grid.SetRow(initialValue_ReadIn, 1);
@@ -159,6 +164,7 @@ namespace TwinCat_Motion_ADS
                     Grid.SetRow(finalValue, 3);
                     Grid.SetRow(finalValue_ReadIn, 3);
 
+                    Grid.SetColumn(calculateCosineCorrectionButton, 0);
                     Grid.SetColumn(initialValue, 0);
                     Grid.SetColumn(distanceTraveled, 0);
                     Grid.SetColumn(finalValue, 0);
@@ -437,15 +443,36 @@ namespace TwinCat_Motion_ADS
                         gd.IsEnabled = false;
                         gd.Visibility = Visibility.Collapsed;
                     }
-                    
-
                 }
             }
         }
 
+        public void CalculateCosineCorrection(object sender, EventArgs e)
+        {
+            string initialValue = "0";
+            string distanceTraveled = "1";
+            string finalValue = "1";
+            foreach (TextBox tb in FindVisualChilds<TextBox>(this))
+            {
+                if (tb.Name == "initialValue")
+                {
+                    initialValue = tb.Text;
+                }
+                if (tb.Name == "distanceTraveled")
+                {
+                    distanceTraveled = tb.Text;
+                }
+                if (tb.Name == "finalValue")
+                {
+                    finalValue = tb.Text;
+                }
+            }
+            ((MD_DigimaticIndicator)MDevice).COSINECalculation(initialValue, distanceTraveled, finalValue);
+            Console.WriteLine("Correction Value : " + Convert.ToString(((MD_DigimaticIndicator)MDevice).cosineCorrectionValue));
+        }
+
         public void ResetCosineCalculation(object sender, EventArgs e)
         {
-            Console.WriteLine("COSINE Calculaion Reset");
             foreach (TextBox tb in FindVisualChilds<TextBox>(this))
             {
                 if (tb.Name == "initialValue")
@@ -461,6 +488,8 @@ namespace TwinCat_Motion_ADS
                     tb.Text = String.Empty;
                 }
             }
+            CalculateCosineCorrection(sender, e);
+            Console.WriteLine("COSINE Calculaion Reset");
         }
         public async void InitialValue_ReadIn(object sender, EventArgs e)
         {
@@ -473,11 +502,8 @@ namespace TwinCat_Motion_ADS
             else
             {
                 string measurement = string.Empty;
-                foreach (var channel in MDevice.ChannelList)
-                {
-                    measurement = await MDevice.GetChannelMeasurement(channel.Item2);
-                    Console.WriteLine(channel.Item1 + ": " + measurement);
-                }
+                measurement = await ((MD_DigimaticIndicator) MDevice).GetMeasurement_Uncorrected();
+                Console.WriteLine(MDevice.Name + ": " + measurement);
                 foreach (TextBox tb in FindVisualChilds<TextBox>(this))
                 {
                     if (tb.Name == "initialValue")
@@ -497,11 +523,8 @@ namespace TwinCat_Motion_ADS
             else
             {
                 string measurement = string.Empty;
-                foreach (var channel in MDevice.ChannelList)
-                {
-                    measurement = await MDevice.GetChannelMeasurement(channel.Item2);
-                    Console.WriteLine(channel.Item1 + ": " + measurement);
-                }
+                measurement = await ((MD_DigimaticIndicator)MDevice).GetMeasurement_Uncorrected();
+                Console.WriteLine(MDevice.Name + ": " + measurement);
                 foreach (TextBox tb in FindVisualChilds<TextBox>(this))
                 {
                     if (tb.Name == "finalValue")
