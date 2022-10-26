@@ -60,6 +60,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="APPLICATION WINDOWS\AddDataColumnWindow - Copy.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="APPLICATION WINDOWS\HelpScreen_Unidirectional;.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -81,6 +84,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Update="APPLICATION WINDOWS\AddDataColumnWindow - Copy.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="APPLICATION WINDOWS\Help screen windows\HelpScreen_Backlash.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>

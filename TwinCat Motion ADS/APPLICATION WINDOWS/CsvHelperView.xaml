@@ -8,17 +8,30 @@
              mc:Ignorable="d" 
              d:DesignHeight="890" d:DesignWidth="1100">
     <StackPanel x:Name="csvWindowGrid" Margin="0" Focusable="True">
-        <StackPanel>
-            <Button x:Name="Button_ImportCsv" Focusable="False" Content="Import CSV File" Style="{StaticResource myDefaultButton}" Click="LoadCSVFile_Click"/>
-            <Button x:Name="Button_Test" Focusable="False" Content="Add Error" Style="{StaticResource myDefaultButton}" Click="Button_Test_Click"/>
-            <Button x:Name="Button_Test2" Focusable="False" Content="Del Error" Style="{StaticResource myDefaultButton}" Click="Button_Test2_Click"/>
-            <Button x:Name="Button_DeleteSelected" Focusable="False" Content="Del Selected" Style="{StaticResource myDefaultButton}" Click="Button_DeleteSelected_Click" />
-            <Button x:Name="Button_ExportGraph" Focusable="False" Content="Export Graph" Style="{StaticResource myDefaultButton}" Click="Button_ExportGraph_Click"/>
+        <StackPanel Orientation="Horizontal">
+            <StackPanel>
+                <Button x:Name="Button_ImportCsv" Focusable="False" Content="Import CSV File" Style="{StaticResource myDefaultButton}" Click="LoadCSVFile_Click"/>
+                <Button x:Name="Button_Test" Focusable="False" Content="Add Error" Style="{StaticResource myDefaultButton}" Click="Button_Test_Click"/>
+                <Button x:Name="Button_Test2" Focusable="False" Content="Del Error" Style="{StaticResource myDefaultButton}" Click="Button_Test2_Click"/>
+                <Button x:Name="Button_DeleteSelected" Focusable="False" Content="Del Selected" Style="{StaticResource myDefaultButton}" Click="Button_DeleteSelected_Click" />
+                <Button x:Name="Button_ExportGraph" Focusable="False" Content="Export Graph" Style="{StaticResource myDefaultButton}" Click="Button_ExportGraph_Click"/>
+                <Button x:Name="Button_ClearGraph" Focusable="False" Content="Clear Graph" Style="{StaticResource myDefaultButton}" Click="Button_ClearGraph_Click"/>
+                <Button x:Name="Button_AddToGraph" Focusable="False" Content="Add to Graph" Style="{StaticResource myDefaultButton}" Click="Button_AddToGraph_Click"/>
+                <Button x:Name="Button_UpdateGraph" Focusable="False" Content="Update Graph" Style="{StaticResource myDefaultButton}" Click="Button_UpdateGraph_Click"/>
 
+                <ListBox x:Name="csvHeaderList"  Height="100" ItemsSource="{Binding Path=DataHeaders}"/>
+            </StackPanel>
             <DataGrid x:Name="csvDataGrid" Height="200" ItemsSource="{Binding}" AutoGenerateColumns="True"/>
-            <ListBox x:Name="csvHeaderList"  Height="100" ItemsSource="{Binding Path=DataHeaders}"/>
         </StackPanel>
-        <StackPanel>
+        <StackPanel Orientation="Vertical">
+            <local:SettingControl x:Name="SettingY_Scale_Max" SetName="Y_Max:" Margin="0,2,0,0"/>
+            <local:SettingControl x:Name="SettingY_Scale_Min" SetName="Y_Min:" Margin="0,2,0,0"/>
+            <local:SettingControl x:Name="SettingY_Scale_Sep" SetName="Y_Sep:" Margin="0,2,0,0"/>
+            <local:SettingControl x:Name="SettingX_Scale_Max" SetName="X_Max:" Margin="0,2,0,0"/>
+            <local:SettingControl x:Name="SettingX_Scale_Min" SetName="X_Min:" Margin="0,2,0,0"/>
+            <local:SettingControl x:Name="SettingX_Scale_Sep" SetName="X_Sep:" Margin="0,2,0,0"/>
+        </StackPanel>
+        <StackPanel Background="White">
             <lvc:CartesianChart x:Name="TestChart" Series="{Binding SeriesCollection}" Height="400" Width="800"/>
         </StackPanel>
  

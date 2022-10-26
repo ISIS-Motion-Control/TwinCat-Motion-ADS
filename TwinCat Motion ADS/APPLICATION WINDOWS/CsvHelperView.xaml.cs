@@ -49,17 +49,7 @@ namespace TwinCat_Motion_ADS
 
         private SeriesCollection _SeriesCollection = new SeriesCollection()
         {
-            /*new LineSeries
-            {
-                Title = "Positive Direction",
-                Values = new ChartValues<ObservablePoint>
-                {
-                    new ObservablePoint(0.2,10),
-                    new ObservablePoint(0.4,12),
-                    new ObservablePoint(0.2,15),
-                    new ObservablePoint(5,2)
-                }
-            },*/
+
         };
         public SeriesCollection SeriesCollection
         {
@@ -73,12 +63,19 @@ namespace TwinCat_Motion_ADS
 
 
 
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
+        public SettingDouble YAxisMax { get; set; } = new("yAxisMax");
+        public SettingDouble YAxisMin { get; set; } = new("yAxisMin");
+        public SettingDouble YAxisSep { get; set; } = new("yAxisSep");
+        public SettingDouble XAxisMax { get; set; } = new("xAxisMax");
+        public SettingDouble XAxisMin { get; set; } = new("xAxisMin");
+        public SettingDouble XAxisSep { get; set; } = new("xAxisSep");
 
         public CsvHelperView()
         {
@@ -88,7 +85,21 @@ namespace TwinCat_Motion_ADS
             dt = new DataTable();
             csvHeaderList.ItemsSource = DataHeaders;
             TestChart.Update();
-            TestChart.LegendLocation = LegendLocation.Right;           
+            TestChart.LegendLocation = LegendLocation.Right;
+
+            YAxisMax.UiVal = Properties.Settings.Default.yAxisMax;
+            YAxisMin.UiVal = Properties.Settings.Default.yAxisMin;
+            YAxisSep.UiVal = Properties.Settings.Default.yAxisSep;
+            XAxisMax.UiVal = Properties.Settings.Default.xAxisMax;
+            XAxisMin.UiVal = Properties.Settings.Default.xAxisMin;
+            XAxisSep.UiVal = Properties.Settings.Default.xAxisSep;
+
+            XamlUI.TextboxBinding(SettingY_Scale_Max.SettingValue, YAxisMax, "UiVal");
+            XamlUI.TextboxBinding(SettingY_Scale_Min.SettingValue, YAxisMin, "UiVal");
+            XamlUI.TextboxBinding(SettingY_Scale_Sep.SettingValue, YAxisSep, "UiVal");
+            XamlUI.TextboxBinding(SettingX_Scale_Max.SettingValue, XAxisMax, "UiVal");
+            XamlUI.TextboxBinding(SettingX_Scale_Min.SettingValue, XAxisMin, "UiVal");
+            XamlUI.TextboxBinding(SettingX_Scale_Sep.SettingValue, XAxisSep, "UiVal");
         }
 
         private void SelectFolderDirectory_Click(object sender, RoutedEventArgs e)
@@ -144,38 +155,19 @@ namespace TwinCat_Motion_ADS
         private void OpenColumnCreationWindow()
         {
             AddDataColumnWindow dataWindow = new(DataHeaders);
-            dataWindow.DialogFinished += new EventHandler<WindowEventArgs>(CreateDataColumn);
+            dataWindow.DialogFinished += new EventHandler<NewDataArgs>(CreateDataColumn);
             dataWindow.Show();
             
         }
         
-        public void CreateDataColumn(object sender, WindowEventArgs e)
+        public void CreateDataColumn(object sender, NewDataArgs e)
         {
             AddGridColumn(e.ColumnHeader, typeof(string));
             AddDataRowsToColumn(e.ColumnHeader, e.Var1Header, e.Var2Header);
-            UpdateChart(e.ColumnHeader, e.Var2Header);
+            //UpdateChart(e.ColumnHeader, e.Var2Header);
         }
 
-        public void UpdateChart(string header1, string header2)
-        {
-            
-            List<ObservablePoint> dataPoints = new();
-            foreach(DataRow row in dt.Rows)
-            {
-                dataPoints.Add(new ObservablePoint(Double.Parse((string)row[header2]), Double.Parse((string)row[header1])));
-            }
-
-            LineSeries myLine = new LineSeries { Title = header1, Values = new ChartValues<ObservablePoint>() };
-            myLine.Values.AddRange(dataPoints);
-
-
-
-            //ChartValues<ObservablePoint> cv = new ChartValues<ObservablePoint>();
-            //cv.AddRange(dataPoints);
-           // LineSeries lineSeries = new LineSeries();
-            //lineSeries.Values.AddRange(cv);
-            SeriesCollection.Add(myLine);
-        }
+        
 
         private void DeleteErrorCol()
         {
@@ -291,9 +283,60 @@ namespace TwinCat_Motion_ADS
             using (var stream = File.Create(fileName)) encoder.Save(stream);
         }
 
+        private void Button_ClearGraph_Click(object sender, RoutedEventArgs e)
+        {
+            SeriesCollection.Clear();
+        }
 
+
+
+
+
+
+        //Button Press to add data
+        private void Button_AddToGraph_Click(object sender, RoutedEventArgs e)
+        {
+            AddToGraphWindow dataWindow = new(DataHeaders);
+            dataWindow.DialogFinished += new EventHandler<NewGraphDataArgs>(AddDataToGraph);
+            dataWindow.Show();
+        }
+     
+        //Submitted data event
+        public void AddDataToGraph(object sender, NewGraphDataArgs e)
+        {
+            UpdateChart(e.ColumnHeader, e.Var1Header, e.Var2Header);
+        }
+        
+        //Add to chart
+        public void UpdateChart(string seriesName, string xAxis, string yAxis)
+        {
+            List<ObservablePoint> dataPoints = new();
+            foreach (DataRow row in dt.Rows)
+            {
+                dataPoints.Add(new ObservablePoint(Double.Parse((string)row[yAxis]), Double.Parse((string)row[xAxis])));
+            }
+
+            ScatterSeries myLine = new ScatterSeries { Title = seriesName, Values = new ChartValues<ObservablePoint>() };
+            myLine.Values.AddRange(dataPoints);
+            myLine.PointGeometry = DefaultGeometries.Cross;
+            myLine.StrokeThickness = 2;
+
+            SeriesCollection.Add(myLine);
+        }
+
+        private void Button_UpdateGraph_Click(object sender, RoutedEventArgs e)
+        {
+            TestChart.AxisX.Clear();
+
+            TestChart.AxisY.Clear();
+
+            LiveCharts.Wpf.Separator xSep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = XAxisSep.Val };
+            LiveCharts.Wpf.Separator ySep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = YAxisSep.Val };
+            TestChart.AxisY.Add(new() { MaxValue = YAxisMax.Val, MinValue = YAxisMin.Val, Separator = ySep });
+            TestChart.AxisX.Add(new() { MaxValue = XAxisMax.Val, MinValue = XAxisMin.Val, Separator = xSep });
+        }
     }
-    public class WindowEventArgs : EventArgs
+    public class NewDataArgs : EventArgs
     {
         private readonly string columnHeader;
         private readonly string var1Header;
@@ -302,11 +345,29 @@ namespace TwinCat_Motion_ADS
         public string Var1Header { get; private set; }
         public string Var2Header { get; private set; }
 
-        public WindowEventArgs(string columnHeader, string var1Header, string var2Header)
+        public NewDataArgs(string columnHeader, string var1Header, string var2Header)
         {
             ColumnHeader = columnHeader;
             Var1Header = var1Header;
             Var2Header = var2Header;
         }
     }
+    public class NewGraphDataArgs : EventArgs
+    {
+        private readonly string columnHeader;
+        private readonly string var1Header;
+        private readonly string var2Header;
+        public string ColumnHeader { get; private set; }
+        public string Var1Header { get; private set; }
+        public string Var2Header { get; private set; }
+
+        public NewGraphDataArgs(string columnHeader, string var1Header, string var2Header)
+        {
+            ColumnHeader = columnHeader;
+            Var1Header = var1Header;
+            Var2Header = var2Header;
+        }
+    }
+
+
 }

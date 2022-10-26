@@ -18,9 +18,9 @@ namespace TwinCat_Motion_ADS
     /// <summary>
     /// Interaction logic for AddDataColumnWindow.xaml
     /// </summary>
-    public partial class AddDataColumnWindow : Window
+    public partial class AddToGraphWindow : Window
     {
-        public AddDataColumnWindow(ObservableCollection<string> DataHeaders)
+        public AddToGraphWindow(ObservableCollection<string> DataHeaders)
         {
             this.DataHeaders = DataHeaders;
             InitializeComponent();
@@ -37,11 +37,11 @@ namespace TwinCat_Motion_ADS
         }
         private ObservableCollection<string> DataHeaders;
 
-        public event EventHandler<WindowEventArgs> DialogFinished;
+        public event EventHandler<NewGraphDataArgs> DialogFinished;
         public void OnDialogFinished()
         {
             if (DialogFinished != null)
-                DialogFinished(this, new WindowEventArgs(ColumnTitle.Text, Combo_Header1.Text, Combo_Header2.Text));
+                DialogFinished(this, new NewGraphDataArgs(SeriesName.Text, Combo_Header1.Text, Combo_Header2.Text));
         }
 
 
@@ -52,7 +52,7 @@ namespace TwinCat_Motion_ADS
 
         private void Button_Add_Click(object sender, RoutedEventArgs e)
         {
-            if(string.IsNullOrEmpty(ColumnTitle.Text) || string.IsNullOrEmpty(Combo_Header1.Text) || string.IsNullOrEmpty(Combo_Header2.Text))
+            if(string.IsNullOrEmpty(SeriesName.Text) || string.IsNullOrEmpty(Combo_Header1.Text) || string.IsNullOrEmpty(Combo_Header2.Text))
             {
                 Console.WriteLine("Invalid input");
                 return;
