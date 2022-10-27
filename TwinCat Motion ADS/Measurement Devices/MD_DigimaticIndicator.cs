@@ -3,6 +3,11 @@ using System.Threading;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows;
 
 namespace TwinCat_Motion_ADS.MeasurementDevice
 {
@@ -87,12 +92,111 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
             }
 
         }
-        public double cosineCorrectionValue = 1;
+
+        public bool EnableCosineCorrection { get; set; }
+
+        private double cosineCorrectionValue;
+        public double CosineCorrectionValue 
+        { 
+            get { return cosineCorrectionValue; } 
+            set { cosineCorrectionValue = value; }
+        }
+
+        private string initialValue;
+        public string InitialValue 
+        { 
+            get { return initialValue; } 
+            set 
+            {
+                if (double.TryParse(value, out _))
+                {
+                    initialValue = value;
+                }
+            } 
+        }
+
+        private string distanceTraveled;
+        public string DistanceTraveled 
+        { 
+            get { return distanceTraveled; }
+            set
+            {
+                if (double.TryParse(value, out _))
+                {
+                    distanceTraveled = value;
+                }
+            }
+        }
+
+        private string finalValue;
+        public string FinalValue 
+        { 
+            get { return finalValue; }
+            set
+            {
+                if (double.TryParse(value, out _))
+                {
+                    finalValue = value;
+                }
+            }
+        }
+
+        public void CalculateCosineCorrection(object sender, EventArgs e)
+        {
+            if (EnableCosineCorrection)
+            {
+                COSINECalculation(InitialValue, DistanceTraveled, FinalValue);
+                Console.WriteLine("Correction Value : " + Convert.ToString(CosineCorrectionValue));
+            }
+            else
+            {
+                Console.WriteLine("COSIGN Correction Not Enabled");
+            }
+            
+        }
+
+        public void ResetCosineCalculation(object sender, EventArgs e)
+        {
+            InitialValue = "0";
+            DistanceTraveled = "1";
+            FinalValue = "1";
+            COSINECalculation(InitialValue, DistanceTraveled, FinalValue);
+            Console.WriteLine("COSINE Calculaion Reset");
+        }
+        public async void InitialValue_ReadIn(object sender, EventArgs e)
+        {
+            if (!Connected)
+            {
+                Console.WriteLine("Not connected to a device");
+                return;
+            }
+            else
+            {
+                string measurement = await GetMeasurement_Uncorrected();
+                Console.WriteLine(Name + ": " + measurement);
+                InitialValue = measurement;
+            }
+        }
+        public async void FinalValue_ReadIn(object sender, EventArgs e)
+        {
+            if (!Connected)
+            {
+                Console.WriteLine("Not connected to a device");
+                return;
+            }
+            else
+            {
+                string measurement = await GetMeasurement_Uncorrected();
+                Console.WriteLine(Name + ": " + measurement);
+                FinalValue = measurement;
+            }
+        }
+
         public void COSINECalculation(string adjacent_point1, string adjacent_point2, string hypotenuse)
         {
 
             double adjacent = Math.Abs(Convert.ToDouble(adjacent_point2) - Convert.ToDouble(adjacent_point1));
-            cosineCorrectionValue = adjacent / Math.Abs(Convert.ToDouble(hypotenuse));
+            CosineCorrectionValue = adjacent / Math.Abs(Convert.ToDouble(hypotenuse));
         }
 
         public new bool Disconnect()

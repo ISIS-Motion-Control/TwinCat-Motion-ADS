@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -98,80 +99,55 @@ namespace TwinCat_Motion_ADS
                     CommonRs232Window();
                     //Create UI for COSINE error calculation
                     //Create UI elements
-                    CheckBox enableCosineCalculationCheckBox = new CheckBox() { Name = "enableCosineCalculationCheckBox" };
-                    Button calculateCosineCorrectionButton = new Button();
-                    Button resetCosineCalculationButton = new Button();
-                    TextBox initialValue = new TextBox() { Name = "initialValue"};
-                    Button initialValue_ReadIn = new Button();
-                    TextBox distanceTraveled = new TextBox() { Name = "distanceTraveled" };
-                    TextBox finalValue = new TextBox() { Name = "finalValue" };
-                    Button finalValue_ReadIn = new Button();
+                    CheckBox enableCosineCalculationCheckBox = new() { Name = "enableCosineCalculationCheckBox" };
+                    Button calculateCosineCorrectionButton = new();
+                    Button resetCosineCalculationButton = new();
+                    TextBox initialValueTextBox = new() { Name = "initialValueTextBox" };
+                    Button initialValue_ReadIn = new();
+                    TextBox distanceTraveledTextBox = new() { Name = "distanceTraveledTextBox" };
+                    TextBox finalValueTextBox = new() { Name = "finalValueTextBox" };
+                    Button finalValue_ReadIn = new();
 
                     //setup UI elements
-                    XamlUI.SetupButton(ref resetCosineCalculationButton, "CALCULATE");
+                    XamlUI.SetupButton(ref calculateCosineCorrectionButton, "CALCULATE");
                     XamlUI.SetupButton(ref resetCosineCalculationButton, "RESET");
                     XamlUI.SetupButton(ref initialValue_ReadIn, "Read in");
                     XamlUI.SetupButton(ref finalValue_ReadIn, "Read in");
-                    XamlUI.SetupTextBox(ref initialValue, "Initial Value");
-                    XamlUI.SetupTextBox(ref distanceTraveled, "Distance Traveled");
-                    XamlUI.SetupTextBox(ref finalValue, "Final Value");
+
+                    //Setup bindings
+                    XamlUI.CheckBoxBinding("",enableCosineCalculationCheckBox, (MD_DigimaticIndicator)MDevice, "EnableCosineCorrection");
+                    XamlUI.TextboxBinding(initialValueTextBox, (MD_DigimaticIndicator)MDevice, "InitialValue");
+                    XamlUI.TextboxBinding(distanceTraveledTextBox, (MD_DigimaticIndicator)MDevice, "DistanceTraveled");
+                    XamlUI.TextboxBinding(finalValueTextBox, (MD_DigimaticIndicator)MDevice, "FinalValue");
 
                     //Setup event handlers
                     enableCosineCalculationCheckBox.Click += new RoutedEventHandler(EnableCosineCalculation);
-                    calculateCosineCorrectionButton.Click += new RoutedEventHandler(CalculateCosineCorrection);
-                    resetCosineCalculationButton.Click += new RoutedEventHandler(ResetCosineCalculation);
-                    initialValue_ReadIn.Click += new RoutedEventHandler(InitialValue_ReadIn);
-                    finalValue_ReadIn.Click += new RoutedEventHandler(FinalValue_ReadIn);
+                    calculateCosineCorrectionButton.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).CalculateCosineCorrection);
+                    resetCosineCalculationButton.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).ResetCosineCalculation);
+                    initialValue_ReadIn.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).InitialValue_ReadIn);
+                    finalValue_ReadIn.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).FinalValue_ReadIn);
 
-                    //Create grid to show the UI
-                    Grid cosineCorrection = new() { Width = 300, Height = 150, HorizontalAlignment = HorizontalAlignment.Center, Name = "cosineCorrection", IsEnabled = false, Visibility = Visibility.Collapsed };
+                    //Setup stack pannels
+                    StackPanel cosineCorrectionSP = new() { Orientation = Orientation.Vertical, Width = 300, IsEnabled = false, Visibility = Visibility.Collapsed, Name = "cosineCorrectionSP", HorizontalAlignment = HorizontalAlignment.Center};
+                    StackPanel controlSP = new() { Orientation = Orientation.Horizontal };
+                    StackPanel initalValueSP = new() { Orientation = Orientation.Horizontal };
+                    StackPanel distanceTraveledSP = new() { Orientation = Orientation.Horizontal };
+                    StackPanel finalValueSP = new() { Orientation = Orientation.Horizontal };
 
-                    //Define the Columns
-                    ColumnDefinition colDef0 = new ColumnDefinition();
-                    ColumnDefinition colDef1 = new ColumnDefinition();
-                    cosineCorrection.ColumnDefinitions.Add(colDef0);
-                    cosineCorrection.ColumnDefinitions.Add(colDef1);
-
-                    //Define the Rows
-                    RowDefinition rowDef0 = new RowDefinition();
-                    RowDefinition rowDef1 = new RowDefinition();
-                    RowDefinition rowDef2 = new RowDefinition();
-                    RowDefinition rowDef3 = new RowDefinition();
-                    cosineCorrection.RowDefinitions.Add(rowDef0);
-                    cosineCorrection.RowDefinitions.Add(rowDef1);
-                    cosineCorrection.RowDefinitions.Add(rowDef2);
-                    cosineCorrection.RowDefinitions.Add(rowDef3);
-
-                    //Add grid to screen
+                    //add elements and stack pannels to UI
                     deviceSettings.Children.Add(enableCosineCalculationCheckBox);
-                    deviceSettings.Children.Add(cosineCorrection);
-
-                    //Add UI elements to grid
-                    cosineCorrection.Children.Add(calculateCosineCorrectionButton);
-                    cosineCorrection.Children.Add(resetCosineCalculationButton);
-                    cosineCorrection.Children.Add(initialValue);
-                    cosineCorrection.Children.Add(initialValue_ReadIn);
-                    cosineCorrection.Children.Add(distanceTraveled);
-                    cosineCorrection.Children.Add(finalValue);
-                    cosineCorrection.Children.Add(finalValue_ReadIn);
-
-                    //Order UI elements in grid
-                    Grid.SetRow(calculateCosineCorrectionButton, 0);
-                    Grid.SetRow(resetCosineCalculationButton, 0);
-                    Grid.SetRow(initialValue, 1);
-                    Grid.SetRow(initialValue_ReadIn, 1);
-                    Grid.SetRow(distanceTraveled, 2);
-                    Grid.SetRow(finalValue, 3);
-                    Grid.SetRow(finalValue_ReadIn, 3);
-
-                    Grid.SetColumn(calculateCosineCorrectionButton, 0);
-                    Grid.SetColumn(initialValue, 0);
-                    Grid.SetColumn(distanceTraveled, 0);
-                    Grid.SetColumn(finalValue, 0);
-                    Grid.SetColumn(resetCosineCalculationButton, 1);
-                    Grid.SetColumn(initialValue_ReadIn, 1);
-                    Grid.SetColumn(finalValue_ReadIn, 1);
-                    
+                    deviceSettings.Children.Add(cosineCorrectionSP);
+                    cosineCorrectionSP.Children.Add(controlSP);
+                    cosineCorrectionSP.Children.Add(initalValueSP);
+                    cosineCorrectionSP.Children.Add(distanceTraveledSP);
+                    cosineCorrectionSP.Children.Add(finalValueSP);
+                    controlSP.Children.Add(calculateCosineCorrectionButton);
+                    controlSP.Children.Add(resetCosineCalculationButton);
+                    initalValueSP.Children.Add(initialValueTextBox);
+                    initalValueSP.Children.Add(initialValue_ReadIn);
+                    distanceTraveledSP.Children.Add(distanceTraveledTextBox);
+                    finalValueSP.Children.Add(finalValueTextBox);
+                    finalValueSP.Children.Add(finalValue_ReadIn);
                     break;
 
                 case DeviceTypes.KeyenceTM3000:
@@ -429,107 +405,19 @@ namespace TwinCat_Motion_ADS
                 }
             }
 
-            foreach (Grid gd in FindVisualChilds<Grid>(this))
+            foreach (StackPanel sp in FindVisualChilds<StackPanel>(this))
             {
-                if (gd.Name == "cosineCorrection")
+                if (sp.Name == "cosineCorrectionSP")
                 {
                     if (checkBoxEnabled)
                     {
-                        gd.IsEnabled = true;
-                        gd.Visibility =Visibility.Visible;
+                        sp.IsEnabled = true;
+                        sp.Visibility = Visibility.Visible;
                     }
                     else
                     {
-                        gd.IsEnabled = false;
-                        gd.Visibility = Visibility.Collapsed;
-                    }
-                }
-            }
-        }
-
-        public void CalculateCosineCorrection(object sender, EventArgs e)
-        {
-            string initialValue = "0";
-            string distanceTraveled = "1";
-            string finalValue = "1";
-            foreach (TextBox tb in FindVisualChilds<TextBox>(this))
-            {
-                if (tb.Name == "initialValue")
-                {
-                    initialValue = tb.Text;
-                }
-                if (tb.Name == "distanceTraveled")
-                {
-                    distanceTraveled = tb.Text;
-                }
-                if (tb.Name == "finalValue")
-                {
-                    finalValue = tb.Text;
-                }
-            }
-            ((MD_DigimaticIndicator)MDevice).COSINECalculation(initialValue, distanceTraveled, finalValue);
-            Console.WriteLine("Correction Value : " + Convert.ToString(((MD_DigimaticIndicator)MDevice).cosineCorrectionValue));
-        }
-
-        public void ResetCosineCalculation(object sender, EventArgs e)
-        {
-            foreach (TextBox tb in FindVisualChilds<TextBox>(this))
-            {
-                if (tb.Name == "initialValue")
-                {
-                    tb.Text = String.Empty;
-                }
-                if (tb.Name == "distanceTraveled")
-                {
-                    tb.Text = String.Empty;
-                }
-                if (tb.Name == "finalValue")
-                {
-                    tb.Text = String.Empty;
-                }
-            }
-            CalculateCosineCorrection(sender, e);
-            Console.WriteLine("COSINE Calculaion Reset");
-        }
-        public async void InitialValue_ReadIn(object sender, EventArgs e)
-        {
-            
-            if (!MDevice.Connected)
-            {
-                Console.WriteLine("Not connected to a device");
-                return;
-            }
-            else
-            {
-                string measurement = string.Empty;
-                measurement = await ((MD_DigimaticIndicator) MDevice).GetMeasurement_Uncorrected();
-                Console.WriteLine(MDevice.Name + ": " + measurement);
-                foreach (TextBox tb in FindVisualChilds<TextBox>(this))
-                {
-                    if (tb.Name == "initialValue")
-                    {
-                        tb.Text = measurement;
-                    }
-                }
-            }
-        }
-        public async void FinalValue_ReadIn(object sender, EventArgs e)
-        {
-            if (!MDevice.Connected)
-            {
-                Console.WriteLine("Not connected to a device");
-                return;
-            }
-            else
-            {
-                string measurement = string.Empty;
-                measurement = await ((MD_DigimaticIndicator)MDevice).GetMeasurement_Uncorrected();
-                Console.WriteLine(MDevice.Name + ": " + measurement);
-                foreach (TextBox tb in FindVisualChilds<TextBox>(this))
-                {
-                    if (tb.Name == "finalValue")
-                    {
-                        tb.Text = measurement;
+                        sp.IsEnabled = false;
+                        sp.Visibility = Visibility.Collapsed;
                     }
                 }
             }
