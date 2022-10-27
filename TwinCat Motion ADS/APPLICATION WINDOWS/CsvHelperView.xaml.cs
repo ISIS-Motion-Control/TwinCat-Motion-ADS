@@ -153,7 +153,7 @@ namespace TwinCat_Motion_ADS
             
         }
 
-        private void Button_Test_Click(object sender, RoutedEventArgs e)
+        private void Button_AddError_Click(object sender, RoutedEventArgs e)
         {
             OpenColumnCreationWindow();
         }
@@ -185,10 +185,7 @@ namespace TwinCat_Motion_ADS
 
         
 
-        private void DeleteErrorCol()
-        {
-            DeleteGridColumn("Error");
-        }
+
 
         private void AddGridColumn(string columnName, Type datatype)
         {
@@ -264,10 +261,7 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        private void Button_Test2_Click(object sender, RoutedEventArgs e)
-        {
-            DeleteErrorCol();
-        }
+
 
         private void Button_DeleteSelected_Click(object sender, RoutedEventArgs e)
         {
@@ -293,13 +287,16 @@ namespace TwinCat_Motion_ADS
         private static void EncodeVisual(FrameworkElement visual, string fileName, BitmapEncoder encoder)
         {
             Console.WriteLine((int)visual.Width);
-            var bitmap = new RenderTargetBitmap((int)(visual.ActualWidth *1.5), (int)(visual.ActualHeight * 1.4), 128, 128, PixelFormats.Pbgra32);
+            var bitmap = new RenderTargetBitmap((int)(visual.RenderSize.Width *1.5), (int)(visual.RenderSize.Height * 1.4), 128, 128, PixelFormats.Pbgra32);
             bitmap.Render(visual);
             var frame = BitmapFrame.Create(bitmap);
             encoder.Frames.Add(frame);
             using (var stream = File.Create(fileName)) encoder.Save(stream);
         }
 
+        
+        
+        
         private void Button_ClearGraph_Click(object sender, RoutedEventArgs e)
         {
             SeriesCollection.Clear();

@@ -11,8 +11,7 @@
         <StackPanel Orientation="Horizontal">
             <StackPanel>
                 <Button x:Name="Button_ImportCsv" Focusable="False" Content="Import CSV File" Style="{StaticResource myDefaultButton}" Click="LoadCSVFile_Click"/>
-                <Button x:Name="Button_Test" Focusable="False" Content="Add Error" Style="{StaticResource myDefaultButton}" Click="Button_Test_Click"/>
-                <Button x:Name="Button_Test2" Focusable="False" Content="Del Error" Style="{StaticResource myDefaultButton}" Click="Button_Test2_Click"/>
+                <Button x:Name="Button_AddError" Focusable="False" Content="Add Error" Style="{StaticResource myDefaultButton}" Click="Button_AddError_Click"/>
                 <Button x:Name="Button_DeleteSelected" Focusable="False" Content="Del Selected" Style="{StaticResource myDefaultButton}" Click="Button_DeleteSelected_Click" />
                 <Button x:Name="Button_ExportGraph" Focusable="False" Content="Export Graph" Style="{StaticResource myDefaultButton}" Click="Button_ExportGraph_Click"/>
                 <Button x:Name="Button_ClearGraph" Focusable="False" Content="Clear Graph" Style="{StaticResource myDefaultButton}" Click="Button_ClearGraph_Click"/>
