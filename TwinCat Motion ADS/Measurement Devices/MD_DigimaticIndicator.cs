@@ -92,14 +92,15 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
             }
 
         }
-
+        #region get sets
+        
         public bool EnableCosineCorrection { get; set; }
 
         private double cosineCorrectionValue;
         public double CosineCorrectionValue 
         { 
             get { return cosineCorrectionValue; } 
-            set { cosineCorrectionValue = value; }
+            set { cosineCorrectionValue = value; OnPropertyChanged(); }
         }
 
         private string initialValue;
@@ -111,6 +112,7 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
                 if (double.TryParse(value, out _))
                 {
                     initialValue = value;
+                    OnPropertyChanged();
                 }
             } 
         }
@@ -124,6 +126,7 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
                 if (double.TryParse(value, out _))
                 {
                     distanceTraveled = value;
+                    OnPropertyChanged();
                 }
             }
         }
@@ -137,16 +140,19 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
                 if (double.TryParse(value, out _))
                 {
                     finalValue = value;
+                    OnPropertyChanged();
                 }
             }
         }
+        #endregion
 
+        #region COSINE Correction
         public void CalculateCosineCorrection(object sender, EventArgs e)
         {
             if (EnableCosineCorrection)
             {
                 COSINECalculation(InitialValue, DistanceTraveled, FinalValue);
-                Console.WriteLine("Correction Value : " + Convert.ToString(CosineCorrectionValue));
+                
             }
             else
             {
@@ -154,7 +160,6 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
             }
             
         }
-
         public void ResetCosineCalculation(object sender, EventArgs e)
         {
             InitialValue = "0";
@@ -165,40 +170,32 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
         }
         public async void InitialValue_ReadIn(object sender, EventArgs e)
         {
-            if (!Connected)
-            {
-                Console.WriteLine("Not connected to a device");
-                return;
-            }
-            else
-            {
-                string measurement = await GetMeasurement_Uncorrected();
-                Console.WriteLine(Name + ": " + measurement);
-                InitialValue = measurement;
-            }
+            string measurement = await GetMeasurement_Uncorrected();
+            Console.WriteLine(Name + ": " + measurement);
+            initialValue = measurement;
         }
         public async void FinalValue_ReadIn(object sender, EventArgs e)
         {
-            if (!Connected)
+            string measurement = await GetMeasurement_Uncorrected();
+            Console.WriteLine(Name + ": " + measurement);
+            FinalValue = measurement;
+        }
+        public void COSINECalculation(string adjacent_point1, string adjacent_point2, string hypotenuse)
+        {
+            double adjacent = Math.Abs(Convert.ToDouble(adjacent_point2) - Convert.ToDouble(adjacent_point1));
+            double value = adjacent / Math.Abs(Convert.ToDouble(hypotenuse));
+            if (value > 1)
             {
-                Console.WriteLine("Not connected to a device");
-                return;
+                Console.WriteLine("Correction Ratio can NOT be greater than 1, value calculated = " + Convert.ToString(value));
             }
             else
             {
-                string measurement = await GetMeasurement_Uncorrected();
-                Console.WriteLine(Name + ": " + measurement);
-                FinalValue = measurement;
+                cosineCorrectionValue = value;
+                Console.WriteLine("Correction Value : " + Convert.ToString(CosineCorrectionValue));
             }
+
         }
-
-        public void COSINECalculation(string adjacent_point1, string adjacent_point2, string hypotenuse)
-        {
-
-            double adjacent = Math.Abs(Convert.ToDouble(adjacent_point2) - Convert.ToDouble(adjacent_point1));
-            CosineCorrectionValue = adjacent / Math.Abs(Convert.ToDouble(hypotenuse));
-        }
-
+        #endregion
         public new bool Disconnect()
         {
             ChannelList.Clear();

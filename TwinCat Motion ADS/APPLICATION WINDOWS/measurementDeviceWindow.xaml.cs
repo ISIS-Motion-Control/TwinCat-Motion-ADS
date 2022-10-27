@@ -97,7 +97,6 @@ namespace TwinCat_Motion_ADS
             {
                 case DeviceTypes.DigimaticIndicator:
                     CommonRs232Window();
-                    //Create UI for COSINE error calculation
                     //Create UI elements
                     CheckBox enableCosineCalculationCheckBox = new() { Name = "enableCosineCalculationCheckBox" };
                     Button calculateCosineCorrectionButton = new();
@@ -108,14 +107,17 @@ namespace TwinCat_Motion_ADS
                     TextBox finalValueTextBox = new() { Name = "finalValueTextBox" };
                     Button finalValue_ReadIn = new();
 
-                    //setup UI elements
+                    //setup UI element
                     XamlUI.SetupButton(ref calculateCosineCorrectionButton, "CALCULATE");
                     XamlUI.SetupButton(ref resetCosineCalculationButton, "RESET");
+                    XamlUI.SetupTextBox(ref initialValueTextBox, "0");
                     XamlUI.SetupButton(ref initialValue_ReadIn, "Read in");
+                    XamlUI.SetupTextBox(ref distanceTraveledTextBox, "1");
+                    XamlUI.SetupTextBox(ref finalValueTextBox, "1");
                     XamlUI.SetupButton(ref finalValue_ReadIn, "Read in");
 
                     //Setup bindings
-                    XamlUI.CheckBoxBinding("",enableCosineCalculationCheckBox, (MD_DigimaticIndicator)MDevice, "EnableCosineCorrection");
+                    XamlUI.CheckBoxBinding("Enable COSINE Correction", enableCosineCalculationCheckBox, (MD_DigimaticIndicator)MDevice, "EnableCosineCorrection");
                     XamlUI.TextboxBinding(initialValueTextBox, (MD_DigimaticIndicator)MDevice, "InitialValue");
                     XamlUI.TextboxBinding(distanceTraveledTextBox, (MD_DigimaticIndicator)MDevice, "DistanceTraveled");
                     XamlUI.TextboxBinding(finalValueTextBox, (MD_DigimaticIndicator)MDevice, "FinalValue");
@@ -128,8 +130,16 @@ namespace TwinCat_Motion_ADS
                     finalValue_ReadIn.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).FinalValue_ReadIn);
 
                     //Setup stack pannels
-                    StackPanel cosineCorrectionSP = new() { Orientation = Orientation.Vertical, Width = 300, IsEnabled = false, Visibility = Visibility.Collapsed, Name = "cosineCorrectionSP", HorizontalAlignment = HorizontalAlignment.Center};
-                    StackPanel controlSP = new() { Orientation = Orientation.Horizontal };
+                    StackPanel cosineCorrectionSP = new() 
+                    { 
+                        Orientation = Orientation.Vertical, 
+                        Width = 300,
+                        IsEnabled = false, 
+                        Visibility = Visibility.Collapsed, 
+                        Name = "cosineCorrectionSP", 
+                        HorizontalAlignment = HorizontalAlignment.Center
+                    };
+                    StackPanel controlSP = new() { Orientation = Orientation.Horizontal};
                     StackPanel initalValueSP = new() { Orientation = Orientation.Horizontal };
                     StackPanel distanceTraveledSP = new() { Orientation = Orientation.Horizontal };
                     StackPanel finalValueSP = new() { Orientation = Orientation.Horizontal };
