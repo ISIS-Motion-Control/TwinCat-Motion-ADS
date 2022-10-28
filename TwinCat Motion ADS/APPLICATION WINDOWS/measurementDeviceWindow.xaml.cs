@@ -99,80 +99,22 @@ namespace TwinCat_Motion_ADS
                 case DeviceTypes.DigimaticIndicator:
                     CommonRs232Window();
                     //Create UI elements
-                    CheckBox enableCosineCalculationCheckBox = new() { Name = "enableCosineCalculationCheckBox" };
-                    Button calculateCosineCorrectionButton = new();
-                    Button resetCosineCalculationButton = new();
-                    Image cosineImage = new() { MaxWidth = 300, Height = 100};
-                    TextBlock initialValueTextBlock = new();
-                    TextBox initialValueTextBox = new() { Name = "initialValueTextBox" };
-                    Button initialValue_ReadIn = new();
-                    TextBlock distanceTraveledTextBlock = new();
-                    TextBox distanceTraveledTextBox = new() { Name = "distanceTraveledTextBox" };
-                    TextBlock finalValueTextBlock = new();
-                    TextBox finalValueTextBox = new() { Name = "finalValueTextBox" };
-                    Button finalValue_ReadIn = new();
-
-                    //setup UI element
-                    cosineImage.Source = new BitmapImage(new Uri("\\ImageAssets\\COSINE.png", UriKind.Relative)); 
-                    XamlUI.SetupButton(ref calculateCosineCorrectionButton, "CALCULATE");
-                    XamlUI.SetupButton(ref resetCosineCalculationButton, "RESET");
-                    XamlUI.SetupTextBlock(ref initialValueTextBlock, "H1", 15);
-                    XamlUI.SetupTextBox(ref initialValueTextBox, "0");
-                    XamlUI.SetupButton(ref initialValue_ReadIn, "Read in");
-                    XamlUI.SetupTextBlock(ref distanceTraveledTextBlock, "A", 15);
-                    XamlUI.SetupTextBox(ref distanceTraveledTextBox, "1");
-                    XamlUI.SetupTextBlock(ref finalValueTextBlock, "H2", 15);
-                    XamlUI.SetupTextBox(ref finalValueTextBox, "1");
-                    XamlUI.SetupButton(ref finalValue_ReadIn, "Read in");
+                    cosineCorrectionUI cosineCorrectionUI = new();
 
                     //Setup bindings
-                    XamlUI.CheckBoxBinding("Enable COSINE Correction", enableCosineCalculationCheckBox, (MD_DigimaticIndicator)MDevice, "EnableCosineCorrection");
-                    XamlUI.TextboxBinding(initialValueTextBox, (MD_DigimaticIndicator)MDevice, "InitialValue");
-                    XamlUI.TextboxBinding(distanceTraveledTextBox, (MD_DigimaticIndicator)MDevice, "DistanceTraveled");
-                    XamlUI.TextboxBinding(finalValueTextBox, (MD_DigimaticIndicator)MDevice, "FinalValue");
+                    XamlUI.CheckBoxBinding("Enable COSINE Correction", cosineCorrectionUI.enableCosineCalculationCheckBox, (MD_DigimaticIndicator)MDevice, "EnableCosineCorrection");
+                    XamlUI.TextboxBinding(cosineCorrectionUI.initialValueTextBox, (MD_DigimaticIndicator)MDevice, "InitialValue");
+                    XamlUI.TextboxBinding(cosineCorrectionUI.distanceTraveledTextBox, (MD_DigimaticIndicator)MDevice, "DistanceTraveled");
+                    XamlUI.TextboxBinding(cosineCorrectionUI.finalValueTextBox, (MD_DigimaticIndicator)MDevice, "FinalValue");
 
                     //Setup event handlers
-                    enableCosineCalculationCheckBox.Click += new RoutedEventHandler(EnableCosineCalculation);
-                    calculateCosineCorrectionButton.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).CalculateCosineCorrection);
-                    resetCosineCalculationButton.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).ResetCosineCalculation);
-                    initialValue_ReadIn.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).InitialValue_ReadIn);
-                    finalValue_ReadIn.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).FinalValue_ReadIn);
-
-                    //Setup stack pannels
-                    StackPanel cosineCorrectionSP = new() 
-                    { 
-                        Orientation = Orientation.Vertical, 
-                        Width = 300,
-                        IsEnabled = false, 
-                        Visibility = Visibility.Collapsed, 
-                        Name = "cosineCorrectionSP", 
-                        HorizontalAlignment = HorizontalAlignment.Center
-                    };
-                    StackPanel imageSP = new() { Orientation = Orientation.Horizontal };
-                    StackPanel controlSP = new() { Orientation = Orientation.Vertical, VerticalAlignment = VerticalAlignment.Center};
-                    StackPanel initalValueSP = new() { Orientation = Orientation.Horizontal };
-                    StackPanel distanceTraveledSP = new() { Orientation = Orientation.Horizontal };
-                    StackPanel finalValueSP = new() { Orientation = Orientation.Horizontal };
+                    cosineCorrectionUI.calculateCosineCorrectionButton.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).CalculateCosineCorrection);
+                    cosineCorrectionUI.resetCosineCalculationButton.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).ResetCosineCalculation);
+                    cosineCorrectionUI.initialValue_ReadIn.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).InitialValue_ReadIn);
+                    cosineCorrectionUI.finalValue_ReadIn.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).FinalValue_ReadIn);
 
                     //add elements and stack pannels to UI
-                    deviceSettings.Children.Add(enableCosineCalculationCheckBox);
-                    deviceSettings.Children.Add(cosineCorrectionSP);
-                    cosineCorrectionSP.Children.Add(imageSP);
-                    cosineCorrectionSP.Children.Add(initalValueSP);
-                    cosineCorrectionSP.Children.Add(finalValueSP);
-                    cosineCorrectionSP.Children.Add(distanceTraveledSP);
-                    imageSP.Children.Add(cosineImage);
-                    imageSP.Children.Add(controlSP);
-                    controlSP.Children.Add(calculateCosineCorrectionButton);
-                    controlSP.Children.Add(resetCosineCalculationButton);
-                    initalValueSP.Children.Add(initialValueTextBlock);
-                    initalValueSP.Children.Add(initialValueTextBox);
-                    initalValueSP.Children.Add(initialValue_ReadIn);
-                    distanceTraveledSP.Children.Add(distanceTraveledTextBlock);
-                    distanceTraveledSP.Children.Add(distanceTraveledTextBox);
-                    finalValueSP.Children.Add(finalValueTextBlock);
-                    finalValueSP.Children.Add(finalValueTextBox);
-                    finalValueSP.Children.Add(finalValue_ReadIn);
+                    deviceSettings.Children.Add(cosineCorrectionUI.cosineCorrectionUISP);
                     break;
 
                 case DeviceTypes.KeyenceTM3000:
@@ -419,47 +361,6 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        public void EnableCosineCalculation(object sender, EventArgs e)
-        {
-            bool checkBoxEnabled = false;
-            foreach (CheckBox cb in FindVisualChilds<CheckBox>(this))
-            {
-                if (cb.Name == "enableCosineCalculationCheckBox")
-                {
-                    checkBoxEnabled = (bool)cb.IsChecked;
-                }
-            }
-
-            foreach (StackPanel sp in FindVisualChilds<StackPanel>(this))
-            {
-                if (sp.Name == "cosineCorrectionSP")
-                {
-                    if (checkBoxEnabled)
-                    {
-                        sp.IsEnabled = true;
-                        sp.Visibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        sp.IsEnabled = false;
-                        sp.Visibility = Visibility.Collapsed;
-                    }
-                }
-            }
-        }
-
-        public static IEnumerable<T> FindVisualChilds<T>(DependencyObject depObj) where T : DependencyObject
-        {
-            if (depObj == null) yield return (T)Enumerable.Empty<T>();
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
-            {
-                DependencyObject ithChild = VisualTreeHelper.GetChild(depObj, i);
-                if (ithChild == null) continue;
-                if (ithChild is T t) yield return t;
-                foreach (T childOfChild in FindVisualChilds<T>(ithChild)) yield return childOfChild;
-            }
-        }
-
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if(MDevice != null)
@@ -505,6 +406,91 @@ namespace TwinCat_Motion_ADS
             ((BaseRs232MeasurementDevice)MDevice).UpdatePortList();           
         }
 
+    }
+
+    class cosineCorrectionUI
+    {
+        //Create UI elements
+        public StackPanel cosineCorrectionUISP = new() { Orientation = Orientation.Vertical };
+        public CheckBox enableCosineCalculationCheckBox = new() { Name = "enableCosineCalculationCheckBox" };
+        public Button calculateCosineCorrectionButton = new();
+        public Button resetCosineCalculationButton = new();
+        public Image cosineImage = new() { MaxWidth = 300, Height = 100 };
+        public TextBlock initialValueTextBlock = new();
+        public TextBox initialValueTextBox = new() { Name = "initialValueTextBox" };
+        public Button initialValue_ReadIn = new();
+        public TextBlock distanceTraveledTextBlock = new();
+        public TextBox distanceTraveledTextBox = new() { Name = "distanceTraveledTextBox" };
+        public TextBlock finalValueTextBlock = new();
+        public TextBox finalValueTextBox = new() { Name = "finalValueTextBox" };
+        public Button finalValue_ReadIn = new();
+        private StackPanel cosineCorrectionSP = new()
+        {
+            Orientation = Orientation.Vertical,
+            Width = 300,
+            IsEnabled = false,
+            Visibility = Visibility.Collapsed,
+            Name = "cosineCorrectionSP",
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        public cosineCorrectionUI ()
+        {
+            //setup UI element
+            cosineImage.Source = new BitmapImage(new Uri("\\ImageAssets\\COSINE.png", UriKind.Relative));
+            XamlUI.SetupButton(ref calculateCosineCorrectionButton, "CALCULATE");
+            XamlUI.SetupButton(ref resetCosineCalculationButton, "RESET");
+            XamlUI.SetupTextBlock(ref initialValueTextBlock, "H1", 15);
+            XamlUI.SetupTextBox(ref initialValueTextBox, "0");
+            XamlUI.SetupButton(ref initialValue_ReadIn, "Read in");
+            XamlUI.SetupTextBlock(ref distanceTraveledTextBlock, "A", 15);
+            XamlUI.SetupTextBox(ref distanceTraveledTextBox, "1");
+            XamlUI.SetupTextBlock(ref finalValueTextBlock, "H2", 15);
+            XamlUI.SetupTextBox(ref finalValueTextBox, "1");
+            XamlUI.SetupButton(ref finalValue_ReadIn, "Read in");
+
+            //Setup event handlers
+            enableCosineCalculationCheckBox.Click += new RoutedEventHandler(EnableUI);
+
+            //Setup stack pannels
+            StackPanel imageSP = new() { Orientation = Orientation.Horizontal };
+            StackPanel controlSP = new() { Orientation = Orientation.Vertical, VerticalAlignment = VerticalAlignment.Center };
+            StackPanel initalValueSP = new() { Orientation = Orientation.Horizontal };
+            StackPanel distanceTraveledSP = new() { Orientation = Orientation.Horizontal };
+            StackPanel finalValueSP = new() { Orientation = Orientation.Horizontal };
+
+            //add elements and stack pannels to UI
+            cosineCorrectionUISP.Children.Add(enableCosineCalculationCheckBox);
+            cosineCorrectionUISP.Children.Add(cosineCorrectionSP);
+            cosineCorrectionSP.Children.Add(imageSP);
+            cosineCorrectionSP.Children.Add(initalValueSP);
+            cosineCorrectionSP.Children.Add(finalValueSP);
+            cosineCorrectionSP.Children.Add(distanceTraveledSP);
+            imageSP.Children.Add(cosineImage);
+            imageSP.Children.Add(controlSP);
+            controlSP.Children.Add(calculateCosineCorrectionButton);
+            controlSP.Children.Add(resetCosineCalculationButton);
+            initalValueSP.Children.Add(initialValueTextBlock);
+            initalValueSP.Children.Add(initialValueTextBox);
+            initalValueSP.Children.Add(initialValue_ReadIn);
+            distanceTraveledSP.Children.Add(distanceTraveledTextBlock);
+            distanceTraveledSP.Children.Add(distanceTraveledTextBox);
+            finalValueSP.Children.Add(finalValueTextBlock);
+            finalValueSP.Children.Add(finalValueTextBox);
+            finalValueSP.Children.Add(finalValue_ReadIn);
+        }
+        public void EnableUI(object sender, EventArgs e)
+        {
+            if ((bool)enableCosineCalculationCheckBox.IsChecked)
+            {
+                cosineCorrectionSP.Visibility = Visibility.Visible;
+                cosineCorrectionSP.IsEnabled = true;
+            }
+            else
+            {
+                cosineCorrectionSP.Visibility = Visibility.Visible;
+                cosineCorrectionSP.IsEnabled = true;
+            }
+        }
     }
 
     class KeyenceChannel
