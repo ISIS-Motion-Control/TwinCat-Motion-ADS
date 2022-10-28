@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using TwinCat_Motion_ADS.MeasurementDevice;
 
 namespace TwinCat_Motion_ADS
@@ -101,18 +102,26 @@ namespace TwinCat_Motion_ADS
                     CheckBox enableCosineCalculationCheckBox = new() { Name = "enableCosineCalculationCheckBox" };
                     Button calculateCosineCorrectionButton = new();
                     Button resetCosineCalculationButton = new();
+                    Image cosineImage = new() { MaxWidth = 300, Height = 100};
+                    TextBlock initialValueTextBlock = new();
                     TextBox initialValueTextBox = new() { Name = "initialValueTextBox" };
                     Button initialValue_ReadIn = new();
+                    TextBlock distanceTraveledTextBlock = new();
                     TextBox distanceTraveledTextBox = new() { Name = "distanceTraveledTextBox" };
+                    TextBlock finalValueTextBlock = new();
                     TextBox finalValueTextBox = new() { Name = "finalValueTextBox" };
                     Button finalValue_ReadIn = new();
 
                     //setup UI element
+                    cosineImage.Source = new BitmapImage(new Uri("\\ImageAssets\\COSINE.png", UriKind.Relative)); 
                     XamlUI.SetupButton(ref calculateCosineCorrectionButton, "CALCULATE");
                     XamlUI.SetupButton(ref resetCosineCalculationButton, "RESET");
+                    XamlUI.SetupTextBlock(ref initialValueTextBlock, "H1", 15);
                     XamlUI.SetupTextBox(ref initialValueTextBox, "0");
                     XamlUI.SetupButton(ref initialValue_ReadIn, "Read in");
+                    XamlUI.SetupTextBlock(ref distanceTraveledTextBlock, "A", 15);
                     XamlUI.SetupTextBox(ref distanceTraveledTextBox, "1");
+                    XamlUI.SetupTextBlock(ref finalValueTextBlock, "H2", 15);
                     XamlUI.SetupTextBox(ref finalValueTextBox, "1");
                     XamlUI.SetupButton(ref finalValue_ReadIn, "Read in");
 
@@ -139,7 +148,8 @@ namespace TwinCat_Motion_ADS
                         Name = "cosineCorrectionSP", 
                         HorizontalAlignment = HorizontalAlignment.Center
                     };
-                    StackPanel controlSP = new() { Orientation = Orientation.Horizontal};
+                    StackPanel imageSP = new() { Orientation = Orientation.Horizontal };
+                    StackPanel controlSP = new() { Orientation = Orientation.Vertical, VerticalAlignment = VerticalAlignment.Center};
                     StackPanel initalValueSP = new() { Orientation = Orientation.Horizontal };
                     StackPanel distanceTraveledSP = new() { Orientation = Orientation.Horizontal };
                     StackPanel finalValueSP = new() { Orientation = Orientation.Horizontal };
@@ -147,15 +157,20 @@ namespace TwinCat_Motion_ADS
                     //add elements and stack pannels to UI
                     deviceSettings.Children.Add(enableCosineCalculationCheckBox);
                     deviceSettings.Children.Add(cosineCorrectionSP);
-                    cosineCorrectionSP.Children.Add(controlSP);
+                    cosineCorrectionSP.Children.Add(imageSP);
                     cosineCorrectionSP.Children.Add(initalValueSP);
-                    cosineCorrectionSP.Children.Add(distanceTraveledSP);
                     cosineCorrectionSP.Children.Add(finalValueSP);
+                    cosineCorrectionSP.Children.Add(distanceTraveledSP);
+                    imageSP.Children.Add(cosineImage);
+                    imageSP.Children.Add(controlSP);
                     controlSP.Children.Add(calculateCosineCorrectionButton);
                     controlSP.Children.Add(resetCosineCalculationButton);
+                    initalValueSP.Children.Add(initialValueTextBlock);
                     initalValueSP.Children.Add(initialValueTextBox);
                     initalValueSP.Children.Add(initialValue_ReadIn);
+                    distanceTraveledSP.Children.Add(distanceTraveledTextBlock);
                     distanceTraveledSP.Children.Add(distanceTraveledTextBox);
+                    finalValueSP.Children.Add(finalValueTextBlock);
                     finalValueSP.Children.Add(finalValueTextBox);
                     finalValueSP.Children.Add(finalValue_ReadIn);
                     break;

@@ -180,10 +180,10 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
             Console.WriteLine(Name + ": " + measurement);
             FinalValue = measurement;
         }
-        public void COSINECalculation(string adjacent_point1, string adjacent_point2, string hypotenuse)
+        public void COSINECalculation(string hypotenuse_point1, string hypotenuse_point2, string adjacent)
         {
-            double adjacent = Math.Abs(Convert.ToDouble(adjacent_point2) - Convert.ToDouble(adjacent_point1));
-            double value = adjacent / Math.Abs(Convert.ToDouble(hypotenuse));
+            double hypotenuse = Math.Abs(Convert.ToDouble(hypotenuse_point2) - Convert.ToDouble(hypotenuse_point1));
+            double value = hypotenuse / Math.Abs(Convert.ToDouble(adjacent));
             if (value > 1)
             {
                 Console.WriteLine("Correction Ratio can NOT be greater than 1, value calculated = " + Convert.ToString(value));
