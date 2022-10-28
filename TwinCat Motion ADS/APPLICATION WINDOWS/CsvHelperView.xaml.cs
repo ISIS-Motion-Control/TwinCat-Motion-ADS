@@ -99,15 +99,15 @@ namespace TwinCat_Motion_ADS
             XAxisSep.UiVal = Properties.Settings.Default.xAxisSep;
             XAxisTitle.UiVal = Properties.Settings.Default.xAxisTitle;
 
-            XamlUI.TextboxBinding(SettingY_Scale_Max.SettingValue, YAxisMax, "UiVal");
-            XamlUI.TextboxBinding(SettingY_Scale_Min.SettingValue, YAxisMin, "UiVal");
-            XamlUI.TextboxBinding(SettingY_Scale_Sep.SettingValue, YAxisSep, "UiVal");
-            XamlUI.TextboxBinding(SettingY_Title.SettingValue, YAxisTitle, "UiVal");
+            XamlUI.TextboxBinding(SettingY_Scale_Max, YAxisMax, "UiVal");
+            XamlUI.TextboxBinding(SettingY_Scale_Min, YAxisMin, "UiVal");
+            XamlUI.TextboxBinding(SettingY_Scale_Sep, YAxisSep, "UiVal");
+            XamlUI.TextboxBinding(SettingY_Title, YAxisTitle, "UiVal");
 
-            XamlUI.TextboxBinding(SettingX_Scale_Max.SettingValue, XAxisMax, "UiVal");
-            XamlUI.TextboxBinding(SettingX_Scale_Min.SettingValue, XAxisMin, "UiVal");
-            XamlUI.TextboxBinding(SettingX_Scale_Sep.SettingValue, XAxisSep, "UiVal");
-            XamlUI.TextboxBinding(SettingX_Title.SettingValue, XAxisTitle, "UiVal");
+            XamlUI.TextboxBinding(SettingX_Scale_Max, XAxisMax, "UiVal");
+            XamlUI.TextboxBinding(SettingX_Scale_Min, XAxisMin, "UiVal");
+            XamlUI.TextboxBinding(SettingX_Scale_Sep, XAxisSep, "UiVal");
+            XamlUI.TextboxBinding(SettingX_Title, XAxisTitle, "UiVal");
         }
 
         private void SelectFolderDirectory_Click(object sender, RoutedEventArgs e)
@@ -369,7 +369,8 @@ namespace TwinCat_Motion_ADS
             }
             accuracyVal = maxVal - minVal;
             Console.WriteLine(accuracyVal);
-            AccuracyVal.Text = "Accuracy: " + accuracyVal.ToString();
+            string accuracyString = string.Format("{0:0.000}", accuracyVal);
+            AccuracyVal.Text = "Accuracy: " + accuracyString;
         }
 
         public void CalculateRepeatability(string errorColumn, string targetColumn)
@@ -406,7 +407,8 @@ namespace TwinCat_Motion_ADS
             }
 
             Console.WriteLine(repeatVal);
-            RepeatabilityVal.Text = "Repeatability: " + repeatVal.ToString();
+            string repeatabilityString = string.Format("{0:0.000}", repeatVal);
+            RepeatabilityVal.Text = "Repeatability: " + repeatabilityString;
         }
 
         private void Button_CalcAcc_Click(object sender, RoutedEventArgs e)
@@ -418,6 +420,20 @@ namespace TwinCat_Motion_ADS
             }
             CalculateAccuracy(csvHeaderList.SelectedItem.ToString());
             CalculateRepeatability(csvHeaderList.SelectedItem.ToString(), "TargetPosition");
+        }
+
+        private void Button_TogglePerformanceVisibility_Click(object sender, RoutedEventArgs e)
+        {
+            if (performanceStackPanel.Visibility == Visibility.Visible)
+            {
+                performanceStackPanel.Visibility = Visibility.Collapsed;
+                return;
+            }
+            if (performanceStackPanel.Visibility == Visibility.Collapsed)
+            {
+                performanceStackPanel.Visibility = Visibility.Visible;
+                return;
+            }
         }
     }
     public class NewDataArgs : EventArgs

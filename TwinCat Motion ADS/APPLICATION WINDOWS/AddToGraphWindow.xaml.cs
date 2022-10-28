@@ -60,7 +60,5 @@ namespace TwinCat_Motion_ADS
             OnDialogFinished();
             this.Close();
         }
-
-
     }
 }
