@@ -155,19 +155,29 @@ namespace TwinCat_Motion_ADS
 
         private void Button_AddError_Click(object sender, RoutedEventArgs e)
         {
+            OpenErrorCreationWindow();
+        }
+
+        private void Button_AddDataCOl_Click(object sender, RoutedEventArgs e)
+        {
             OpenColumnCreationWindow();
         }
 
-        
-
-        private void OpenColumnCreationWindow()
+        private void OpenErrorCreationWindow()
         {
             AddDataColumnWindow dataWindow = new(DataHeaders);
             dataWindow.DialogFinished += new EventHandler<NewDataArgs>(CreateDataColumn);
             dataWindow.Show();
             
         }
-        
+        private void OpenColumnCreationWindow()
+        {
+            AddAdvDataColumnWindow dataWindow = new(DataHeaders);
+            dataWindow.DialogFinished += new EventHandler<NewDataArgs>(CreateDataColumn);
+            dataWindow.Show();
+
+        }
+
         public void CreateDataColumn(object sender, NewDataArgs e)
         {
             foreach(DataColumn col in dt.Columns)
@@ -179,11 +189,34 @@ namespace TwinCat_Motion_ADS
                 }
             }
             AddGridColumn(e.ColumnHeader, typeof(string));
-            AddDataRowsToColumn(e.ColumnHeader, e.Var1Header, e.Var2Header);
+
+            AddDataRowsToColumn(e);
+
+            
             //UpdateChart(e.ColumnHeader, e.Var2Header);
         }
 
-        
+        private void AddDataRowsToColumn(NewDataArgs e)
+        {
+            //default error condition
+            if (e.MathsOperator == null)
+            {
+                foreach (DataRow row in dt.Rows)
+                {
+                    if (double.TryParse((string)row[e.Var1Header], out _) && double.TryParse((string)row[e.Var2Header], out _))
+                    {
+                        row[e.ColumnHeader] = (double.Parse((string)row[e.Var1Header])) - (double.Parse((string)row[e.Var2Header]));
+                    }
+                }
+            }
+            //Advanced column creation
+            else
+            {
+
+            }
+            
+        }
+
 
 
 
@@ -205,18 +238,7 @@ namespace TwinCat_Motion_ADS
         }
 
 
-        private void AddDataRowsToColumn(string columnName, string header1, string header2)
-        {
-            //Bit too hardcoded atm but a WIP
-            
-                foreach (DataRow row in dt.Rows)
-                {
-                    if (double.TryParse((string)row[header1], out _) && double.TryParse((string)row[header2], out _))
-                    {
-                        row[columnName] = (double.Parse((string)row[header1])) - (double.Parse((string)row[header2]));
-                    }
-                }          
-        }
+        
         
         private void ClearDataGrid()
         {
@@ -435,21 +457,28 @@ namespace TwinCat_Motion_ADS
                 return;
             }
         }
+
+        
     }
     public class NewDataArgs : EventArgs
     {
-        private readonly string columnHeader;
-        private readonly string var1Header;
-        private readonly string var2Header;
         public string ColumnHeader { get; private set; }
         public string Var1Header { get; private set; }
         public string Var2Header { get; private set; }
+        public string MathsOperator { get; private set; }
 
         public NewDataArgs(string columnHeader, string var1Header, string var2Header)
         {
             ColumnHeader = columnHeader;
             Var1Header = var1Header;
             Var2Header = var2Header;
+        }
+        public NewDataArgs(string columnHeader, string var1Header, string var2Header, string mathsOperator)
+        {
+            ColumnHeader = columnHeader;
+            Var1Header = var1Header;
+            Var2Header = var2Header;
+            MathsOperator = mathsOperator;
         }
     }
     public class NewGraphDataArgs : EventArgs

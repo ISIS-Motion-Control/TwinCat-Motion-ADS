@@ -12,6 +12,7 @@
             <StackPanel>
                 <Button x:Name="Button_ImportCsv" Focusable="False" Content="Import CSV File" Style="{StaticResource myDefaultButton}" Click="LoadCSVFile_Click"/>
                 <Button x:Name="Button_AddError" Focusable="False" Content="Add Error" Style="{StaticResource myDefaultButton}" Click="Button_AddError_Click"/>
+                <Button x:Name="Button_AddDataCOl" Focusable="False" Content="Add Column Data" Style="{StaticResource myDefaultButton}" Click="Button_AddDataCOl_Click" />
                 <Button x:Name="Button_DeleteSelected" Focusable="False" Content="Del Selected" Style="{StaticResource myDefaultButton}" Click="Button_DeleteSelected_Click" />
                 <Button x:Name="Button_CalcAcc" Focusable="False" Content="Calculate Acc" Style="{StaticResource myDefaultButton}" Click="Button_CalcAcc_Click"/>
             </StackPanel>
