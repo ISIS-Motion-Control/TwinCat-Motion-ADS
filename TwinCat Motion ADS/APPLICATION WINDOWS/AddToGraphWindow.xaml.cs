@@ -20,12 +20,14 @@ namespace TwinCat_Motion_ADS
     /// </summary>
     public partial class AddToGraphWindow : Window
     {
-        public AddToGraphWindow(ObservableCollection<string> DataHeaders)
+        public AddToGraphWindow(ObservableCollection<string> DataHeaders, ObservableCollection<string> FilterValues)
         {
             this.DataHeaders = DataHeaders;
+            this.FilterValues = FilterValues;
             InitializeComponent();
             Combo_Header1.ItemsSource = this.DataHeaders;
             Combo_Header2.ItemsSource = this.DataHeaders;
+            Combo_Filter.ItemsSource = this.FilterValues;
 
             foreach(string Header in DataHeaders)
             {
@@ -36,12 +38,13 @@ namespace TwinCat_Motion_ADS
             }
         }
         private ObservableCollection<string> DataHeaders;
+        private ObservableCollection<string> FilterValues;
 
         public event EventHandler<NewGraphDataArgs> DialogFinished;
         public void OnDialogFinished()
         {
             if (DialogFinished != null)
-                DialogFinished(this, new NewGraphDataArgs(SeriesName.Text, Combo_Header1.Text, Combo_Header2.Text));
+                DialogFinished(this, new NewGraphDataArgs(SeriesName.Text, Combo_Header2.SelectedItem as string, Combo_Header1.SelectedItem as string, ((bool)FilterCheckBox.IsChecked), Combo_Filter.SelectedItem as string));
         }
 
 

@@ -10,18 +10,19 @@
     <StackPanel x:Name="csvWindowGrid" Margin="0" Focusable="True">
         <StackPanel Orientation="Horizontal">
             <StackPanel>
-                <Button x:Name="Button_ImportCsv" Focusable="False" Content="Import CSV File" Style="{StaticResource myDefaultButton}" Click="LoadCSVFile_Click"/>
-                <Button x:Name="Button_AddError" Focusable="False" Content="Add Error" Style="{StaticResource myDefaultButton}" Click="Button_AddError_Click"/>
-                <Button x:Name="Button_AddDataCOl" Focusable="False" Content="Add Column Data" Style="{StaticResource myDefaultButton}" Click="Button_AddDataCOl_Click" />
-                <Button x:Name="Button_DeleteSelected" Focusable="False" Content="Del Selected" Style="{StaticResource myDefaultButton}" Click="Button_DeleteSelected_Click" />
-                <Button x:Name="Button_CalcAcc" Focusable="False" Content="Calculate Acc" Style="{StaticResource myDefaultButton}" Click="Button_CalcAcc_Click"/>
+                <Button x:Name="Button_ImportCsv" Focusable="False" Content="Import CSV File" Style="{StaticResource myDefaultButton}" Click="LoadCSVFile_Click" Margin="5,5,0,0"/>
+                <Button x:Name="Button_ExportCsv" Focusable="False" Content="Export CSV File" Style="{StaticResource myDefaultButton}" Click="Button_ExportCsv_Click" Margin="5,5,0,0"/>
+                <Button x:Name="Button_AddError" Focusable="False" Content="Add Error" Style="{StaticResource myDefaultButton}" Click="Button_AddError_Click" Margin="5,5,0,0"/>
+                <Button x:Name="Button_AddDataCOl" Focusable="False" Content="Add Column Data" Style="{StaticResource myDefaultButton}" Click="Button_AddDataCOl_Click" Margin="5,5,0,0"/>
+                <Button x:Name="Button_DeleteSelected" Focusable="False" Content="Del Selected" Style="{StaticResource myDefaultButton}" Click="Button_DeleteSelected_Click" Margin="5,5,0,0"/>
+                <Button x:Name="Button_CalcAcc" Focusable="False" Content="Calculate Accuracy" Style="{StaticResource myDefaultButton}" Click="Button_CalcAcc_Click" Margin="5,5,0,0"/>
             </StackPanel>
             <StackPanel>
-                <Button x:Name="Button_ExportGraph" Focusable="False" Content="Export Graph" Style="{StaticResource myDefaultButton}" Click="Button_ExportGraph_Click"/>
-                <Button x:Name="Button_ClearGraph" Focusable="False" Content="Clear Graph" Style="{StaticResource myDefaultButton}" Click="Button_ClearGraph_Click"/>
-                <Button x:Name="Button_AddToGraph" Focusable="False" Content="Add to Graph" Style="{StaticResource myDefaultButton}" Click="Button_AddToGraph_Click"/>
-                <Button x:Name="Button_UpdateGraph" Focusable="False" Content="Update Graph" Style="{StaticResource myDefaultButton}" Click="Button_UpdateGraph_Click"/>
-                <Button x:Name="Button_TogglePerformanceVisibility" Focusable="False" Content="Toggle Performance" Style="{StaticResource myDefaultButton}" Click="Button_TogglePerformanceVisibility_Click"/>
+                <Button x:Name="Button_ExportGraph" Focusable="False" Content="Export Graph" Style="{StaticResource myDefaultButton}" Click="Button_ExportGraph_Click" Margin="5,5,0,0"/>
+                <Button x:Name="Button_ClearGraph" Focusable="False" Content="Clear Graph" Style="{StaticResource myDefaultButton}" Click="Button_ClearGraph_Click" Margin="5,5,0,0"/>
+                <Button x:Name="Button_AddToGraph" Focusable="False" Content="Add to Graph" Style="{StaticResource myDefaultButton}" Click="Button_AddToGraph_Click" Margin="5,5,0,0"/>
+                <Button x:Name="Button_UpdateGraph" Focusable="False" Content="Update Graph" Style="{StaticResource myDefaultButton}" Click="Button_UpdateGraph_Click" Margin="5,5,0,0"/>
+                <Button x:Name="Button_TogglePerformanceVisibility" Focusable="False" Content="Toggle Performance" Style="{StaticResource myDefaultButton}" Click="Button_TogglePerformanceVisibility_Click" Margin="5,5,0,0"/>
             </StackPanel>
             <StackPanel Orientation="Vertical" Name="YAxisControls">
                 <TextBlock Text="Y Axis" FontSize="20" HorizontalAlignment="Center" />
@@ -81,7 +82,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <lvc:CartesianChart x:Name="TestChart" Series="{Binding SeriesCollection}" Height="400" Width="800" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <lvc:CartesianChart x:Name="TestChart" Series="{Binding SeriesCollection}" Height="400" Width="1000" HorizontalAlignment="Left" VerticalAlignment="Top"/>
                 <StackPanel x:Name="performanceStackPanel" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="600,50,0,0" Background="LightGray" Height="40" Width="120">
                     <TextBlock x:Name="AccuracyVal"  Text="Accuracy: " />
                     <TextBlock x:Name="RepeatabilityVal"  Text="Repeatability: " />

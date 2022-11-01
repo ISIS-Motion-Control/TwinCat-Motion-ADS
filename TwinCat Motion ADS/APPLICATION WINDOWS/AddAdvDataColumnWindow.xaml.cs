@@ -21,7 +21,7 @@ namespace TwinCat_Motion_ADS
     public partial class AddAdvDataColumnWindow : Window
     {
         private ObservableCollection<string> DataHeaders = new();
-        private ObservableCollection<string> MathsOperators = new ObservableCollection<string>() { "+", "-", "/", "*", "Abs" };
+        private ObservableCollection<string> MathsOperators = new ObservableCollection<string>() { "+", "-", "/", "*" };
         private const string constString = "CONSTANT";
         public AddAdvDataColumnWindow(ObservableCollection<string> dataHeaders)
         {
@@ -52,7 +52,22 @@ namespace TwinCat_Motion_ADS
         public void OnDialogFinished()
         {
             if (DialogFinished != null)
-                DialogFinished(this, new NewDataArgs(ColumnTitle.Text, Combo_Header1.Text, Combo_Header2.Text,"test"));
+            {
+                double var1Value = 0;
+                double var2Value = 0;
+
+                if(Combo_Header1.SelectedItem as string == constString)
+                {
+                    var1Value = double.Parse(XConstantTextBox.Text);
+                }
+                if (Combo_Header2.SelectedItem as string == constString)
+                {
+                    var2Value = double.Parse(YConstantTextBox.Text);
+                }
+
+                DialogFinished(this, new NewDataArgs(ColumnTitle.Text, Combo_Header1.SelectedItem as string, var1Value, Combo_Header2.SelectedItem as string, var2Value, Combo_Operator.SelectedItem as string));
+            }
+                
         }
 
 
@@ -63,11 +78,47 @@ namespace TwinCat_Motion_ADS
 
         private void Button_Add_Click(object sender, RoutedEventArgs e)
         {
-            if(string.IsNullOrEmpty(ColumnTitle.Text) || string.IsNullOrEmpty(Combo_Header1.Text) || string.IsNullOrEmpty(Combo_Header2.Text))
+            if(string.IsNullOrEmpty(ColumnTitle.Text) )
             {
-                Console.WriteLine("Invalid input");
+                Console.WriteLine("Invalid header name");
                 return;
             }
+
+            //Check for constant fields and validate as number input
+            if(Combo_Header1.SelectedItem as string == constString)
+            {
+                if (double.TryParse(XConstantTextBox.Text as string, out _) == false)
+                {
+                    Console.WriteLine("X constant NaN");
+                    return;
+                }
+            }
+            if (string.IsNullOrEmpty(Combo_Header1.SelectedItem as string))
+            {
+                Console.WriteLine("No X data selected");
+                return;
+            }
+
+            if (Combo_Header2.SelectedItem as string == constString)
+            {
+                if (double.TryParse(YConstantTextBox.Text as string, out _) == false)
+                {
+                    Console.WriteLine("Y constant NaN");
+                    return;
+                }
+            }
+            if (string.IsNullOrEmpty(Combo_Header2.SelectedItem as string))
+            {
+                Console.WriteLine("No Y data selected");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(Combo_Operator.SelectedItem as string))
+            {
+                Console.WriteLine("No operator selected");
+                return;
+            }
+
             OnDialogFinished();
             this.Close();
         }
