@@ -9,21 +9,6 @@
              d:DesignHeight="890" d:DesignWidth="1100">
     <StackPanel x:Name="csvWindowGrid" Margin="0" Focusable="True">
         <StackPanel Orientation="Horizontal">
-            <StackPanel>
-                <Button x:Name="Button_ImportCsv" Focusable="False" Content="Import CSV File" Style="{StaticResource myDefaultButton}" Click="LoadCSVFile_Click" Margin="5,5,0,0"/>
-                <Button x:Name="Button_ExportCsv" Focusable="False" Content="Export CSV File" Style="{StaticResource myDefaultButton}" Click="Button_ExportCsv_Click" Margin="5,5,0,0"/>
-                <Button x:Name="Button_AddError" Focusable="False" Content="Add Error" Style="{StaticResource myDefaultButton}" Click="Button_AddError_Click" Margin="5,5,0,0"/>
-                <Button x:Name="Button_AddDataCOl" Focusable="False" Content="Add Column Data" Style="{StaticResource myDefaultButton}" Click="Button_AddDataCOl_Click" Margin="5,5,0,0"/>
-                <Button x:Name="Button_DeleteSelected" Focusable="False" Content="Del Selected" Style="{StaticResource myDefaultButton}" Click="Button_DeleteSelected_Click" Margin="5,5,0,0"/>
-                <Button x:Name="Button_CalcAcc" Focusable="False" Content="Calculate Accuracy" Style="{StaticResource myDefaultButton}" Click="Button_CalcAcc_Click" Margin="5,5,0,0"/>
-            </StackPanel>
-            <StackPanel>
-                <Button x:Name="Button_ExportGraph" Focusable="False" Content="Export Graph" Style="{StaticResource myDefaultButton}" Click="Button_ExportGraph_Click" Margin="5,5,0,0"/>
-                <Button x:Name="Button_ClearGraph" Focusable="False" Content="Clear Graph" Style="{StaticResource myDefaultButton}" Click="Button_ClearGraph_Click" Margin="5,5,0,0"/>
-                <Button x:Name="Button_AddToGraph" Focusable="False" Content="Add to Graph" Style="{StaticResource myDefaultButton}" Click="Button_AddToGraph_Click" Margin="5,5,0,0"/>
-                <Button x:Name="Button_UpdateGraph" Focusable="False" Content="Update Graph" Style="{StaticResource myDefaultButton}" Click="Button_UpdateGraph_Click" Margin="5,5,0,0"/>
-                <Button x:Name="Button_TogglePerformanceVisibility" Focusable="False" Content="Toggle Performance" Style="{StaticResource myDefaultButton}" Click="Button_TogglePerformanceVisibility_Click" Margin="5,5,0,0"/>
-            </StackPanel>
             <StackPanel Orientation="Vertical" Name="YAxisControls">
                 <TextBlock Text="Y Axis" FontSize="20" HorizontalAlignment="Center" />
                 <StackPanel Orientation="Horizontal">
@@ -41,6 +26,10 @@
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Sep:" TextAlignment="Right" HorizontalAlignment="Left" FontSize="16" VerticalAlignment="Center" Margin="0,0,20,0" Width="100"/>
                     <TextBox x:Name="SettingY_Scale_Sep" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" Margin="0,0,0,0" FontSize="16"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="0.x...x:" TextAlignment="Right" HorizontalAlignment="Left" FontSize="16" VerticalAlignment="Center" Margin="0,0,20,0" Width="100"/>
+                    <TextBox x:Name="SettingY_Scale_Dec" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" Margin="0,0,0,0" FontSize="16"/>
                 </StackPanel>
             </StackPanel>
             
@@ -62,35 +51,144 @@
                     <TextBlock Text="Sep:" TextAlignment="Right" HorizontalAlignment="Left" FontSize="16" VerticalAlignment="Center" Margin="0,0,20,0" Width="100"/>
                     <TextBox x:Name="SettingX_Scale_Sep" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" Margin="0,0,0,0" FontSize="16"/>
                 </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="0.x...x:" TextAlignment="Right" HorizontalAlignment="Left" FontSize="16" VerticalAlignment="Center" Margin="0,0,20,0" Width="100"/>
+                    <TextBox x:Name="SettingX_Scale_Dec" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" Margin="0,0,0,0" FontSize="16"/>
+                </StackPanel>
 
             </StackPanel>
         </StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <ListBox x:Name="csvHeaderList"  Height="200" Width="150" ItemsSource="{Binding Path=DataHeaders}" Margin="10,0,0,0"/>
-            <DataGrid x:Name="csvDataGrid" Height="200" Width="800" ItemsSource="{Binding}" AutoGenerateColumns="True" Margin="10,0,0,0"/>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal">
-            
-            
-            
-        </StackPanel>
-        <StackPanel Background="White">
-            <Grid x:Name="ChartArea">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <lvc:CartesianChart x:Name="TestChart" Series="{Binding SeriesCollection}" Height="400" Width="1000" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                <StackPanel x:Name="performanceStackPanel" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="600,50,0,0" Background="LightGray" Height="40" Width="120">
-                    <TextBlock x:Name="AccuracyVal"  Text="Accuracy: " />
-                    <TextBlock x:Name="RepeatabilityVal"  Text="Repeatability: " />
-                </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,5,0,5">
+            <ListBox x:Name="csvHeaderList"  Height="160" Width="150" ItemsSource="{Binding Path=DataHeaders}" Margin="5,0,0,0"/>
+            <DataGrid x:Name="csvDataGrid" Height="160" Width="800" ItemsSource="{Binding}" AutoGenerateColumns="True" Margin="10,0,0,0"/>
+            <StackPanel Margin="5,0,0,0">
+                <Button Height="25" Width="40" Click="LoadCSVFile_Click" Margin="2,0,0,2">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/import.png" Margin="5,0,0,0"/>
+                </Button>
+                <Button Height="25" Width="40" Click="Button_ExportCsv_Click" Margin="2,0,0,2">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/export.png" Margin="6,0,0,0"/>
+                </Button>
+                <Button Height="25" Width="40" Click="Button_AddError_Click" Margin="2,0,0,2">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/plus-2-math.png" Margin="0,0,0,0"/>
+                </Button>
+                <Button Height="25" Width="40" Click="Button_AddDataCol_Click" Margin="2,0,0,2">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/calculator.png" Margin="0,0,0,0"/>
+                </Button>
+                <Button Height="25" Width="40" Click="Button_DeleteSelected_Click" Margin="2,0,0,2">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/trash.png" Margin="0,0,0,0"/>
+                </Button>
+
                 
-                
-            </Grid>
+            </StackPanel>
         </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            
+            
+            
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <StackPanel Background="White" Margin="5,0,0,0" Width="960" HorizontalAlignment="Left" >
+                <Grid x:Name="ChartArea">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="960"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <lvc:CartesianChart x:Name="TestChart" Series="{Binding SeriesCollection}" Height="500" Width="955" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2">
+
+                    </lvc:CartesianChart>
+                    <StackPanel x:Name="performanceStackPanel" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="680,50,0,0" Background="LightGray" Height="40" Width="120">
+                        <StackPanel Orientation="Horizontal" Width="120">
+                            <TextBlock   Text="Accuracy: " HorizontalAlignment="Left" Margin="2,0,0,0" Width="80"/>
+                            <TextBlock x:Name="AccuracyVal" Text="0.0"  HorizontalAlignment="Right" Margin="2,0,0,2"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Width="120">
+                            <TextBlock   Text="Repeatability: " HorizontalAlignment="Left" Margin="2,0,0,0" Width="80"/>
+                            <TextBlock x:Name="RepeatabilityVal" Text="0.0" HorizontalAlignment="Right"  Margin="2,0,0,2"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+
+            </StackPanel>
+            <StackPanel Margin="5,0,0,0">
+                <Button Height="25" Width="40" Click="Button_ExportGraph_Click" Margin="2,0,0,2">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/export.png" Margin="6,0,0,0"/>
+                </Button>
+                <Button Height="25" Width="40" Click="Button_AddToGraph_Click" Margin="2,0,0,2">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/plus-2-math.png" Margin="0,0,0,0"/>
+                </Button>
+                <Button Height="25" Width="40" Click="Button_UpdateGraph_Click" Margin="2,0,0,2">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/update.png" Margin="0,0,0,0" Width="18"/>
+                </Button>
+                <Button Height="25" Width="40" Click="Button_ClearGraph_Click" Margin="2,0,0,2">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/clear.png" Margin="0,0,0,0" Width="18"/>
+                </Button>
+                <Button Height="25" Width="40" Click="Button_TogglePerformanceVisibility_Click" Margin="2,0,0,2">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/invisible.png" Margin="0,0,0,0" Width="18"/>
+                </Button>
+                <Button Height="25" Width="40" Click="Button_CalcAcc_Click" Margin="2,0,0,2">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/accuracy.png" Margin="0,0,0,0" Width="18"/>
+                </Button>
+            </StackPanel>
+        </StackPanel>
+            
  
     </StackPanel>
 </UserControl>

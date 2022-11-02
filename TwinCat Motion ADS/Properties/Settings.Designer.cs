@@ -418,5 +418,29 @@ namespace TwinCat_Motion_ADS.Properties {
                 this["xAxisTitle"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string yAxisDec {
+            get {
+                return ((string)(this["yAxisDec"]));
+            }
+            set {
+                this["yAxisDec"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string xAxisDec {
+            get {
+                return ((string)(this["xAxisDec"]));
+            }
+            set {
+                this["xAxisDec"] = value;
+            }
+        }
     }
 }

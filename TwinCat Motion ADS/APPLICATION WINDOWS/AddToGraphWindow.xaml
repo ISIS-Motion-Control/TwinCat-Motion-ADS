@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
-        Height="240" Width="400" ResizeMode="NoResize" Topmost="True">
+        Height="240" Width="400" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen">
     <StackPanel Margin="5,5,5,5" Background="LightCyan">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,10,0">
             <TextBlock Text="Series Name:" TextAlignment="Right" Margin="0,0,20,0" VerticalAlignment="Center"  Width="100" FontSize="16"/>

@@ -67,6 +67,8 @@ namespace TwinCat_Motion_ADS
         public SettingDouble XAxisSep { get; set; } = new("xAxisSep");
         public SettingString YAxisTitle { get; set; } = new("yAxisTitle");
         public SettingString XAxisTitle { get; set; } = new("xAxisTitle");
+        public SettingUint YAxisDec { get; set; } = new("yAxisDec");
+        public SettingUint XAxisDec { get; set; } = new("xAxisDec");
         #endregion
 
         #region Constructors
@@ -86,10 +88,12 @@ namespace TwinCat_Motion_ADS
             YAxisMin.UiVal = Properties.Settings.Default.yAxisMin;
             YAxisSep.UiVal = Properties.Settings.Default.yAxisSep;
             YAxisTitle.UiVal = Properties.Settings.Default.yAxisTitle;
+            YAxisDec.UiVal = Properties.Settings.Default.yAxisDec;
             XAxisMax.UiVal = Properties.Settings.Default.xAxisMax;
             XAxisMin.UiVal = Properties.Settings.Default.xAxisMin;
             XAxisSep.UiVal = Properties.Settings.Default.xAxisSep;
             XAxisTitle.UiVal = Properties.Settings.Default.xAxisTitle;
+            XAxisDec.UiVal = Properties.Settings.Default.xAxisDec;
 
             //Bind UI textboxes to axis properties
             XamlUI.TextboxBinding(SettingY_Scale_Max, YAxisMax, "UiVal");
@@ -100,6 +104,8 @@ namespace TwinCat_Motion_ADS
             XamlUI.TextboxBinding(SettingX_Scale_Min, XAxisMin, "UiVal");
             XamlUI.TextboxBinding(SettingX_Scale_Sep, XAxisSep, "UiVal");
             XamlUI.TextboxBinding(SettingX_Title, XAxisTitle, "UiVal");
+            XamlUI.TextboxBinding(SettingY_Scale_Dec, YAxisDec, "UiVal");
+            XamlUI.TextboxBinding(SettingX_Scale_Dec, XAxisDec, "UiVal");
         }
         #endregion
 
@@ -210,7 +216,7 @@ namespace TwinCat_Motion_ADS
             OpenErrorCreationWindow();
         }
 
-        private void Button_AddDataCOl_Click(object sender, RoutedEventArgs e)
+        private void Button_AddDataCol_Click(object sender, RoutedEventArgs e)
         {
             OpenColumnCreationWindow();
         }
@@ -283,17 +289,20 @@ namespace TwinCat_Motion_ADS
         private void Button_UpdateGraph_Click(object sender, RoutedEventArgs e)
         {
             TestChart.AxisX.Clear();
-
             TestChart.AxisY.Clear();
 
-            Func<double, string> formatFunc3 = (x) => string.Format("{0:0.000}", x);
-            Func<double, string> formatFunc2 = (x) => string.Format("{0:0.00}", x);
+            Func<double, string> xFormat = StringDecimalFormat(XAxisDec.Val);
+            Func<double, string> yFormat = StringDecimalFormat(YAxisDec.Val);
+
 
             LiveCharts.Wpf.Separator xSep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = XAxisSep.Val };
             LiveCharts.Wpf.Separator ySep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = YAxisSep.Val };
-            TestChart.AxisY.Add(new() { LabelFormatter = formatFunc3, Title = YAxisTitle.Val, FontSize = 12, MaxValue = YAxisMax.Val, MinValue = YAxisMin.Val, Separator = ySep });
-            TestChart.AxisX.Add(new() { LabelFormatter = formatFunc2, Title = XAxisTitle.Val, FontSize = 12, MaxValue = XAxisMax.Val, MinValue = XAxisMin.Val, Separator = xSep });
+            TestChart.AxisY.Add(new() { LabelFormatter = yFormat, Title = YAxisTitle.Val+"\n\n", FontSize = 12, MaxValue = YAxisMax.Val, MinValue = YAxisMin.Val, Separator = ySep });
+            TestChart.AxisX.Add(new() { LabelFormatter = xFormat, Title = "\n" + XAxisTitle.Val, FontSize = 12, MaxValue = XAxisMax.Val, MinValue = XAxisMin.Val, Separator = xSep });
         }
+
+        
+
         private void Button_TogglePerformanceVisibility_Click(object sender, RoutedEventArgs e)
         {
             if (performanceStackPanel.Visibility == Visibility.Visible)
@@ -329,13 +338,35 @@ namespace TwinCat_Motion_ADS
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
-        
 
-        
 
-        
 
-        
+
+
+        private Func<double, string> StringDecimalFormat(uint places)
+        {
+            switch (places)
+            {
+                case 0:
+                    return (x) => string.Format("{0:0}", x);
+                case 1:
+                    return (x) => string.Format("{0:0.0}", x);
+                case 2:
+                    return (x) => string.Format("{0:0.00}", x);
+                case 3:
+                    return (x) => string.Format("{0:0.000}", x);
+                case 4:
+                    return (x) => string.Format("{0:0.0000}", x);
+                case 5:
+                    return (x) => string.Format("{0:0.00000}", x);
+                case 6:
+                    return (x) => string.Format("{0:0.000000}", x);
+
+                default:
+                    return (x) => string.Format("{0:0}", x);
+            }
+        }
+
 
         private void OpenErrorCreationWindow()
         {
@@ -517,7 +548,7 @@ namespace TwinCat_Motion_ADS
         private static void EncodeVisual(FrameworkElement visual, string fileName, BitmapEncoder encoder)
         {
             Console.WriteLine((int)visual.Width);
-            var bitmap = new RenderTargetBitmap((int)(visual.RenderSize.Width *1.5), (int)(visual.RenderSize.Height * 1.4), 128, 128, PixelFormats.Pbgra32);
+            var bitmap = new RenderTargetBitmap((int)(visual.RenderSize.Width * 1.35), (int)(visual.RenderSize.Height * 1.35), 128, 128, PixelFormats.Pbgra32);
             bitmap.Render(visual);
             var frame = BitmapFrame.Create(bitmap);
             encoder.Frames.Add(frame);
@@ -634,7 +665,7 @@ namespace TwinCat_Motion_ADS
             accuracyVal = maxVal - minVal;
             Console.WriteLine(accuracyVal);
             string accuracyString = string.Format("{0:0.000}", accuracyVal);
-            AccuracyVal.Text = "Accuracy: " + accuracyString;
+            AccuracyVal.Text = accuracyString;
         }
 
         public void CalculateRepeatability(string errorColumn, string targetColumn)
@@ -672,7 +703,7 @@ namespace TwinCat_Motion_ADS
 
             Console.WriteLine(repeatVal);
             string repeatabilityString = string.Format("{0:0.000}", repeatVal);
-            RepeatabilityVal.Text = "Repeatability: " + repeatabilityString;
+            RepeatabilityVal.Text = repeatabilityString;
         }
 
         

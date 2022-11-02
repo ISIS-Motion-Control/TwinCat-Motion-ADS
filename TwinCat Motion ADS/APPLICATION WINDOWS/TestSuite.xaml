@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TwinCat_Motion_ADS"
         mc:Ignorable="d"
-        Title="TestSuite" Height="800" Width="920" Closing="Window_Closing" Topmost="True" >
+        Title="TestSuite" Height="800" Width="920" Closing="Window_Closing" Topmost="True" WindowStartupLocation="CenterScreen">
     <ScrollViewer Margin="5,0,0,0">
         <StackPanel Orientation="Vertical">
             <Button x:Name="SaveFileButton" Content="Save" Width="120" HorizontalAlignment="Left" Margin="5,5,0,0" Click="SaveFileButton_Click"/>
