@@ -286,6 +286,15 @@ namespace TwinCat_Motion_ADS
             dataWindow.Show();
         }
 
+        private void Button_AddStraightLine_Click(object sender, RoutedEventArgs e)
+        {
+            AddStraightLineWindow straightLineWindow = new();
+            straightLineWindow.DialogFinished += new EventHandler<NewGraphLineArgs>(AddStraightLine);
+            straightLineWindow.Show();
+        }
+
+        
+
         private void Button_UpdateGraph_Click(object sender, RoutedEventArgs e)
         {
             TestChart.AxisX.Clear();
@@ -295,9 +304,27 @@ namespace TwinCat_Motion_ADS
             Func<double, string> yFormat = StringDecimalFormat(YAxisDec.Val);
 
 
+            //DEBUG
+            LiveCharts.Wpf.AxisSection axisSection = new();
+            axisSection.Value = 1;
+            axisSection.Visibility = Visibility.Visible;
+            axisSection.Width = 10;
+            axisSection.Height = 10;
+            SolidColorBrush brush = new();
+            brush.Color = (Color.FromArgb(255, 255, 139, 0));
+            
+            axisSection.Fill = brush;
+            axisSection.UpdateLayout();
+            SectionsCollection sectionsSet = new();
+            sectionsSet.Add(axisSection);
+            //stChart.AxisY[0].Sections.Add(axisSection);
+
+
+
             LiveCharts.Wpf.Separator xSep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = XAxisSep.Val };
             LiveCharts.Wpf.Separator ySep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = YAxisSep.Val };
-            TestChart.AxisY.Add(new() { LabelFormatter = yFormat, Title = YAxisTitle.Val+"\n\n", FontSize = 12, MaxValue = YAxisMax.Val, MinValue = YAxisMin.Val, Separator = ySep });
+
+            TestChart.AxisY.Add(new() { LabelFormatter = yFormat, Title = YAxisTitle.Val + "\n\n", FontSize = 12, MaxValue = YAxisMax.Val, MinValue = YAxisMin.Val, Separator = ySep, Sections= sectionsSet });
             TestChart.AxisX.Add(new() { LabelFormatter = xFormat, Title = "\n" + XAxisTitle.Val, FontSize = 12, MaxValue = XAxisMax.Val, MinValue = XAxisMin.Val, Separator = xSep });
         }
 
@@ -565,7 +592,15 @@ namespace TwinCat_Motion_ADS
         {
             UpdateChart(e);
         }
-        
+
+        private void AddStraightLine(object sender, NewGraphLineArgs e)
+        {
+            LiveCharts.Wpf.AxisSection axisSection = new();
+            axisSection.Value = e.Value;
+            TestChart.AxisY[0].Sections.Add(axisSection);
+
+        }
+
         //Add to chart
         public void UpdateChart(NewGraphDataArgs e)
         {
@@ -748,6 +783,21 @@ namespace TwinCat_Motion_ADS
             YVarHeader = yVarHeader;
             FilterData = filterData;
             FilterValue = filterValue;
+        }
+    }
+    public class NewGraphLineArgs : EventArgs
+    {
+        public string SeriesName { get; private set; }
+        public string AxisSelection { get; private set; }
+        public double Value { get; private set; }
+
+
+        public NewGraphLineArgs(string seriesName, string axisSelection, double value)
+        {
+            SeriesName = seriesName;
+            AxisSelection = axisSelection;
+            Value = value;
+
         }
     }
 

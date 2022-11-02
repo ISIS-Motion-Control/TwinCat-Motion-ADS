@@ -62,7 +62,7 @@
             <ListBox x:Name="csvHeaderList"  Height="160" Width="150" ItemsSource="{Binding Path=DataHeaders}" Margin="5,0,0,0"/>
             <DataGrid x:Name="csvDataGrid" Height="160" Width="800" ItemsSource="{Binding}" AutoGenerateColumns="True" Margin="10,0,0,0"/>
             <StackPanel Margin="5,0,0,0">
-                <Button Height="25" Width="40" Click="LoadCSVFile_Click" Margin="2,0,0,2">
+                <Button Height="25" Width="40" Click="LoadCSVFile_Click" Margin="2,0,0,2" ToolTip="Import CSV">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="2"/>
@@ -70,7 +70,7 @@
                     </Button.Resources>
                     <Image Source="/ImageAssets/import.png" Margin="5,0,0,0"/>
                 </Button>
-                <Button Height="25" Width="40" Click="Button_ExportCsv_Click" Margin="2,0,0,2">
+                <Button Height="25" Width="40" Click="Button_ExportCsv_Click" Margin="2,0,0,2" ToolTip="Export CSV">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="2"/>
@@ -78,7 +78,7 @@
                     </Button.Resources>
                     <Image Source="/ImageAssets/export.png" Margin="6,0,0,0"/>
                 </Button>
-                <Button Height="25" Width="40" Click="Button_AddError_Click" Margin="2,0,0,2">
+                <Button Height="25" Width="40" Click="Button_AddError_Click" Margin="2,0,0,2" ToolTip="Add error to data grid">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="2"/>
@@ -86,7 +86,7 @@
                     </Button.Resources>
                     <Image Source="/ImageAssets/plus-2-math.png" Margin="0,0,0,0"/>
                 </Button>
-                <Button Height="25" Width="40" Click="Button_AddDataCol_Click" Margin="2,0,0,2">
+                <Button Height="25" Width="40" Click="Button_AddDataCol_Click" Margin="2,0,0,2" ToolTip="Advanced data addition to grid">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="2"/>
@@ -94,7 +94,7 @@
                     </Button.Resources>
                     <Image Source="/ImageAssets/calculator.png" Margin="0,0,0,0"/>
                 </Button>
-                <Button Height="25" Width="40" Click="Button_DeleteSelected_Click" Margin="2,0,0,2">
+                <Button Height="25" Width="40" Click="Button_DeleteSelected_Click" Margin="2,0,0,2" ToolTip="Delete selected header">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="2"/>
@@ -138,7 +138,7 @@
 
             </StackPanel>
             <StackPanel Margin="5,0,0,0">
-                <Button Height="25" Width="40" Click="Button_ExportGraph_Click" Margin="2,0,0,2">
+                <Button Height="25" Width="40" Click="Button_ExportGraph_Click" Margin="2,0,0,2" ToolTip="Export graph to image">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="2"/>
@@ -146,7 +146,7 @@
                     </Button.Resources>
                     <Image Source="/ImageAssets/export.png" Margin="6,0,0,0"/>
                 </Button>
-                <Button Height="25" Width="40" Click="Button_AddToGraph_Click" Margin="2,0,0,2">
+                <Button Height="25" Width="40" Click="Button_AddToGraph_Click" Margin="2,0,0,2" ToolTip="Add data to graph">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="2"/>
@@ -154,7 +154,7 @@
                     </Button.Resources>
                     <Image Source="/ImageAssets/plus-2-math.png" Margin="0,0,0,0"/>
                 </Button>
-                <Button Height="25" Width="40" Click="Button_UpdateGraph_Click" Margin="2,0,0,2">
+                <Button Height="25" Width="40" Click="Button_UpdateGraph_Click" Margin="2,0,0,2" ToolTip="Update graph axes">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="2"/>
@@ -162,7 +162,7 @@
                     </Button.Resources>
                     <Image Source="/ImageAssets/update.png" Margin="0,0,0,0" Width="18"/>
                 </Button>
-                <Button Height="25" Width="40" Click="Button_ClearGraph_Click" Margin="2,0,0,2">
+                <Button Height="25" Width="40" Click="Button_ClearGraph_Click" Margin="2,0,0,2" ToolTip="Clear graph contents">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="2"/>
@@ -170,7 +170,7 @@
                     </Button.Resources>
                     <Image Source="/ImageAssets/clear.png" Margin="0,0,0,0" Width="18"/>
                 </Button>
-                <Button Height="25" Width="40" Click="Button_TogglePerformanceVisibility_Click" Margin="2,0,0,2">
+                <Button Height="25" Width="40" Click="Button_TogglePerformanceVisibility_Click" Margin="2,0,0,2" ToolTip="Toggle performance visibility">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="2"/>
@@ -178,13 +178,21 @@
                     </Button.Resources>
                     <Image Source="/ImageAssets/invisible.png" Margin="0,0,0,0" Width="18"/>
                 </Button>
-                <Button Height="25" Width="40" Click="Button_CalcAcc_Click" Margin="2,0,0,2">
+                <Button Height="25" Width="40" Click="Button_CalcAcc_Click" Margin="2,0,0,2" ToolTip="Calculate accuracy of selected header data">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="2"/>
                         </Style>
                     </Button.Resources>
                     <Image Source="/ImageAssets/accuracy.png" Margin="0,0,0,0" Width="18"/>
+                </Button>
+                <Button Height="25" Width="40" Click="Button_AddStraightLine_Click" Margin="2,0,0,2" ToolTip="Add straight line to graph">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/add-tag.png" Margin="0,0,0,0" Width="18"/>
                 </Button>
             </StackPanel>
         </StackPanel>
