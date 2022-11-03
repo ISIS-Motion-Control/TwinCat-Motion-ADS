@@ -32,6 +32,7 @@
     <None Remove="APPLICATION WINDOWS\Unidirectional.png" />
     <None Remove="babyIbex.jpg" />
     <None Remove="ibexHead.jpg" />
+    <None Remove="ImageAssets\COSINE.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -55,6 +56,7 @@
     <Resource Include="APPLICATION WINDOWS\Help screen windows\ImageAssets\Scaling.png" />
     <Resource Include="APPLICATION WINDOWS\Help screen windows\ImageAssets\Unidirectional.png" />
     <Resource Include="ImageAssets\babyIbex.jpg" />
+    <Resource Include="ImageAssets\COSINE.png" />
     <Resource Include="ImageAssets\ibexHead.jpg" />
   </ItemGroup>
 
