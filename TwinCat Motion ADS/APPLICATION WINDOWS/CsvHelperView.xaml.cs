@@ -847,6 +847,7 @@ namespace TwinCat_Motion_ADS
                 Yi = accuracy.MaxError,
                 Yj = accuracy.MaxError,
                 Stroke = linePaint
+                
             };
             RectangularSection accuracyLowSection = new RectangularSection()
             {
