@@ -120,7 +120,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <lvc:CartesianChart x:Name="TestChart" Series="{Binding SeriesCollection}" Height="500" Width="955" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2">
+                    <lvc:CartesianChart x:Name="TestChart" Series="{Binding SeriesCollection}" Sections="{Binding Sections}" Height="500" Width="955" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2">
 
                     </lvc:CartesianChart>
                     <StackPanel x:Name="performanceStackPanel" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="680,50,0,0" Background="LightGray" Height="40" Width="120">
@@ -193,6 +193,14 @@
                         </Style>
                     </Button.Resources>
                     <Image Source="/ImageAssets/add-tag.png" Margin="0,0,0,0" Width="18"/>
+                </Button>
+                <Button Height="25" Width="40" Click="Button_AddPerformanceLines_Click" Margin="2,0,0,2" ToolTip="Add straight line to graph">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/combo-chart.png" Margin="0,0,0,0" Width="18"/>
                 </Button>
             </StackPanel>
         </StackPanel>

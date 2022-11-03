@@ -36,6 +36,7 @@
     <None Remove="ImageAssets\add-tag.png" />
     <None Remove="ImageAssets\calculator.png" />
     <None Remove="ImageAssets\clear.png" />
+    <None Remove="ImageAssets\combo-chart.png" />
     <None Remove="ImageAssets\export.png" />
     <None Remove="ImageAssets\import.png" />
     <None Remove="ImageAssets\invisible.png" />
@@ -56,6 +57,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ImageAssets\clear.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\combo-chart.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ImageAssets\invisible.png">

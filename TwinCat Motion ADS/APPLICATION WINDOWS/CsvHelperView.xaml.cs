@@ -34,7 +34,7 @@ namespace TwinCat_Motion_ADS
     /// </summary>
     /// 
 
-    public partial class CsvHelperView : UserControl
+    public partial class CsvHelperView : UserControl, INotifyPropertyChanged
     {
         #region Properties
 
@@ -53,21 +53,21 @@ namespace TwinCat_Motion_ADS
 
         public ObservableCollection<string> DataHeaders = new();
 
-        private List<ISeries> _SeriesCollection = new List<ISeries>() { };
-        public List<ISeries> SeriesCollection
+        private ObservableCollection<ISeries> _SeriesCollection = new ObservableCollection<ISeries>() { };
+        public ObservableCollection<ISeries> SeriesCollection
         {
             get { return _SeriesCollection; }
             set
             {
-                _SeriesCollection = value;
+                _SeriesCollection = value; OnPropertyChanged();
             }
         }
 
-        private List<RectangularSection> _Sections = new List<RectangularSection>() {};
-        public List<RectangularSection> Sections
+        private ObservableCollection<RectangularSection> _Sections = new ObservableCollection<RectangularSection>() {};
+        public ObservableCollection<RectangularSection> Sections
         {
             get { return _Sections; }
-            set { _Sections = value; }
+            set { _Sections = value; OnPropertyChanged(); }
         }
 
         //Graph axis properties
@@ -88,6 +88,7 @@ namespace TwinCat_Motion_ADS
         {
             InitializeComponent();
             this.DataContext = this;
+            TestChart.DataContext = this;
             dt = new DataTable();   //initisalise new data table
             csvHeaderList.ItemsSource = DataHeaders;    //Update combobox headers source
 
@@ -260,6 +261,7 @@ namespace TwinCat_Motion_ADS
         private void Button_ClearGraph_Click(object sender, RoutedEventArgs e)
         {
             SeriesCollection.Clear();
+            Sections.Clear();
         }
 
 
@@ -409,7 +411,6 @@ namespace TwinCat_Motion_ADS
             AddDataRowsToColumn(e);
 
             
-            //UpdateChart(e.ColumnHeader, e.Var2Header);
         }
 
         private void AddDataRowsToColumn(NewDataArgs e)
@@ -574,41 +575,6 @@ namespace TwinCat_Motion_ADS
         //Submitted data event
         public void AddDataToGraph(object sender, NewGraphDataArgs e)
         {
-            UpdateChart(e);
-        }
-
-        private void AddStraightLine(object sender, NewGraphLineArgs e)
-        {
-            RectangularSection newSection = new();
-            if(e.AxisSelection == "Y")
-            {
-                newSection.Yi = e.Value;
-                newSection.Yj = e.Value;
-            }
-            else if (e.AxisSelection == "X")
-            {
-                newSection.Xi = e.Value;
-                newSection.Xj = e.Value;
-            }
-
-            newSection.Stroke = new SolidColorPaint
-            {
-                Color = SKColors.Red,
-                StrokeThickness = 3,
-                PathEffect = new DashEffect(new float[] { 6, 6 })
-            };
-            Sections.Add(newSection);
-            TestChart.Sections = Sections;
-            //LiveCharts.Wpf.AxisSection axisSection = new();
-            //axisSection.Value = e.Value;
-            //TestChart.AxisY[0].Sections.Add(axisSection);
-
-        }
-
-        //Add to chart
-        public void UpdateChart(NewGraphDataArgs e)
-        {
-
             //THIS NEEDS SOME SERIOUS CLEAN UP
             ObservableCollection<string> filterValues = new();
 
@@ -647,7 +613,7 @@ namespace TwinCat_Motion_ADS
                         }
                     }
 
-                    ScatterSeries<ObservablePoint> myLine = new ScatterSeries<ObservablePoint> { Name = e.SeriesName + " (" +filter+")", Values = new List<ObservablePoint>() };
+                    ScatterSeries<ObservablePoint> myLine = new ScatterSeries<ObservablePoint> { Name = e.SeriesName + " (" + filter + ")", Values = new List<ObservablePoint>() };
                     myLine.Values = (dataPoints);
                     myLine.GeometrySize = 2;
 
@@ -684,33 +650,65 @@ namespace TwinCat_Motion_ADS
                 SeriesCollection.Add(myLine);
                 UpdateGraphAxes();
             }
-
-                      
         }
+
+        private void AddStraightLine(object sender, NewGraphLineArgs e)
+        {
+            RectangularSection newSection = new();
+            if(e.AxisSelection == "Y")
+            {
+                newSection.Yi = e.Value;
+                newSection.Yj = e.Value;
+            }
+            else if (e.AxisSelection == "X")
+            {
+                newSection.Xi = e.Value;
+                newSection.Xj = e.Value;
+            }
+
+            newSection.Stroke = new SolidColorPaint
+            {
+                Color = SKColors.Red,
+                StrokeThickness = 3,
+                PathEffect = new DashEffect(new float[] { 6, 6 })
+            };
+            Sections.Add(newSection);
+            TestChart.Sections = Sections;
+            //LiveCharts.Wpf.AxisSection axisSection = new();
+            //axisSection.Value = e.Value;
+            //TestChart.AxisY[0].Sections.Add(axisSection);
+
+        }
+
 
         
 
-        public void CalculateAccuracy(string columnName)
+        public AccuracyLimits CalculateAccuracy(string columnName)
         {
-            double maxVal = 999;
-            double minVal = 999;
+            
+            double maxVal = 0;
+            double minVal = 0;
             double accuracyVal;
-            foreach(DataRow row in dt.Rows)
+            
+
+            foreach (DataRow row in dt.Rows)
             {
                 if (double.TryParse((string)row[columnName], out _))
                 {
-                    if (double.Parse((string)row[columnName]) > maxVal || maxVal == 999) maxVal = double.Parse((string)row[columnName]);
-                    if (double.Parse((string)row[columnName]) < minVal || minVal == 999) minVal = double.Parse((string)row[columnName]);
+                    if (double.Parse((string)row[columnName]) > maxVal ) maxVal = double.Parse((string)row[columnName]);
+                    if (double.Parse((string)row[columnName]) < minVal ) minVal = double.Parse((string)row[columnName]);
                 }
                 
             }
             accuracyVal = maxVal - minVal;
+            AccuracyLimits accuracyLimits = new(maxVal, minVal, accuracyVal);
             Console.WriteLine(accuracyVal);
             string accuracyString = string.Format("{0:0.000}", accuracyVal);
             AccuracyVal.Text = accuracyString;
+            return accuracyLimits;
         }
 
-        public void CalculateRepeatability(string errorColumn, string targetColumn)
+        public RepeatabilityMeasure CalculateRepeatability(string errorColumn, string targetColumn)
         {
             //want to group things by their target
             ObservableCollection<RepeatabilityMeasure> repeatabilityMeasures = new ObservableCollection<RepeatabilityMeasure>();
@@ -733,19 +731,29 @@ namespace TwinCat_Motion_ADS
                 }
             }
 
-
-            double repeatVal = 999;
+            RepeatabilityMeasure worseRepeatability = new(0,0,0);
+            double? repeatVal = 999; 
             Console.WriteLine("List size is: " + repeatabilityMeasures.Count);
             foreach(RepeatabilityMeasure measure in repeatabilityMeasures)
             {
                 measure.Repeatability = measure.MaxError - measure.MinError;
-                if(measure.Repeatability > repeatVal || repeatVal == 999) repeatVal = measure.Repeatability;
+
+                if (measure.Repeatability > repeatVal || repeatVal == 999)
+                {
+                    repeatVal = measure.Repeatability;
+                    worseRepeatability.TargetPosition = measure.TargetPosition;
+                    worseRepeatability.MinError = measure.MinError;
+                    worseRepeatability.MaxError = measure.MaxError;
+                    worseRepeatability.Repeatability = measure.Repeatability;
+                }
+
 
             }
 
             Console.WriteLine(repeatVal);
             string repeatabilityString = string.Format("{0:0.000}", repeatVal);
             RepeatabilityVal.Text = repeatabilityString;
+            return worseRepeatability;
         }
 
         private void UpdateGraphAxes()
@@ -753,26 +761,28 @@ namespace TwinCat_Motion_ADS
             Func<double, string> xFormat = StringDecimalFormat(XAxisDec.Val);
             Func<double, string> yFormat = StringDecimalFormat(YAxisDec.Val);
 
+            if(YAxisMax.Val<YAxisMin.Val)
+            {
+                Console.WriteLine("YMax can't be less than YMin");
+                return;
+            }
+            if(YAxisMin.Val==YAxisMax.Val)
+            {
+                Console.WriteLine("YMax can't be the same as YMin");
+                return; 
+            }
+            if (XAxisMax.Val < XAxisMin.Val)
+            {
+                Console.WriteLine("XMax can't be less than XMin");
+                return;
+            }
+            if (XAxisMin.Val == XAxisMax.Val)
+            {
+                Console.WriteLine("XMax can't be the same as XMin");
+                return;
+            }
 
-            /*//DEBUG
-            AxisSection axisSection = new();
-            axisSection.Value = 1;
-            axisSection.Visibility = Visibility.Visible;
-            axisSection.Width = 10;
-            axisSection.Height = 10;
-            SolidColorBrush brush = new();
-            brush.Color = (Color.FromArgb(255, 255, 139, 0));
-            
-            axisSection.Fill = brush;
-            axisSection.UpdateLayout();*/
-            //SectionsCollection sectionsSet = new();
-            // sectionsSet.Add(axisSection);
-            //stChart.AxisY[0].Sections.Add(axisSection);
 
-
-
-            //Separator xSep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = XAxisSep.Val };
-            //Separator ySep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = YAxisSep.Val };
             Axis yAxis = new()
             {
 
@@ -803,7 +813,75 @@ namespace TwinCat_Motion_ADS
 
         }
 
+        private void Button_AddPerformanceLines_Click(object sender, RoutedEventArgs e)
+        {
+            if (csvHeaderList.SelectedItem == null)
+            {
+                Console.WriteLine("No header item selected");
+                return;
+            }
+            RepeatabilityMeasure repeatability = CalculateRepeatability(csvHeaderList.SelectedItem.ToString(), "TargetPosition");
+            AccuracyLimits accuracy = CalculateAccuracy(csvHeaderList.SelectedItem.ToString());
 
+            SolidColorPaint linePaint = new SolidColorPaint
+            {
+                Color = SKColors.Red,
+                StrokeThickness = 3,
+                PathEffect = new DashEffect(new float[] { 6, 6 })
+            };
+
+
+            RectangularSection repeatabilitySection = new RectangularSection()
+            {
+                Xi = repeatability.TargetPosition,
+                Xj = repeatability.TargetPosition,
+                Yi = repeatability.MinError,
+                Yj = repeatability.MaxError
+            };
+
+            repeatabilitySection.Stroke = linePaint;
+
+
+            RectangularSection accuracyHighSection = new RectangularSection()
+            {
+                Yi = accuracy.MaxError,
+                Yj = accuracy.MaxError,
+                Stroke = linePaint
+            };
+            RectangularSection accuracyLowSection = new RectangularSection()
+            {
+                Yi = accuracy.MinError,
+                Yj = accuracy.MinError,
+                Stroke = linePaint
+            };
+            Sections.Add(repeatabilitySection);
+            Sections.Add(accuracyHighSection);
+            Sections.Add(accuracyLowSection);
+
+            ///////
+            ///
+
+            /*RectangularSection newSection = new();
+            if (e.AxisSelection == "Y")
+            {
+                newSection.Yi = e.Value;
+                newSection.Yj = e.Value;
+            }
+            else if (e.AxisSelection == "X")
+            {
+                newSection.Xi = e.Value;
+                newSection.Xj = e.Value;
+            }
+
+            newSection.Stroke = new SolidColorPaint
+            {
+                Color = SKColors.Red,
+                StrokeThickness = 3,
+                PathEffect = new DashEffect(new float[] { 6, 6 })
+            };
+            Sections.Add(newSection);
+            TestChart.Sections = Sections;*/
+        }
     }
     public class NewDataArgs : EventArgs
     {
@@ -875,6 +953,20 @@ namespace TwinCat_Motion_ADS
             TargetPosition = targetPosition;
             MaxError = maxError;
             MinError = minError;
+        }
+    }
+
+    public class AccuracyLimits
+    {
+        public double MaxError = 999;
+        public double MinError = 999;
+        public double Accuracy = 0;
+
+        public AccuracyLimits(double maxError, double minError, double accuracy)
+        {
+            MaxError = maxError;
+            MinError = minError;
+            Accuracy = accuracy;
         }
     }
 
