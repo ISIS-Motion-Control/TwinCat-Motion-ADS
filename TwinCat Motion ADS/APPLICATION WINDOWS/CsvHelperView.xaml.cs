@@ -15,12 +15,17 @@ using System.Globalization;
 using System.Data;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using LiveCharts;
-using LiveCharts.Wpf;
-using LiveCharts.Defaults;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore;
+//using LiveCharts.Wpf;
+//using LiveCharts.Defaults;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
-
+using LiveChartsCore.Defaults;
+using LiveChartsCore.Measure;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
+using LiveChartsCore.SkiaSharpView.Painting.Effects;
 
 namespace TwinCat_Motion_ADS
 {
@@ -48,14 +53,21 @@ namespace TwinCat_Motion_ADS
 
         public ObservableCollection<string> DataHeaders = new();
 
-        private SeriesCollection _SeriesCollection = new SeriesCollection() { };
-        public SeriesCollection SeriesCollection
+        private List<ISeries> _SeriesCollection = new List<ISeries>() { };
+        public List<ISeries> SeriesCollection
         {
             get { return _SeriesCollection; }
             set
             {
-                _SeriesCollection = SeriesCollection;
+                _SeriesCollection = value;
             }
+        }
+
+        private List<RectangularSection> _Sections = new List<RectangularSection>() {};
+        public List<RectangularSection> Sections
+        {
+            get { return _Sections; }
+            set { _Sections = value; }
         }
 
         //Graph axis properties
@@ -78,10 +90,10 @@ namespace TwinCat_Motion_ADS
             this.DataContext = this;
             dt = new DataTable();   //initisalise new data table
             csvHeaderList.ItemsSource = DataHeaders;    //Update combobox headers source
-            
+
             //Setup chart
-            TestChart.Update();
-            TestChart.LegendLocation = LegendLocation.Bottom;
+            TestChart.UpdateLayout();
+            TestChart.LegendPosition = LegendPosition.Bottom;
 
             //Populate default values for chart axis properties
             YAxisMax.UiVal = Properties.Settings.Default.yAxisMax;
@@ -297,35 +309,7 @@ namespace TwinCat_Motion_ADS
 
         private void Button_UpdateGraph_Click(object sender, RoutedEventArgs e)
         {
-            TestChart.AxisX.Clear();
-            TestChart.AxisY.Clear();
-
-            Func<double, string> xFormat = StringDecimalFormat(XAxisDec.Val);
-            Func<double, string> yFormat = StringDecimalFormat(YAxisDec.Val);
-
-
-            //DEBUG
-            LiveCharts.Wpf.AxisSection axisSection = new();
-            axisSection.Value = 1;
-            axisSection.Visibility = Visibility.Visible;
-            axisSection.Width = 10;
-            axisSection.Height = 10;
-            SolidColorBrush brush = new();
-            brush.Color = (Color.FromArgb(255, 255, 139, 0));
-            
-            axisSection.Fill = brush;
-            axisSection.UpdateLayout();
-            SectionsCollection sectionsSet = new();
-            sectionsSet.Add(axisSection);
-            //stChart.AxisY[0].Sections.Add(axisSection);
-
-
-
-            LiveCharts.Wpf.Separator xSep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = XAxisSep.Val };
-            LiveCharts.Wpf.Separator ySep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = YAxisSep.Val };
-
-            TestChart.AxisY.Add(new() { LabelFormatter = yFormat, Title = YAxisTitle.Val + "\n\n", FontSize = 12, MaxValue = YAxisMax.Val, MinValue = YAxisMin.Val, Separator = ySep, Sections= sectionsSet });
-            TestChart.AxisX.Add(new() { LabelFormatter = xFormat, Title = "\n" + XAxisTitle.Val, FontSize = 12, MaxValue = XAxisMax.Val, MinValue = XAxisMin.Val, Separator = xSep });
+            UpdateGraphAxes();
         }
 
         
@@ -595,9 +579,29 @@ namespace TwinCat_Motion_ADS
 
         private void AddStraightLine(object sender, NewGraphLineArgs e)
         {
-            LiveCharts.Wpf.AxisSection axisSection = new();
-            axisSection.Value = e.Value;
-            TestChart.AxisY[0].Sections.Add(axisSection);
+            RectangularSection newSection = new();
+            if(e.AxisSelection == "Y")
+            {
+                newSection.Yi = e.Value;
+                newSection.Yj = e.Value;
+            }
+            else if (e.AxisSelection == "X")
+            {
+                newSection.Xi = e.Value;
+                newSection.Xj = e.Value;
+            }
+
+            newSection.Stroke = new SolidColorPaint
+            {
+                Color = SKColors.Red,
+                StrokeThickness = 3,
+                PathEffect = new DashEffect(new float[] { 6, 6 })
+            };
+            Sections.Add(newSection);
+            TestChart.Sections = Sections;
+            //LiveCharts.Wpf.AxisSection axisSection = new();
+            //axisSection.Value = e.Value;
+            //TestChart.AxisY[0].Sections.Add(axisSection);
 
         }
 
@@ -643,10 +647,12 @@ namespace TwinCat_Motion_ADS
                         }
                     }
 
-                    ScatterSeries myLine = new ScatterSeries { Title = e.SeriesName + " (" +filter+")", Values = new ChartValues<ObservablePoint>() };
-                    myLine.Values.AddRange(dataPoints);
-                    myLine.PointGeometry = DefaultGeometries.Cross;
-                    myLine.StrokeThickness = 2;
+                    ScatterSeries<ObservablePoint> myLine = new ScatterSeries<ObservablePoint> { Name = e.SeriesName + " (" +filter+")", Values = new List<ObservablePoint>() };
+                    myLine.Values = (dataPoints);
+                    myLine.GeometrySize = 2;
+
+                    //myLine.PointGeometry = DefaultGeometries.Cross;
+                    //myLine.StrokeThickness = 2;
 
                     SeriesCollection.Add(myLine);
                 }
@@ -670,12 +676,13 @@ namespace TwinCat_Motion_ADS
 
                 }
 
-                ScatterSeries myLine = new ScatterSeries { Title = e.SeriesName, Values = new ChartValues<ObservablePoint>() };
-                myLine.Values.AddRange(dataPoints);
-                myLine.PointGeometry = DefaultGeometries.Cross;
-                myLine.StrokeThickness = 2;
+                ScatterSeries<ObservablePoint> myLine = new ScatterSeries<ObservablePoint> { Name = e.SeriesName, Values = new List<ObservablePoint>() };
+                myLine.Values = (dataPoints);
+                //myLine.PointGeometry = DefaultGeometries.Cross;
+                myLine.GeometrySize = 2;
 
                 SeriesCollection.Add(myLine);
+                UpdateGraphAxes();
             }
 
                       
@@ -741,7 +748,62 @@ namespace TwinCat_Motion_ADS
             RepeatabilityVal.Text = repeatabilityString;
         }
 
-        
+        private void UpdateGraphAxes()
+        {
+            Func<double, string> xFormat = StringDecimalFormat(XAxisDec.Val);
+            Func<double, string> yFormat = StringDecimalFormat(YAxisDec.Val);
+
+
+            /*//DEBUG
+            AxisSection axisSection = new();
+            axisSection.Value = 1;
+            axisSection.Visibility = Visibility.Visible;
+            axisSection.Width = 10;
+            axisSection.Height = 10;
+            SolidColorBrush brush = new();
+            brush.Color = (Color.FromArgb(255, 255, 139, 0));
+            
+            axisSection.Fill = brush;
+            axisSection.UpdateLayout();*/
+            //SectionsCollection sectionsSet = new();
+            // sectionsSet.Add(axisSection);
+            //stChart.AxisY[0].Sections.Add(axisSection);
+
+
+
+            //Separator xSep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = XAxisSep.Val };
+            //Separator ySep = new LiveCharts.Wpf.Separator() { IsEnabled = true, Step = YAxisSep.Val };
+            Axis yAxis = new()
+            {
+
+                Labeler = yFormat,
+                Name = YAxisTitle.Val,
+                TextSize = 12,
+                MaxLimit = YAxisMax.Val,
+                MinLimit = YAxisMin.Val,
+                MinStep = YAxisSep.Val,
+                ForceStepToMin = true
+            };
+            Axis xAxis = new()
+            {
+
+                Labeler = xFormat,
+                Name = XAxisTitle.Val,
+                TextSize = 12,
+                MaxLimit = XAxisMax.Val,
+                MinLimit = XAxisMin.Val,
+                MinStep = XAxisSep.Val,
+                ForceStepToMin = true
+            };
+
+
+            TestChart.YAxes = new List<Axis>() { yAxis };
+            TestChart.XAxes = new List<Axis>() { xAxis };
+            //TestChart.AxisX.Add(new() { LabelFormatter = xFormat, Title = "\n" + XAxisTitle.Val, FontSize = 12, MaxValue = XAxisMax.Val, MinValue = XAxisMin.Val, Separator = XAxisSep.Val });
+
+        }
+
+
     }
     public class NewDataArgs : EventArgs
     {
