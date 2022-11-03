@@ -33,7 +33,7 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
             measurement = await ReadAsync("1", ct, readDelay, defaultTimeout);
             if (EnableCosineCorrection)
             {
-                measurement = Convert.ToString(cosineCorrectionValue * Convert.ToDouble(measurement));
+                measurement = Convert.ToString(CosineCorrectionValue * Convert.ToDouble(measurement));
             }
             return measurement;
         }
@@ -50,7 +50,7 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
             measurement = await ReadAsync("1", ct, readDelay, defaultTimeout);
             if (EnableCosineCorrection)
             {
-                measurement = Convert.ToString(cosineCorrectionValue * Convert.ToDouble(measurement));
+                measurement = Convert.ToString(CosineCorrectionValue * Convert.ToDouble(measurement));
             }
             return measurement;
         }
@@ -195,7 +195,7 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
             }
             else
             {
-                cosineCorrectionValue = value;
+                CosineCorrectionValue = value;
                 Console.WriteLine("Correction Value : " + Convert.ToString(CosineCorrectionValue));
             }
 
