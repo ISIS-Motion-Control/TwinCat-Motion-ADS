@@ -31,7 +31,10 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
             string measurement;
             CancellationTokenSource ct = new();
             measurement = await ReadAsync("1", ct, readDelay, defaultTimeout);
-            measurement = Convert.ToString(cosineCorrectionValue * Convert.ToDouble(measurement));
+            if (EnableCosineCorrection)
+            {
+                measurement = Convert.ToString(cosineCorrectionValue * Convert.ToDouble(measurement));
+            }
             return measurement;
         }
 
@@ -45,7 +48,10 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
             string measurement;
             CancellationTokenSource ct = new();
             measurement = await ReadAsync("1", ct, readDelay, defaultTimeout);
-            measurement = Convert.ToString(cosineCorrectionValue * Convert.ToDouble(measurement));
+            if (EnableCosineCorrection)
+            {
+                measurement = Convert.ToString(cosineCorrectionValue * Convert.ToDouble(measurement));
+            }
             return measurement;
         }
         public async Task<string> GetMeasurement_Uncorrected()
@@ -96,7 +102,7 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
         
         public bool EnableCosineCorrection { get; set; }
 
-        private double cosineCorrectionValue;
+        private double cosineCorrectionValue = 1;
         public double CosineCorrectionValue 
         { 
             get { return cosineCorrectionValue; } 
@@ -152,11 +158,10 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
             if (EnableCosineCorrection)
             {
                 COSINECalculation(InitialValue, DistanceTraveled, FinalValue);
-                
             }
             else
             {
-                Console.WriteLine("COSIGN Correction Not Enabled");
+                Console.WriteLine("COSIGNE Correction Not Enabled");
             }
             
         }
@@ -172,7 +177,7 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
         {
             string measurement = await GetMeasurement_Uncorrected();
             Console.WriteLine(Name + ": " + measurement);
-            initialValue = measurement;
+            InitialValue = measurement;
         }
         public async void FinalValue_ReadIn(object sender, EventArgs e)
         {

@@ -99,19 +99,7 @@ namespace TwinCat_Motion_ADS
                 case DeviceTypes.DigimaticIndicator:
                     CommonRs232Window();
                     //Create UI elements
-                    cosineCorrectionUI cosineCorrectionUI = new();
-
-                    //Setup bindings
-                    XamlUI.CheckBoxBinding("Enable COSINE Correction", cosineCorrectionUI.enableCosineCalculationCheckBox, (MD_DigimaticIndicator)MDevice, "EnableCosineCorrection");
-                    XamlUI.TextboxBinding(cosineCorrectionUI.initialValueTextBox, (MD_DigimaticIndicator)MDevice, "InitialValue");
-                    XamlUI.TextboxBinding(cosineCorrectionUI.distanceTraveledTextBox, (MD_DigimaticIndicator)MDevice, "DistanceTraveled");
-                    XamlUI.TextboxBinding(cosineCorrectionUI.finalValueTextBox, (MD_DigimaticIndicator)MDevice, "FinalValue");
-
-                    //Setup event handlers
-                    cosineCorrectionUI.calculateCosineCorrectionButton.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).CalculateCosineCorrection);
-                    cosineCorrectionUI.resetCosineCalculationButton.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).ResetCosineCalculation);
-                    cosineCorrectionUI.initialValue_ReadIn.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).InitialValue_ReadIn);
-                    cosineCorrectionUI.finalValue_ReadIn.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).FinalValue_ReadIn);
+                    cosineCorrectionUI cosineCorrectionUI = new(MDevice);
 
                     //add elements and stack pannels to UI
                     deviceSettings.Children.Add(cosineCorrectionUI.cosineCorrectionUISP);
@@ -433,7 +421,7 @@ namespace TwinCat_Motion_ADS
             Name = "cosineCorrectionSP",
             HorizontalAlignment = HorizontalAlignment.Center
         };
-        public cosineCorrectionUI ()
+        public cosineCorrectionUI (I_MeasurementDevice MDevice)
         {
             //setup UI element
             cosineImage.Source = new BitmapImage(new Uri("\\ImageAssets\\COSINE.png", UriKind.Relative));
@@ -448,8 +436,18 @@ namespace TwinCat_Motion_ADS
             XamlUI.SetupTextBox(ref finalValueTextBox, "1");
             XamlUI.SetupButton(ref finalValue_ReadIn, "Read in");
 
+            //Setup bindings
+            XamlUI.CheckBoxBinding("Enable COSINE Correction", enableCosineCalculationCheckBox, (MD_DigimaticIndicator)MDevice, "EnableCosineCorrection");
+            XamlUI.TextboxBinding(initialValueTextBox, (MD_DigimaticIndicator)MDevice, "InitialValue");
+            XamlUI.TextboxBinding(distanceTraveledTextBox, (MD_DigimaticIndicator)MDevice, "DistanceTraveled");
+            XamlUI.TextboxBinding(finalValueTextBox, (MD_DigimaticIndicator)MDevice, "FinalValue");
+
             //Setup event handlers
             enableCosineCalculationCheckBox.Click += new RoutedEventHandler(EnableUI);
+            calculateCosineCorrectionButton.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).CalculateCosineCorrection);
+            resetCosineCalculationButton.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).ResetCosineCalculation);
+            initialValue_ReadIn.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).InitialValue_ReadIn);
+            finalValue_ReadIn.Click += new RoutedEventHandler(((MD_DigimaticIndicator)MDevice).FinalValue_ReadIn);
 
             //Setup stack pannels
             StackPanel imageSP = new() { Orientation = Orientation.Horizontal };
@@ -487,8 +485,8 @@ namespace TwinCat_Motion_ADS
             }
             else
             {
-                cosineCorrectionSP.Visibility = Visibility.Visible;
-                cosineCorrectionSP.IsEnabled = true;
+                cosineCorrectionSP.Visibility = Visibility.Collapsed;
+                cosineCorrectionSP.IsEnabled = false;
             }
         }
     }
