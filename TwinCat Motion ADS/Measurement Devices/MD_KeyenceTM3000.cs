@@ -34,17 +34,25 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
                 try
                 {
                     SerialPort.Close();
-                    SerialPort.Dispose();
                 }
                 catch
                 {
                     return false;
                 }
-                Connected = false;
-                UpdateChannelList();
-                return true;
             }
-            return false;
+
+            try
+            {
+                SerialPort.Dispose();
+            }
+            catch
+            {
+                return false;
+            }
+
+            Connected = false;
+            UpdateChannelList();
+            return true;
         }
 
         public void UpdateChannelList()
