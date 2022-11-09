@@ -1,0 +1,55 @@
+﻿<Window x:Class="TwinCat_Motion_ADS.EditLineWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TwinCat_Motion_ADS"
+        mc:Ignorable="d"
+        Height="600" Width="600"  Topmost="True" WindowStartupLocation="CenterScreen">
+    <StackPanel Margin="5,5,5,5" Background="LightCyan">
+        <TabControl Height="500">
+            <TabItem Header="Series">
+                <StackPanel Background="#FFE5E5E5" Orientation="Horizontal">
+                    <ListBox x:Name="SeriesListBox" Height="400" Width="160" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5,5,0,0" SelectionChanged="SeriesListBox_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <StackPanel x:Name="BindingWindow" Margin="5,5,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Series Name:" FontSize="16" Margin="5,5,0,0"/>
+                            <TextBox x:Name="SeriesTextbox" Height="25" Width="160" Margin="5,5,0,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Colour:" FontSize="16" Margin="5,5,0,0"/>
+                            <ComboBox x:Name="ColourPicker" Height="25" Width="160" Margin="5,5,0,0" SelectionChanged="ColourPicker_SelectionChanged">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Rectangle Width="20" Height="20" Margin="0,2,5,0" Fill="{Binding Name}"/>
+                                            <TextBlock Text="{Binding Name}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                    
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+
+
+
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Sections">
+                <StackPanel Background="#FFE5E5E5">
+                    <TextBlock Text="TEST2"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+
+    </StackPanel>
+</Window>

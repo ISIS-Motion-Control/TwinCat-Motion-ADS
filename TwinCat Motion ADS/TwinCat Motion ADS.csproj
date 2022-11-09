@@ -42,6 +42,7 @@
     <None Remove="ImageAssets\invisible.png" />
     <None Remove="ImageAssets\plus-2-math.png" />
     <None Remove="ImageAssets\plus-2-math2.png" />
+    <None Remove="ImageAssets\support.png" />
     <None Remove="ImageAssets\trash.png" />
     <None Remove="ImageAssets\update.png" />
   </ItemGroup>
@@ -63,6 +64,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ImageAssets\invisible.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\support.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ImageAssets\trash.png">
@@ -105,6 +109,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="APPLICATION WINDOWS\EditLineWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="APPLICATION WINDOWS\AddStraightLineWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -135,6 +142,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Update="APPLICATION WINDOWS\EditLineWindow.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="APPLICATION WINDOWS\AddStraightLineWindow.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>

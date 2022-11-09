@@ -202,6 +202,14 @@
                     </Button.Resources>
                     <Image Source="/ImageAssets/combo-chart.png" Margin="0,0,0,0" Width="18"/>
                 </Button>
+                <Button Height="25" Width="40" Click="Button_LineSettings_Click" Margin="2,0,0,2" ToolTip="Add straight line to graph">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/ImageAssets/support.png" Margin="0,0,0,0" Width="18"/>
+                </Button>
             </StackPanel>
         </StackPanel>
             

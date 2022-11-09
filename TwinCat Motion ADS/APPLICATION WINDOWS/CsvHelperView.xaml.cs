@@ -883,6 +883,12 @@ namespace TwinCat_Motion_ADS
             Sections.Add(newSection);
             TestChart.Sections = Sections;*/
         }
+
+        private void Button_LineSettings_Click(object sender, RoutedEventArgs e)
+        {
+            EditLineWindow editWindow = new(SeriesCollection, Sections);
+            editWindow.Show();
+        }
     }
     public class NewDataArgs : EventArgs
     {
