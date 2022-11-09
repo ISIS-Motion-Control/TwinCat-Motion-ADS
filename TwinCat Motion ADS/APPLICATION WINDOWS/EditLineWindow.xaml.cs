@@ -75,7 +75,7 @@ namespace TwinCat_Motion_ADS
             CurrentScatter = SeriesListBox.SelectedItem as ScatterSeries<ObservablePoint>;
 
             XamlUI.TextboxBinding(SeriesTextbox, CurrentScatter, "Name");
-
+            
             
 
             //myColour.
@@ -95,31 +95,40 @@ namespace TwinCat_Motion_ADS
         {
             //if (CurrentScatter == null) return;
             //Console.WriteLine((Color)ColourPicker.SelectedItem);
+            Console.WriteLine(((SolidColorPaint)CurrentScatter.Stroke).StrokeThickness);
+            Console.WriteLine(((SolidColorPaint)CurrentScatter.Stroke).Color);
 
-            if(ColourPicker.SelectedItem != null)
+            Console.WriteLine(((SolidColorPaint)CurrentScatter.Fill).StrokeThickness);
+            Console.WriteLine(((SolidColorPaint)CurrentScatter.Fill).Color);
+
+
+
+
+            if (ColourPicker.SelectedItem != null)
             {
                 var selectedItem = (PropertyInfo)ColourPicker.SelectedItem;
                 var color = (Color)selectedItem.GetValue(null, null);
-                Console.WriteLine(color.ToString());
+
 
                 if(CurrentScatter != null)
                 {
+
                     SolidColorPaint linePaint = new SolidColorPaint
                     {
+                        Color = SKColor.Parse(color.ToString()), StrokeThickness = 5
+
+                    };
+                    SolidColorPaint fillPaint = new SolidColorPaint
+                    {
                         Color = SKColor.Parse(color.ToString()),
-                        StrokeThickness = 3,
-                        PathEffect = new DashEffect(new float[] { 6, 6 })
                     };
 
-
                     CurrentScatter.Stroke= linePaint;
+                    CurrentScatter.Fill = fillPaint;
                     wd.CsvHelperView.TestChart.UpdateLayout();
                 }
                 
             }
-            
-
-            //((SolidColorPaint)CurrentScatter.Stroke).Color = SKColor.Parse(((Color)ColourPicker.SelectedItem).ToString());
         }
     }
 }

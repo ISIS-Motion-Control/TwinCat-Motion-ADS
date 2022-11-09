@@ -617,9 +617,6 @@ namespace TwinCat_Motion_ADS
                     myLine.Values = (dataPoints);
                     myLine.GeometrySize = 2;
 
-                    //myLine.PointGeometry = DefaultGeometries.Cross;
-                    //myLine.StrokeThickness = 2;
-
                     SeriesCollection.Add(myLine);
                 }
             }
