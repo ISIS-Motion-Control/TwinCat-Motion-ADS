@@ -93,22 +93,10 @@ namespace TwinCat_Motion_ADS
 
         private void ColourPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            //if (CurrentScatter == null) return;
-            //Console.WriteLine((Color)ColourPicker.SelectedItem);
-            Console.WriteLine(((SolidColorPaint)CurrentScatter.Stroke).StrokeThickness);
-            Console.WriteLine(((SolidColorPaint)CurrentScatter.Stroke).Color);
-
-            Console.WriteLine(((SolidColorPaint)CurrentScatter.Fill).StrokeThickness);
-            Console.WriteLine(((SolidColorPaint)CurrentScatter.Fill).Color);
-
-
-
-
             if (ColourPicker.SelectedItem != null)
             {
                 var selectedItem = (PropertyInfo)ColourPicker.SelectedItem;
                 var color = (Color)selectedItem.GetValue(null, null);
-
 
                 if(CurrentScatter != null)
                 {
@@ -118,9 +106,13 @@ namespace TwinCat_Motion_ADS
                         Color = SKColor.Parse(color.ToString()), StrokeThickness = 5
 
                     };
+
+                    string lowerAlpha = color.ToString();
+                    lowerAlpha = lowerAlpha.Remove(0, 3);
+                    lowerAlpha = "#40" + lowerAlpha;
                     SolidColorPaint fillPaint = new SolidColorPaint
                     {
-                        Color = SKColor.Parse(color.ToString()),
+                        Color = SKColor.Parse(lowerAlpha),
                     };
 
                     CurrentScatter.Stroke= linePaint;
