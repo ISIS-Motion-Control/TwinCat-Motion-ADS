@@ -1346,6 +1346,13 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
+        public async Task<bool> HomingRepeatabilityTest(NcTestSettings testSettings, MeasurementDevices devices = null)
+        {
+
+            return false;
+        }
+
+
         private async Task<bool> UniDirectionalSingleCycle(NcTestSettings ts, uint currentCycle, double TargetPosition, MeasurementDevices md, string csvFile, uint additionalSteps = 0, bool reverseStepCount = false)
         {
             string approachUp;
