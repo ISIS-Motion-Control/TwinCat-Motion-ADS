@@ -59,23 +59,23 @@ namespace TwinCat_Motion_ADS
         private ITcSmTreeItem _axes;
         public ITcSmTreeItem Axes
         {
-            get { return _axes ?? (_axes = NcConfig.Child[1].LookupChild("Axes")); }
+            get { return _axes ?? (_axes = NcItem.Child[1].LookupChild("Axes")); }
             set { _axes = value; }
         }
 
-        private ITcSmTreeItem _ncConfig;
-        public ITcSmTreeItem NcConfig
+        /*private ITcSmTreeItem _ncConfig;
+        public ITcSmTreeItem NcItem
         {
             get { return _ncConfig ?? (_ncConfig = SystemManager.LookupTreeItem("TINC")); }
             set { _ncConfig = value; }
-        }
+        }*/
 
-        private ITcSmTreeItem _io;
-        public ITcSmTreeItem Io
+        /*private ITcSmTreeItem _io;
+        public ITcSmTreeItem IoItem
         {
             get { return _io ?? (_io = SystemManager.LookupTreeItem("TIID")); }
             set { _io = value; }
-        }
+        }*/
 
         public XmlDocument xmlDoc;  //Generic holder for xmlDocument
 
@@ -99,6 +99,22 @@ namespace TwinCat_Motion_ADS
 
 
         #endregion
+
+        public void SetupSolutionObjects()
+        {
+            solution = ActiveDTE.Solution;
+            solutionProject = solution.Projects.Item(1);
+            SystemManager = (ITcSysManager15)solutionProject.Object;
+            ConfigManager = (ITcConfigManager)SystemManager.ConfigurationManager;
+            NcItem = (ITcSmTreeItem9)SystemManager.LookupTreeItem("TINC");
+            AxesItem = (ITcSmTreeItem9)NcItem.Child[1].LookupChild("Axes");
+            IoItem = (ITcSmTreeItem9)SystemManager.LookupTreeItem("TIID");
+            PlcItem = (ITcSmTreeItem9)SystemManager.LookupTreeItem("TIPC");
+            PlcProjectProjectItem = SystemManager.LookupTreeItem(PLCPROJECT_PROJECT_ITEM_STRING);
+            PlcProjectItem = SystemManager.LookupTreeItem(PLCPROJECT_ITEM_STRING);
+
+        }
+
 
         #region DTE METHODS
         public DTE AttachToExistingDte(string solutionPath, string progId)
@@ -983,19 +999,7 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        public void SetupSolutionObjects()
-        {
-            solution = ActiveDTE.Solution;
-            solutionProject = solution.Projects.Item(1);
-            SystemManager = (ITcSysManager15)solutionProject.Object;
-            ConfigManager = (ITcConfigManager)SystemManager.ConfigurationManager;
-            NcItem = (ITcSmTreeItem9)SystemManager.LookupTreeItem("TINC");
-            IoItem = (ITcSmTreeItem9)SystemManager.LookupTreeItem("TIID");
-            PlcItem = (ITcSmTreeItem9)SystemManager.LookupTreeItem("TIPC");
-            PlcProjectProjectItem = SystemManager.LookupTreeItem(PLCPROJECT_PROJECT_ITEM_STRING);
-            PlcProjectItem = SystemManager.LookupTreeItem(PLCPROJECT_ITEM_STRING);
-
-        }
+        
 
         public void startRestart()
         {
@@ -1106,23 +1110,23 @@ namespace TwinCat_Motion_ADS
             int tier3TerminalLayer; //number of terminals under a coupler
             ITcSmTreeItem ioName;
 
-            tier1DeviceLayer = Io.ChildCount;
+            tier1DeviceLayer = IoItem.ChildCount;
             for (int i = 1; i <= tier1DeviceLayer; i++)
             {
-                ioName = Io.Child[i];
+                ioName = IoItem.Child[i];
                 exportIoXml(ioName);
-                tier2CouplerLayer = Io.Child[i].ChildCount;
+                tier2CouplerLayer = IoItem.Child[i].ChildCount;
 
                 for (int j = 1; j <= tier2CouplerLayer; j++)
                 {
-                    ioName = Io.Child[i].Child[j];
+                    ioName = IoItem.Child[i].Child[j];
                     exportIoXml(ioName);
-                    tier3TerminalLayer = Io.Child[i].Child[j].ChildCount;
+                    tier3TerminalLayer = IoItem.Child[i].Child[j].ChildCount;
                     //Iterate here
 
                     for (int k = 1; k <= tier3TerminalLayer; k++)
                     {
-                        ioName = Io.Child[i].Child[j].Child[k];
+                        ioName = IoItem.Child[i].Child[j].Child[k];
                         exportIoXml(ioName);
                     }
                     //Then add child count to tier2
@@ -1145,22 +1149,22 @@ namespace TwinCat_Motion_ADS
             ITcSmTreeItem ioName;
             List<string> ioList = new List<string>();
 
-            tier1DeviceLayer = Io.ChildCount;
+            tier1DeviceLayer = IoItem.ChildCount;
             for (int i = 1; i <= tier1DeviceLayer; i++)
             {
-                ioName = Io.Child[i];
+                ioName = IoItem.Child[i];
                 ioList.Add(getIoData("0", ioName));
-                tier2CouplerLayer = Io.Child[i].ChildCount;
+                tier2CouplerLayer = IoItem.Child[i].ChildCount;
 
                 for (int j = 1; j <= tier2CouplerLayer; j++)
                 {
-                    ioName = Io.Child[i].Child[j];
+                    ioName = IoItem.Child[i].Child[j];
                     ioList.Add(getIoData("1", ioName));
-                    tier3TerminalLayer = Io.Child[i].Child[j].ChildCount;
+                    tier3TerminalLayer = IoItem.Child[i].Child[j].ChildCount;
 
                     for (int k = 1; k <= tier3TerminalLayer; k++)
                     {
-                        ioName = Io.Child[i].Child[j].Child[k];
+                        ioName = IoItem.Child[i].Child[j].Child[k];
                         ioList.Add(getIoData("2", ioName));
                     }
                     //Then add child count to tier2
