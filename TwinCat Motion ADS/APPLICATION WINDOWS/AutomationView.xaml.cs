@@ -63,6 +63,7 @@ namespace TwinCat_Motion_ADS.APPLICATION_WINDOWS
                 return;
             }
             autoInterface.AttachToExistingDte(SolutionPathName, VsVersionCombo.Text);
+            autoInterface.SetupSolutionObjects();
         }
 
         private void Button_NewInstance_Click(object sender, RoutedEventArgs e)
@@ -73,6 +74,7 @@ namespace TwinCat_Motion_ADS.APPLICATION_WINDOWS
                 return;
             }
             autoInterface.CreateNewDTE(SolutionPathName, VsVersionCombo.Text, true, false, true);
+            autoInterface.SetupSolutionObjects();
         }
 
         private void Button_SelectConfig_Click(object sender, RoutedEventArgs e)
@@ -94,6 +96,26 @@ namespace TwinCat_Motion_ADS.APPLICATION_WINDOWS
         private void Button_RevokeFilter_Click(object sender, RoutedEventArgs e)
         {
             autoInterface.RevokeFilter();
+        }
+
+        private void Button_PlcLogin_Click(object sender, RoutedEventArgs e)
+        {
+            autoInterface.LoginToPlc();
+        }
+
+        private void Button_PlcLogout_Click(object sender, RoutedEventArgs e)
+        {
+            autoInterface.LogoutOfPlc();
+        }
+
+        private void Button_PlcStart_Click(object sender, RoutedEventArgs e)
+        {
+            autoInterface.StartPlc();
+        }
+
+        private void Button_PlcStop_Click(object sender, RoutedEventArgs e)
+        {
+            autoInterface.StopPlc();
         }
     }
 

@@ -18,5 +18,11 @@
             <Button x:Name="Button_SetupSolution" Content="Setup Solution" Height="25" Width="200" Click="Button_SetupSolution_Click"/>
             <Button x:Name="Button_RevokeFilter" Content="Revoke Message Filter" Height="25" Width="200" Click="Button_RevokeFilter_Click"/>
         </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Button x:Name="Button_PlcLogin" Content="PLC Login" Height="25" Width="200" Click="Button_PlcLogin_Click"/>
+            <Button x:Name="Button_PlcLogout" Content="PLC Logout" Height="25" Width="200" Click="Button_PlcLogout_Click"/>
+            <Button x:Name="Button_PlcStart" Content="PLC Start" Height="25" Width="200" Click="Button_PlcStart_Click"/>
+            <Button x:Name="Button_PlcStop" Content="PLC Stop" Height="25" Width="200" Click="Button_PlcStop_Click"/>
+        </StackPanel>
     </StackPanel>
 </UserControl>

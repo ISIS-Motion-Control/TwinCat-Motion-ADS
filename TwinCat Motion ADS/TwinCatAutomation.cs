@@ -12,17 +12,21 @@ using TwinCat_Motion_ADS.APPLICATION_WINDOWS;
 using System.IO;
 using System.Windows;
 using System.Xml;
+using System.Diagnostics.Eventing.Reader;
 
 namespace TwinCat_Motion_ADS
 {
     public class TwinCatAutomation
     {
+        #region PROPERTIES
+
         private DTE _ActiveDTE;
         public DTE ActiveDTE
         {
             get { return _ActiveDTE; }
             set { _ActiveDTE = value; }
         }
+
         private string _configFolder;
         public string ConfigFolder
         {
@@ -48,7 +52,29 @@ namespace TwinCat_Motion_ADS
         private ITcSmTreeItem9 AxesItem;
         private ITcSmTreeItem9 IoItem;
         private ITcSmTreeItem9 PlcItem;
+        private ITcSmTreeItem PlcProjectItem;
+        private ITcSmTreeItem PlcProjectProjectItem;
 
+        private int COMMAND_TIMEOUT = 30000;
+
+        private const string LOGGEDIN_XML_NODE = "LoggedIn";
+        private const string PLCAPPSTATE_XML_NODE = "PlcAppState";
+        private const string PLCPROJECT_PROJECT_ITEM_STRING = "TIPC^tc_project_app^tc_project_app Project";
+        private const string PLCPROJECT_ITEM_STRING = "TIPC^tc_project_app";
+
+        //Config constants
+        private const string PLC_DIRECTORY_SUFFIX = @"\plc";
+        private const string DECLARATION_DIRECTORY_SUFFIX = @"\declarations";
+        private const string IMPLEMENTATION_DIRECTORY_SUFFIX = @"\implementations";
+        private const string AXES_DIRECTORY_SUFFIX = @"\axes";
+        private const string APPLICATION_DIRECTORY_SUFFIX = @"\applications";
+        private const string AXES_XML_DIRECTORY_SUFFIX = @"\axisXmls";
+        private const string MAPPINGS_FILE = @"\mappings.xml";
+
+
+        #endregion
+
+        #region DTE METHODS
         public DTE AttachToExistingDte(string solutionPath, string progId)
         {
             if (!MessageFilter.IsRegistered)
@@ -91,6 +117,171 @@ namespace TwinCat_Motion_ADS
             ActiveDTE = dte;
             return dte;
         }
+
+        [DllImport("ole32.dll")]
+        private static extern void CreateBindCtx(int reserved, out IBindCtx ppbc);
+        [DllImport("ole32.dll")]
+        private static extern int GetRunningObjectTable(int reserved, out IRunningObjectTable prot);
+
+        public static Hashtable GetRunningObjectTable()
+        {
+            Hashtable result = new Hashtable();
+            IntPtr numFetched = new IntPtr();
+            IRunningObjectTable runningObjectTable;
+            IEnumMoniker monikerEnumerator;
+            IMoniker[] monikers = new IMoniker[1];
+            GetRunningObjectTable(0, out runningObjectTable);
+            runningObjectTable.EnumRunning(out monikerEnumerator);
+            monikerEnumerator.Reset();
+            while (monikerEnumerator.Next(1, monikers, numFetched) == 0)
+            {
+                IBindCtx ctx;
+                CreateBindCtx(0, out ctx);
+                string runningObjectName;
+                monikers[0].GetDisplayName(ctx, null, out runningObjectName);
+                object runningObjectVal;
+                runningObjectTable.GetObject(monikers[0], out runningObjectVal);
+                result[runningObjectName] = runningObjectVal;
+            }
+            return result;
+        }
+        public static Hashtable GetIDEInstances(bool openSolutionsOnly, string progId)
+        {
+            Hashtable runningIDEInstances = new Hashtable();
+            Hashtable runningObjects = GetRunningObjectTable();
+            IDictionaryEnumerator rotEnumerator = runningObjects.GetEnumerator();
+            while (rotEnumerator.MoveNext())
+            {
+                string candidateName = (string)rotEnumerator.Key;
+                if (!candidateName.StartsWith("!" + progId))
+                    continue;
+
+                DTE ide = rotEnumerator.Value as DTE;
+                if (ide == null)
+                    continue;
+                if (openSolutionsOnly)
+                {
+                    try
+                    {
+                        string solutionFile = ide.Solution.FullName;
+                        if (solutionFile != String.Empty)
+                            runningIDEInstances[candidateName] = ide;
+                    }
+                    catch { }
+                }
+                else
+                    runningIDEInstances[candidateName] = ide;
+            }
+            return runningIDEInstances;
+        }
+
+
+        #endregion
+
+        #region PLC Command
+        private string CreatePlcCommandXml(PLCAction action)
+        {
+            List<bool> options = Enumerable.Repeat(false, 6).ToList();
+            options[(int)action] = true;
+            List<String> strOptions = options.ConvertAll(o => o.ToString().ToLowerInvariant());
+            return String.Format(xmlTemplate, strOptions.ToArray());
+        }
+
+        private static string xmlTemplate = @"<TreeItem>
+                                    <IECProjectDef>
+                                        <OnlineSettings>
+                                                <Commands>
+                                                        <LoginCmd>{0}</LoginCmd>
+                                                        <LogoutCmd>{1}</LogoutCmd>
+                                                        <StartCmd>{2}</StartCmd>
+                                                        <StopCmd>{3}</StopCmd>
+                                                        <ResetColdCmd>{4}</ResetColdCmd>
+                                                        <ResetOriginCmd>{5}</ResetOriginCmd>
+                                                </Commands>
+                                        </OnlineSettings>
+                                    </IECProjectDef>
+                                </TreeItem>";
+
+        enum PLCAction
+        {
+            LOGIN = 0, LOGOUT = 1, START = 2, STOP = 3, RESET_COLD = 4, RESET_ORIGIN = 5
+        }
+
+        //Produces xml for the plc object, selects a specific node based on "tag", and returns if "expected" matches value
+        private bool CheckStringMatchesXml(ITcSmTreeItem plcProjectItem, String tag, String expected)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(plcProjectItem.ProduceXml(true));
+            XmlNodeList loggedIn = doc.SelectNodes(String.Format("//{0}", tag));
+            return loggedIn.Item(0).InnerText.Equals(expected);
+        }
+
+        #endregion
+
+        #region PLC Actions
+
+        public bool LoginToPlc()
+        {
+            PlcProjectProjectItem.ConsumeXml(CreatePlcCommandXml(PLCAction.LOGIN));
+
+            //Confirm action was successful
+            if (!CheckWithTimeout(COMMAND_TIMEOUT, () => CheckStringMatchesXml(PlcProjectProjectItem, LOGGEDIN_XML_NODE, "true")))
+            {
+                Console.WriteLine("Failed to login");
+                return false;
+            }
+            return true;
+        }
+
+        public bool LogoutOfPlc()
+        {
+            PlcProjectProjectItem.ConsumeXml(CreatePlcCommandXml(PLCAction.LOGOUT));
+
+            //Confirm action was successful
+            if (!CheckWithTimeout(COMMAND_TIMEOUT, () => CheckStringMatchesXml(PlcProjectProjectItem, LOGGEDIN_XML_NODE, "false")))
+            {
+                Console.WriteLine("Failed to logout");
+                return false;
+            }
+            return true;
+        }
+
+        public bool StartPlc()
+        {
+
+            PlcProjectProjectItem.ConsumeXml(CreatePlcCommandXml(PLCAction.START));
+
+            //Confirm action was successful
+            if (!CheckWithTimeout(COMMAND_TIMEOUT, () => CheckStringMatchesXml(PlcProjectProjectItem, PLCAPPSTATE_XML_NODE, "Run")))
+            {
+                Console.WriteLine("Failed to start");
+                return false;
+            }
+            return true;
+        }
+
+        public bool StopPlc()
+        {
+
+            PlcProjectProjectItem.ConsumeXml(CreatePlcCommandXml(PLCAction.STOP));
+
+            //Confirm action was successful
+            if (!CheckWithTimeout(COMMAND_TIMEOUT, () => CheckStringMatchesXml(PlcProjectProjectItem, PLCAPPSTATE_XML_NODE, "Stop")))
+            {
+                Console.WriteLine("Failed to stop");
+                return false;
+            }
+            return true;
+        }
+
+        private void SetProjectToBoot()
+        {
+            ITcPlcProject plcProject = (ITcPlcProject)PlcProjectItem;
+            plcProject.BootProjectAutostart = true;
+            plcProject.GenerateBootProject(true);
+        }
+
+        #endregion
 
         public void SetupSytem()
         {
@@ -218,63 +409,13 @@ namespace TwinCat_Motion_ADS
             Console.WriteLine(SystemManager.IsTwinCATStarted());
         }
 
-        public bool plcLogin()
-        {
-            ITcSmTreeItem plcProject = SystemManager.LookupTreeItem("TIPC^tc_project_app^tc_project_app Project");
-            plcProject.ConsumeXml(createXMLString(PLCAction.LOGIN));
-
-            if (!checkWithTimeout(COMMAND_TIMEOUT, () => checkXmlIsString(plcProject, "LoggedIn", "true")))
-            {
-                Console.WriteLine("Failed to login!");
-                return false;
-            }
-            return true;
-        }
-
-        private string createXMLString(PLCAction action)
-        {
-            List<bool> options = Enumerable.Repeat(false, 6).ToList();
-            options[(int)action] = true;
-            List<String> strOptions = options.ConvertAll(o => o.ToString().ToLowerInvariant());
-            return String.Format(xmlTemplate, strOptions.ToArray());
-        }
-
-        private static string xmlTemplate = @"<TreeItem>
-                                    <IECProjectDef>
-                                        <OnlineSettings>
-                                                <Commands>
-                                                        <LoginCmd>{0}</LoginCmd>
-                                                        <LogoutCmd>{1}</LogoutCmd>
-                                                        <StartCmd>{2}</StartCmd>
-                                                        <StopCmd>{3}</StopCmd>
-                                                        <ResetColdCmd>{4}</ResetColdCmd>
-                                                        <ResetOriginCmd>{5}</ResetOriginCmd>
-                                                </Commands>
-                                        </OnlineSettings>
-                                    </IECProjectDef>
-                                </TreeItem>";
-
-        enum PLCAction
-        {
-            LOGIN = 0, LOGOUT = 1, START = 2, STOP = 3, RESET_COLD = 4, RESET_ORIGIN = 5
-        }
-
-        public bool plcStart()
-        {
-            ITcSmTreeItem plcProject = SystemManager.LookupTreeItem("TIPC^tc_project_app^tc_project_app Project");
-            plcProject.ConsumeXml(createXMLString(PLCAction.START));
-
-            if (!checkWithTimeout(COMMAND_TIMEOUT, () => checkXmlIsString(plcProject, "PlcAppState", "Run")))
-            {
-                Console.WriteLine("Failed to start!");
-                return false;
-            }
-            return true;
-        }
-
-        private int COMMAND_TIMEOUT = 30000;
-
-        private bool checkWithTimeout(int timeout, Func<Boolean> checkMethod)
+        
+        
+        
+        
+        
+        //Should probably change to ASYNC
+        private bool CheckWithTimeout(int timeout, Func<Boolean> checkMethod)
         {
             const int TIME_BETWEEN_CHECKS = 500;
             for (int i = 0; i < timeout / TIME_BETWEEN_CHECKS; i++)
@@ -289,21 +430,9 @@ namespace TwinCat_Motion_ADS
             return checkMethod();
         }
         
-        private bool checkXmlIsString(ITcSmTreeItem plcProjectItem, String tag, String expected)
-        {
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(plcProjectItem.ProduceXml(true));
-            XmlNodeList loggedIn = doc.SelectNodes(String.Format("//{0}", tag));
-            return loggedIn.Item(0).InnerText.Equals(expected);
-        }
+       
 
-        private void SetProjectToBoot()
-        {
-            ITcSmTreeItem plcProjectItem = SystemManager.LookupTreeItem("TIPC^tc_project_app");
-            ITcPlcProject plcProject = (ITcPlcProject)plcProjectItem;
-            plcProject.BootProjectAutostart = true;
-            plcProject.GenerateBootProject(true);
-        }
+        
 
         public void RevokeFilter()
         {
@@ -330,7 +459,7 @@ namespace TwinCat_Motion_ADS
             try
             {
                 XmlDocument xmlDoc = new XmlDocument();
-                xmlDoc.Load(ConfigFolder + MappingsFile);
+                xmlDoc.Load(ConfigFolder + MAPPINGS_FILE);
                 SystemManager.ConsumeMappingInfo(xmlDoc.OuterXml);
                 return true;
             }
@@ -400,7 +529,7 @@ namespace TwinCat_Motion_ADS
 
         public void importAxes()
         {
-            String path = ConfigFolder + PlcDirectory + AxesDirectory;
+            String path = ConfigFolder + PLC_DIRECTORY_SUFFIX + AXES_DIRECTORY_SUFFIX;
             ITcSmTreeItem plcItem;
             try
             {
@@ -435,7 +564,7 @@ namespace TwinCat_Motion_ADS
 
         public void importApplications()
         {
-            string path = ConfigFolder + PlcDirectory + AppDirectory;
+            string path = ConfigFolder + PLC_DIRECTORY_SUFFIX + APPLICATION_DIRECTORY_SUFFIX;
             ITcSmTreeItem plcItem;
             try
             {
@@ -476,7 +605,7 @@ namespace TwinCat_Motion_ADS
 
         public void plcImportDeclarations()
         {
-            string directoryPath = ConfigFolder + PlcDirectory + DecDirectory;
+            string directoryPath = ConfigFolder + PLC_DIRECTORY_SUFFIX + DECLARATION_DIRECTORY_SUFFIX;
             if (!Directory.Exists(directoryPath))
             {
                 throw new ApplicationException($"Folder not found {directoryPath}");
@@ -536,17 +665,11 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        private string PlcDirectory = @"\plc";
-        private string DecDirectory = @"\declarations";
-        private string ImpDirectory = @"\implementations";
-        private string AxesDirectory = @"\axes";
-        private string AppDirectory = @"\applications";
-        private string AxisDirectory = @"\axisXmls";
-        private string MappingsFile = @"\mappings.xml";
+        
 
         public void ncConsumeAllMaps()
         {
-            string axisFolder = ConfigFolder + AxisDirectory;
+            string axisFolder = ConfigFolder + AXES_XML_DIRECTORY_SUFFIX;
             if (!Directory.Exists(axisFolder))
             {
                 throw new ApplicationException($"Folder not found: {axisFolder}");
@@ -834,7 +957,7 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        private void SetupSolutionObjects()
+        public void SetupSolutionObjects()
         {
             solution = ActiveDTE.Solution;
             solutionProject = solution.Projects.Item(1);
@@ -843,66 +966,14 @@ namespace TwinCat_Motion_ADS
             NcItem = (ITcSmTreeItem9)SystemManager.LookupTreeItem("TINC");
             IoItem = (ITcSmTreeItem9)SystemManager.LookupTreeItem("TIID");
             PlcItem = (ITcSmTreeItem9)SystemManager.LookupTreeItem("TIPC");
+            PlcProjectProjectItem = SystemManager.LookupTreeItem(PLCPROJECT_PROJECT_ITEM_STRING);
+            PlcProjectItem = SystemManager.LookupTreeItem(PLCPROJECT_ITEM_STRING);
+
         }
 
 
 
-        [DllImport("ole32.dll")]
-        private static extern void CreateBindCtx(int reserved, out IBindCtx ppbc);
-        [DllImport("ole32.dll")]
-        private static extern int GetRunningObjectTable(int reserved, out IRunningObjectTable prot);
-
-        public static Hashtable GetRunningObjectTable()
-        {
-            Hashtable result = new Hashtable();
-            IntPtr numFetched = new IntPtr();
-            IRunningObjectTable runningObjectTable;
-            IEnumMoniker monikerEnumerator;
-            IMoniker[] monikers = new IMoniker[1];
-            GetRunningObjectTable(0, out runningObjectTable);
-            runningObjectTable.EnumRunning(out monikerEnumerator);
-            monikerEnumerator.Reset();
-            while (monikerEnumerator.Next(1, monikers, numFetched) == 0)
-            {
-                IBindCtx ctx;
-                CreateBindCtx(0, out ctx);
-                string runningObjectName;
-                monikers[0].GetDisplayName(ctx, null, out runningObjectName);
-                object runningObjectVal;
-                runningObjectTable.GetObject(monikers[0], out runningObjectVal);
-                result[runningObjectName] = runningObjectVal;
-            }
-            return result;
-        }
-        public static Hashtable GetIDEInstances(bool openSolutionsOnly, string progId)
-        {
-            Hashtable runningIDEInstances = new Hashtable();
-            Hashtable runningObjects = GetRunningObjectTable();
-            IDictionaryEnumerator rotEnumerator = runningObjects.GetEnumerator();
-            while (rotEnumerator.MoveNext())
-            {
-                string candidateName = (string)rotEnumerator.Key;
-                if (!candidateName.StartsWith("!" + progId))
-                    continue;
-
-                DTE ide = rotEnumerator.Value as DTE;
-                if (ide == null)
-                    continue;
-                if (openSolutionsOnly)
-                {
-                    try
-                    {
-                        string solutionFile = ide.Solution.FullName;
-                        if (solutionFile != String.Empty)
-                            runningIDEInstances[candidateName] = ide;
-                    }
-                    catch { }
-                }
-                else
-                    runningIDEInstances[candidateName] = ide;
-            }
-            return runningIDEInstances;
-        }
+        
 
     }
 }
