@@ -117,6 +117,11 @@ namespace TwinCat_Motion_ADS.APPLICATION_WINDOWS
         {
             autoInterface.StopPlc();
         }
+
+        private void Button_CreateConfig_Click(object sender, RoutedEventArgs e)
+        {
+            autoInterface.createConfiguration();
+        }
     }
 
 

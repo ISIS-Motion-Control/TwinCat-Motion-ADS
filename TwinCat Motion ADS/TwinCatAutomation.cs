@@ -13,6 +13,7 @@ using System.IO;
 using System.Windows;
 using System.Xml;
 using System.Diagnostics.Eventing.Reader;
+using System.Windows.Forms;
 
 namespace TwinCat_Motion_ADS
 {
@@ -55,6 +56,29 @@ namespace TwinCat_Motion_ADS
         private ITcSmTreeItem PlcProjectItem;
         private ITcSmTreeItem PlcProjectProjectItem;
 
+        private ITcSmTreeItem _axes;
+        public ITcSmTreeItem Axes
+        {
+            get { return _axes ?? (_axes = NcConfig.Child[1].LookupChild("Axes")); }
+            set { _axes = value; }
+        }
+
+        private ITcSmTreeItem _ncConfig;
+        public ITcSmTreeItem NcConfig
+        {
+            get { return _ncConfig ?? (_ncConfig = SystemManager.LookupTreeItem("TINC")); }
+            set { _ncConfig = value; }
+        }
+
+        private ITcSmTreeItem _io;
+        public ITcSmTreeItem Io
+        {
+            get { return _io ?? (_io = SystemManager.LookupTreeItem("TIID")); }
+            set { _io = value; }
+        }
+
+        public XmlDocument xmlDoc;  //Generic holder for xmlDocument
+
         private int COMMAND_TIMEOUT = 30000;
 
         private const string LOGGEDIN_XML_NODE = "LoggedIn";
@@ -69,7 +93,9 @@ namespace TwinCat_Motion_ADS
         private const string AXES_DIRECTORY_SUFFIX = @"\axes";
         private const string APPLICATION_DIRECTORY_SUFFIX = @"\applications";
         private const string AXES_XML_DIRECTORY_SUFFIX = @"\axisXmls";
+        private const string IO_XML_DIRECTORY_SUFFIX = @"\deviceXmls";
         private const string MAPPINGS_FILE = @"\mappings.xml";
+        private const string IO_LIST_FILE = @"\ioList.csv";
 
 
         #endregion
@@ -306,7 +332,7 @@ namespace TwinCat_Motion_ADS
 
             if (AxesItem.ChildCount != 0)
             {
-                MessageBoxResult dialogResult = MessageBox.Show("Axes already exist in this solution. Do you want to remove them?", "NC Axes detected", MessageBoxButton.YesNoCancel);
+                MessageBoxResult dialogResult = System.Windows.MessageBox.Show("Axes already exist in this solution. Do you want to remove them?", "NC Axes detected", MessageBoxButton.YesNoCancel);
 
 
                 if (dialogResult == MessageBoxResult.Cancel)
@@ -330,7 +356,7 @@ namespace TwinCat_Motion_ADS
             if (IoItem.ChildCount != 0)
             {
 
-                MessageBoxResult dialogResult = MessageBox.Show("Hardware already exists in this solution. Do you want to remove this?", "Time for a break", MessageBoxButton.YesNoCancel);
+                MessageBoxResult dialogResult = System.Windows.MessageBox.Show("Hardware already exists in this solution. Do you want to remove this?", "Time for a break", MessageBoxButton.YesNoCancel);
 
                 if (dialogResult == MessageBoxResult.Cancel)
                 {
@@ -398,7 +424,7 @@ namespace TwinCat_Motion_ADS
             Console.WriteLine(SystemManager.IsTwinCATStarted());
             if (SystemManager.IsTwinCATStarted())
             {
-                MessageBox.Show("TwinCAT is running");
+                System.Windows.MessageBox.Show("TwinCAT is running");
                 //plcLogin();
                 //System.Threading.Thread.Sleep(1000);
                 //plcStart();
@@ -807,20 +833,20 @@ namespace TwinCat_Motion_ADS
 
         }
 
-        private string IoListFile = @"\ioList.csv";
+        
         public void importIoList()
         {
             //Should I check for existing IO first?
 
             //Check that the file exists first!
-            if (!File.Exists(ConfigFolder + IoListFile))
+            if (!File.Exists(ConfigFolder + IO_LIST_FILE))
             {
                 throw new ApplicationException("IO CSV file not found in selected config directory");
             }
 
             //Parse IO CSV file to create 2d array of data
             List<string[]> ioDataList = new List<string[]>();
-            using (Microsoft.VisualBasic.FileIO.TextFieldParser parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(ConfigFolder + IoListFile))
+            using (Microsoft.VisualBasic.FileIO.TextFieldParser parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(ConfigFolder + IO_LIST_FILE))
             {
                 parser.TextFieldType = Microsoft.VisualBasic.FileIO.FieldType.Delimited;
                 parser.SetDelimiters(",");
@@ -911,10 +937,10 @@ namespace TwinCat_Motion_ADS
             }
         }
         
-        private string axisDirectory = @"\axisXmls";
+
         public bool addNamedNcAxes()
         {
-            string axisFolder = ConfigFolder + axisDirectory;
+            string axisFolder = ConfigFolder + AXES_XML_DIRECTORY_SUFFIX;
             if(!Directory.Exists(axisFolder))
             {
                 Console.WriteLine("Axis folder not found");
@@ -971,9 +997,277 @@ namespace TwinCat_Motion_ADS
 
         }
 
+        public void startRestart()
+        {
+            SystemManager.StartRestartTwinCAT();
+        }
+
+        public void setupConfigFolder()
+        {
+            if (ConfigFolder == @"\Config")
+            {
+                Console.WriteLine("Config folder path empty");
+                return;
+            }
+            Directory.CreateDirectory(ConfigFolder + @"\axisXmls");
+            Directory.CreateDirectory(ConfigFolder + @"\deviceXmls");
+            Directory.CreateDirectory(ConfigFolder + @"\plc\declarations");
+            Directory.CreateDirectory(ConfigFolder + @"\plc\implementations");
+            Directory.CreateDirectory(ConfigFolder + @"\plc\axes");
+            Directory.CreateDirectory(ConfigFolder + @"\plc\applications");
+        }
+
+        public void createConfiguration()
+        {
+            //CHECK CONFIG NOT EMPTY FIRST!!!
+            if (ConfigFolder == @"\Config")
+            {
+                Console.WriteLine("You have not selected a configuration folder location", "Oopsie", MessageBoxButtons.OK);
+                return;
+            }
+
+            //If no open project tell the user to open one
+            if (solution == null)
+            {
+                Console.WriteLine("No solution linked");
+                //MessageBox.Show("Please open the solution first", "Oopsie", MessageBoxButtons.OK);
+                //return;
+                //openSolution();
+            }
+            if (!MessageFilter.IsRegistered)
+                MessageFilter.Register();
+
+            setupConfigFolder();
+            exportXmlMap();
+            clearMap();
+            exportAllAxisXmls();
+            exportAllIoXmls();
+            exportIoList();
+            exportPlcDec();
+            exportAxes();
+            exportApplications();
+            //cleanUp();
+            Console.WriteLine("Export complete." + Environment.NewLine, "Configuration export", MessageBoxButtons.OK);
+        }
 
 
-        
+        public bool exportXmlMap()
+        {
+            try
+            {
+                xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(SystemManager.ProduceMappingInfo());
+                xmlDoc.Save(ConfigFolder + MAPPINGS_FILE);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
+        public bool clearMap()
+        {
+            try
+            {
+                SystemManager.ClearMappingInfo();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public void exportAllAxisXmls()
+        {
+            for (int i = 0; i < getAxisCount(); i++)
+            {
+                exportAxisXml(i);
+            }
+        }
+
+        public void exportAxisXml(int axisNumber)
+        {
+            ITcSmTreeItem axisName = Axes.Child[axisNumber + 1];
+            string xmlDescription = axisName.ProduceXml();
+            File.WriteAllText(ConfigFolder + @"\" + AXES_XML_DIRECTORY_SUFFIX + @"\" + axisName.Name + @".xml", xmlDescription);
+        }
+
+        public int getAxisCount()
+        {
+            return Axes.ChildCount;
+        }
+
+        public void exportAllIoXmls()
+        {
+            int tier1DeviceLayer;   //number of devices in IO tree
+            int tier2CouplerLayer; //number of couplers and terminals under a device
+            int tier3TerminalLayer; //number of terminals under a coupler
+            ITcSmTreeItem ioName;
+
+            tier1DeviceLayer = Io.ChildCount;
+            for (int i = 1; i <= tier1DeviceLayer; i++)
+            {
+                ioName = Io.Child[i];
+                exportIoXml(ioName);
+                tier2CouplerLayer = Io.Child[i].ChildCount;
+
+                for (int j = 1; j <= tier2CouplerLayer; j++)
+                {
+                    ioName = Io.Child[i].Child[j];
+                    exportIoXml(ioName);
+                    tier3TerminalLayer = Io.Child[i].Child[j].ChildCount;
+                    //Iterate here
+
+                    for (int k = 1; k <= tier3TerminalLayer; k++)
+                    {
+                        ioName = Io.Child[i].Child[j].Child[k];
+                        exportIoXml(ioName);
+                    }
+                    //Then add child count to tier2
+                    j += tier3TerminalLayer;
+                }
+            }
+        }
+
+        public void exportIoXml(ITcSmTreeItem ioName)
+        {
+            string xmlDescription = ioName.ProduceXml();
+            File.WriteAllText(ConfigFolder + @"\" + IO_XML_DIRECTORY_SUFFIX + @"\" + ioName.Name + @".xml", xmlDescription);
+        }
+
+        public void exportIoList()
+        {
+            int tier1DeviceLayer;   //number of devices in IO tree
+            int tier2CouplerLayer; //number of couplers and terminals under a device
+            int tier3TerminalLayer; //number of terminals under a coupler
+            ITcSmTreeItem ioName;
+            List<string> ioList = new List<string>();
+
+            tier1DeviceLayer = Io.ChildCount;
+            for (int i = 1; i <= tier1DeviceLayer; i++)
+            {
+                ioName = Io.Child[i];
+                ioList.Add(getIoData("0", ioName));
+                tier2CouplerLayer = Io.Child[i].ChildCount;
+
+                for (int j = 1; j <= tier2CouplerLayer; j++)
+                {
+                    ioName = Io.Child[i].Child[j];
+                    ioList.Add(getIoData("1", ioName));
+                    tier3TerminalLayer = Io.Child[i].Child[j].ChildCount;
+
+                    for (int k = 1; k <= tier3TerminalLayer; k++)
+                    {
+                        ioName = Io.Child[i].Child[j].Child[k];
+                        ioList.Add(getIoData("2", ioName));
+                    }
+                    //Then add child count to tier2
+                    j += tier3TerminalLayer;
+                }
+            }
+            String path = ConfigFolder + @"\ioList.csv";
+            File.WriteAllLines(path, ioList.ToArray());
+        }
+
+        public String getIoData(String tierLevel, ITcSmTreeItem ioName)
+        {
+            //Need to get product revision from XML
+            XmlDocument ioXml = new XmlDocument();
+            ioXml.LoadXml(ioName.ProduceXml());
+            String productRevision;
+            String name;
+            String subType;
+            String strB4; //not utilised but needs to be set. Can be used to state where in tree the device should appear when created.
+            String ioListString;
+
+            name = ioName.Name;
+            subType = (ioName.ItemSubType).ToString();
+
+            var node = ioXml.SelectSingleNode("TreeItem/EtherCAT/Slave/Info/ProductRevision");
+            if (node != null)
+            {
+                strB4 = " ";
+                productRevision = node.InnerText;
+            }
+            else
+            {
+                strB4 = "null";
+                productRevision = "null";
+            }
+            ioListString = tierLevel + "," + name + "," + subType + "," + strB4 + "," + productRevision;
+            return ioListString;
+        }
+
+
+        public void exportPlcDec()
+        {
+            //Create two files for GVL and MAIN. 
+            //GVL will be an actual copy of project GVL
+            //Main will just be a template file
+            String path = ConfigFolder + PLC_DIRECTORY_SUFFIX + DECLARATION_DIRECTORY_SUFFIX;
+            String fileName = @"\mainDeclation.txt";
+
+            String declaration = "tc_project_app^tc_project_app Project^POUs^MAIN" + Environment.NewLine + "add";
+
+            File.WriteAllText(path + fileName, declaration);
+
+            fileName = @"\gvlAppDeclaration.txt";
+            ITcSmTreeItem plcItem;
+            try
+            {
+                plcItem = SystemManager.LookupTreeItem("TIPC^tc_project_app^tc_project_app Project^GVLs^GVL_APP");
+            }
+            catch
+            {
+                throw new ApplicationException($"Unable to find item GVL_APP");
+            }
+            ITcPlcDeclaration plcItemDec;
+            try
+            {
+                plcItemDec = (ITcPlcDeclaration)plcItem;
+            }
+            catch
+            {
+                throw new ApplicationException($"Unable to create declaration field for item GVL_APP");
+            }
+            declaration = "tc_project_app^tc_project_app Project^GVLs^GVL_APP" + Environment.NewLine + "replace" + Environment.NewLine + plcItemDec.DeclarationText;
+            File.WriteAllText(path + fileName, declaration);
+        }
+
+        public void exportAxes()
+        {
+            String path = ConfigFolder + PLC_DIRECTORY_SUFFIX + AXES_DIRECTORY_SUFFIX;
+            if (Directory.Exists(path) == false)
+            {
+                Directory.CreateDirectory(ConfigFolder + @"\plc\axes");//not just create path???
+            }
+            String axesFolder = SolutionFolderPath + @"\solution\tc_project_app\POUs\Application_Specific\Axes";
+            foreach (string file in Directory.GetFiles(path))
+            {
+                File.Delete(file);
+            }
+
+            foreach (string filePath in Directory.GetFiles(axesFolder))
+            { File.Copy(filePath, filePath.Replace(axesFolder, path)); }
+
+        }
+
+        public void exportApplications()
+        {
+            String path = ConfigFolder + PLC_DIRECTORY_SUFFIX + APPLICATION_DIRECTORY_SUFFIX;
+            if (Directory.Exists(path) == false)
+            {
+                Directory.CreateDirectory(ConfigFolder + @"\plc\applications");
+            }
+            String appsFolder = SolutionFolderPath + @"\solution\tc_project_app\POUs\Application_Specific\Applications";
+            foreach (string file in Directory.GetFiles(path))
+            {
+                File.Delete(file);
+            }
+            foreach (string filePath in Directory.GetFiles(appsFolder))
+            { File.Copy(filePath, filePath.Replace(appsFolder, path)); }
+        }
     }
 }
