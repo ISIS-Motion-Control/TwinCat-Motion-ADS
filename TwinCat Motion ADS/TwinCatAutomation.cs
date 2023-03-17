@@ -56,27 +56,6 @@ namespace TwinCat_Motion_ADS
         private ITcSmTreeItem PlcProjectItem;
         private ITcSmTreeItem PlcProjectProjectItem;
 
-        private ITcSmTreeItem _axes;
-        public ITcSmTreeItem Axes
-        {
-            get { return _axes ?? (_axes = NcItem.Child[1].LookupChild("Axes")); }
-            set { _axes = value; }
-        }
-
-        /*private ITcSmTreeItem _ncConfig;
-        public ITcSmTreeItem NcItem
-        {
-            get { return _ncConfig ?? (_ncConfig = SystemManager.LookupTreeItem("TINC")); }
-            set { _ncConfig = value; }
-        }*/
-
-        /*private ITcSmTreeItem _io;
-        public ITcSmTreeItem IoItem
-        {
-            get { return _io ?? (_io = SystemManager.LookupTreeItem("TIID")); }
-            set { _io = value; }
-        }*/
-
         public XmlDocument xmlDoc;  //Generic holder for xmlDocument
 
         private int COMMAND_TIMEOUT = 30000;
@@ -1093,14 +1072,14 @@ namespace TwinCat_Motion_ADS
 
         public void exportAxisXml(int axisNumber)
         {
-            ITcSmTreeItem axisName = Axes.Child[axisNumber + 1];
+            ITcSmTreeItem axisName = AxesItem.Child[axisNumber + 1];
             string xmlDescription = axisName.ProduceXml();
             File.WriteAllText(ConfigFolder + @"\" + AXES_XML_DIRECTORY_SUFFIX + @"\" + axisName.Name + @".xml", xmlDescription);
         }
 
         public int getAxisCount()
         {
-            return Axes.ChildCount;
+            return AxesItem.ChildCount;
         }
 
         public void exportAllIoXmls()
