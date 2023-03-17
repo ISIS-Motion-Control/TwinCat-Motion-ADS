@@ -208,10 +208,10 @@ namespace TwinCat_Motion_ADS
             if (SystemManager.IsTwinCATStarted())
             {
                 MessageBox.Show("TwinCAT is running");
-                plcLogin();
-                System.Threading.Thread.Sleep(1000);
-                plcStart();
-                System.Threading.Thread.Sleep(1000);
+                //plcLogin();
+                //System.Threading.Thread.Sleep(1000);
+                //plcStart();
+                //System.Threading.Thread.Sleep(1000);
             }
 
             Console.WriteLine("Success!");
@@ -230,6 +230,7 @@ namespace TwinCat_Motion_ADS
             }
             return true;
         }
+
         private string createXMLString(PLCAction action)
         {
             List<bool> options = Enumerable.Repeat(false, 6).ToList();
@@ -237,6 +238,7 @@ namespace TwinCat_Motion_ADS
             List<String> strOptions = options.ConvertAll(o => o.ToString().ToLowerInvariant());
             return String.Format(xmlTemplate, strOptions.ToArray());
         }
+
         private static string xmlTemplate = @"<TreeItem>
                                     <IECProjectDef>
                                         <OnlineSettings>
@@ -271,6 +273,7 @@ namespace TwinCat_Motion_ADS
         }
 
         private int COMMAND_TIMEOUT = 30000;
+
         private bool checkWithTimeout(int timeout, Func<Boolean> checkMethod)
         {
             const int TIME_BETWEEN_CHECKS = 500;
@@ -285,6 +288,7 @@ namespace TwinCat_Motion_ADS
             }
             return checkMethod();
         }
+        
         private bool checkXmlIsString(ITcSmTreeItem plcProjectItem, String tag, String expected)
         {
             XmlDocument doc = new XmlDocument();
@@ -539,6 +543,7 @@ namespace TwinCat_Motion_ADS
         private string AppDirectory = @"\applications";
         private string AxisDirectory = @"\axisXmls";
         private string MappingsFile = @"\mappings.xml";
+
         public void ncConsumeAllMaps()
         {
             string axisFolder = ConfigFolder + AxisDirectory;
@@ -597,6 +602,7 @@ namespace TwinCat_Motion_ADS
                 }
             }
         }
+        
         public void importIoXmls(string xmlFile)
         {
             if (!File.Exists(xmlFile))
