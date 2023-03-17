@@ -32,20 +32,70 @@
     <None Remove="APPLICATION WINDOWS\Unidirectional.png" />
     <None Remove="babyIbex.jpg" />
     <None Remove="ibexHead.jpg" />
+    <None Remove="ImageAssets\accuracy.png" />
+    <None Remove="ImageAssets\add-tag.png" />
+    <None Remove="ImageAssets\calculator.png" />
+    <None Remove="ImageAssets\clear.png" />
+    <None Remove="ImageAssets\combo-chart.png" />
+    <None Remove="ImageAssets\export.png" />
+    <None Remove="ImageAssets\import.png" />
+    <None Remove="ImageAssets\invisible.png" />
+    <None Remove="ImageAssets\plus-2-math.png" />
+    <None Remove="ImageAssets\plus-2-math2.png" />
+    <None Remove="ImageAssets\support.png" />
+    <None Remove="ImageAssets\trash.png" />
+    <None Remove="ImageAssets\update.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ImageAssets\accuracy.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\add-tag.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\calculator.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\clear.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\combo-chart.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\invisible.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\support.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\trash.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\export.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\import.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\plus-2-math2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\plus-2-math.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ImageAssets\update.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Beckhoff.TwinCAT.Ads" Version="5.0.458" />
     <PackageReference Include="CsvHelper" Version="27.1.1" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.0-beta.516" />
     <PackageReference Include="Nito.AsyncEx.Context" Version="5.1.2" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="3.1.0" />
     <PackageReference Include="System.IO.Ports" Version="5.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -59,6 +109,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="APPLICATION WINDOWS\EditLineWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="APPLICATION WINDOWS\AddStraightLineWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="APPLICATION WINDOWS\AddAdvDataColumnWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="APPLICATION WINDOWS\AddDataColumnWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="APPLICATION WINDOWS\HelpScreen_Unidirectional;.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -80,6 +142,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Update="APPLICATION WINDOWS\EditLineWindow.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="APPLICATION WINDOWS\AddStraightLineWindow.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="APPLICATION WINDOWS\AddAdvDataColumnWindow.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="APPLICATION WINDOWS\AddDataColumnWindow.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="APPLICATION WINDOWS\Help screen windows\HelpScreen_Backlash.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
@@ -99,6 +177,9 @@
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="APPLICATION WINDOWS\CsvHelperView.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
     <Page Update="APPLICATION WINDOWS\User Controls\ReadbackControlMainWindow.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
@@ -106,6 +187,10 @@
     <Page Update="APPLICATION WINDOWS\User Controls\SettingControlMainWindow.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Renishaw References\" />
   </ItemGroup>
 
 </Project>
