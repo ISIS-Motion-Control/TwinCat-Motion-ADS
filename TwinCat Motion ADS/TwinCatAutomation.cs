@@ -14,6 +14,10 @@ using System.Windows;
 using System.Xml;
 using System.Diagnostics.Eventing.Reader;
 using System.Windows.Forms;
+using System.Threading;
+using System.Windows.Threading;
+using TwinCAT.TypeSystem;
+using Application = System.Windows.Application;
 
 namespace TwinCat_Motion_ADS
 {
@@ -1272,6 +1276,42 @@ namespace TwinCat_Motion_ADS
 
             NcAxis.PrintAxisStatus();
 
+        }
+
+        private CancellationTokenSource loggingToken;
+        private bool LoggingInProgress = false;
+
+        public async void StartStatusLogging()
+        {
+            if (!LoggingInProgress)
+            {
+                LoggingInProgress = true;
+                loggingToken = new CancellationTokenSource();
+
+                await LogStatus(loggingToken.Token);
+            }
+            
+            //LogStatus(loggingToken.Token);
+        }
+
+        public async Task LogStatus(CancellationToken ct)
+        {
+            while(true)
+            {
+                PrintNcStatuses();
+                await Task.Delay(1000);
+                if (ct.IsCancellationRequested)
+                {
+                    Console.WriteLine("Logging cancelled");
+                    LoggingInProgress = false;
+                    break;
+                }
+            }
+        }
+
+        public void StopStatusLogging()
+        { 
+            loggingToken?.Cancel();
         }
 
         #region CONFIG EXPORT METHODS

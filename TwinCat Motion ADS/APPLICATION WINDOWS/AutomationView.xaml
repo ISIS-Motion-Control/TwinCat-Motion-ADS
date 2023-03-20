@@ -29,6 +29,9 @@
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Button x:Name="Button_CheckStatusesNC" Content="Check NC Statuses" Height="25" Width="200" Click="Button_CheckStatusesNC_Click" />
+            <Button x:Name="Button_StartLogging" Content="Start Logging" Height="25" Width="200" Click="Button_StartLogging_Click" />
+            <Button x:Name="Button_StopLogging" Content="Stop Logging" Height="25" Width="200" Click="Button_StopLogging_Click" />
+
         </StackPanel>
     </StackPanel>
 </UserControl>

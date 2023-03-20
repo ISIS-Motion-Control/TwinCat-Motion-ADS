@@ -123,9 +123,19 @@ namespace TwinCat_Motion_ADS.APPLICATION_WINDOWS
             autoInterface.createConfiguration();
         }
 
-        private async void Button_CheckStatusesNC_Click(object sender, RoutedEventArgs e)
+        private void Button_CheckStatusesNC_Click(object sender, RoutedEventArgs e)
         {
             autoInterface.PrintNcStatuses();
+        }
+
+        private void Button_StartLogging_Click(object sender, RoutedEventArgs e)
+        {
+            autoInterface.StartStatusLogging();
+        }
+
+        private void Button_StopLogging_Click(object sender, RoutedEventArgs e)
+        {
+            autoInterface?.StopStatusLogging();
         }
     }
 
