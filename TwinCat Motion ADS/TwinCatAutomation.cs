@@ -44,6 +44,9 @@ namespace TwinCat_Motion_ADS
             get { return _solutionFolderPath; }
             set { _solutionFolderPath = value; }
         }
+        readonly MainWindow _MainWindow;
+
+        public NcAxis NcAxis { get; set; }
 
         private ITcSysManager15 SystemManager;
         private ITcConfigManager ConfigManager;
@@ -76,8 +79,21 @@ namespace TwinCat_Motion_ADS
         private const string MAPPINGS_FILE = @"\mappings.xml";
         private const string IO_LIST_FILE = @"\ioList.csv";
 
+        //Solution constants
+
+        private const string PLC_APPLICATIONS_FOLDER = @"\solution\tc_project_app\POUs\Application_Specific\Applications";
+
 
         #endregion
+
+        #region Constructor
+        public TwinCatAutomation()
+        {
+            _MainWindow = (MainWindow)System.Windows.Application.Current.MainWindow;
+            NcAxis = _MainWindow.NcAxisView.testAxis;
+        }
+        #endregion
+
 
         public void SetupSolutionObjects()
         {
@@ -1028,7 +1044,7 @@ namespace TwinCat_Motion_ADS
             exportIoList();
             exportPlcDec();
             exportAxes();
-            exportApplications();
+            ExportPlcApplications();
             //cleanUp();
             Console.WriteLine("Export complete." + Environment.NewLine, "Configuration export", MessageBoxButtons.OK);
         }
@@ -1234,23 +1250,57 @@ namespace TwinCat_Motion_ADS
 
             foreach (string filePath in Directory.GetFiles(axesFolder))
             { File.Copy(filePath, filePath.Replace(axesFolder, path)); }
+        }
+
+        
+        public void PrintNcStatuses()
+        {
+            if (NcAxis == null)
+            {
+                Console.WriteLine("Axis is null");
+                try
+                {
+                    NcAxis = _MainWindow.NcAxisView.testAxis;
+                }
+                catch
+                {
+                    return;
+                }
+
+                if (NcAxis == null)  return;
+            }
+
+            NcAxis.PrintAxisStatus();
 
         }
 
-        public void exportApplications()
+        #region CONFIG EXPORT METHODS
+        public void ExportPlcApplications()
         {
-            String path = ConfigFolder + PLC_DIRECTORY_SUFFIX + APPLICATION_DIRECTORY_SUFFIX;
+            //setup config folder path for plc applications
+            string path = ConfigFolder + PLC_DIRECTORY_SUFFIX + APPLICATION_DIRECTORY_SUFFIX;
+            //if folder does not exist, create it
             if (Directory.Exists(path) == false)
             {
-                Directory.CreateDirectory(ConfigFolder + @"\plc\applications");
+                Directory.CreateDirectory(path);
             }
-            String appsFolder = SolutionFolderPath + @"\solution\tc_project_app\POUs\Application_Specific\Applications";
+            //Setup folder path in twincat solution for PLC applications
+            string appsFolder = SolutionFolderPath + PLC_APPLICATIONS_FOLDER;
+
+            //for each file in the config folder, delete it
             foreach (string file in Directory.GetFiles(path))
             {
                 File.Delete(file);
             }
+            //for each file in applications folder, make a copy of it in config
             foreach (string filePath in Directory.GetFiles(appsFolder))
             { File.Copy(filePath, filePath.Replace(appsFolder, path)); }
         }
+        
+        
+        
+        
+        #endregion
+
     }
 }

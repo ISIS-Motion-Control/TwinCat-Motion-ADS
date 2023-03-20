@@ -37,8 +37,10 @@ namespace TwinCat_Motion_ADS
         private uint bEnabledHandle;
         private uint bStopHandle;
         private uint bErrorHandle;
+        private uint bErrorIdHandle;
         private uint bEnableHandle;
         private uint bResetHandle;
+        private uint bCommandAbortedHandle;
         #endregion
         
         //Current axis ID
@@ -82,8 +84,10 @@ namespace TwinCat_Motion_ADS
                 bEnabledHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stStatus.bEnabled");
                 bStopHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stControl.bHalt");    //bStop causes an error on the axis. bHalt just ends movement
                 bErrorHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stStatus.bError");
+                bErrorIdHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stStatus.nErrorID");
                 bEnableHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stControl.bEnable");
                 bResetHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stControl.bReset");
+                bCommandAbortedHandle = Plc.TcAds.CreateVariableHandle("GVL.astAxes[" + AxisID + "].stStatus.bCommandAborted");
                 //StartPositionRead();
                 ReadStatuses();
                 

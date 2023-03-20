@@ -27,5 +27,8 @@
         <StackPanel Orientation="Horizontal">
             <Button x:Name="Button_CreateConfig" Content="Create Config" Height="25" Width="200" Click="Button_CreateConfig_Click"/>
         </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Button x:Name="Button_CheckStatusesNC" Content="Check NC Statuses" Height="25" Width="200" Click="Button_CheckStatusesNC_Click" />
+        </StackPanel>
     </StackPanel>
 </UserControl>

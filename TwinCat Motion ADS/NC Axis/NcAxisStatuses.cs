@@ -1,6 +1,8 @@
-﻿using System;
+﻿using EnvDTE;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +18,20 @@ namespace TwinCat_Motion_ADS
         {
             get { return _error; }
             set { _error = value; OnPropertyChanged(); }
+        }
+
+        private int _errorId;
+        public int ErrorId
+        {
+            get { return _errorId; }
+            set { _errorId = value; OnPropertyChanged(); }
+        }
+
+        private bool _commandAborted;
+        public bool CommandAborted
+        {
+            get { return _commandAborted; }
+            set { _commandAborted = value; OnPropertyChanged(); }
         }
 
         private bool _done;
@@ -160,6 +176,9 @@ namespace TwinCat_Motion_ADS
                 AxisBwEnabled = (await Plc.TcAds.ReadAnyAsync<bool>(bBwEnabledHandle, CancellationToken.None)).Value;
                 Error = (await Plc.TcAds.ReadAnyAsync<bool>(bErrorHandle, CancellationToken.None)).Value;
                 Done = (await Plc.TcAds.ReadAnyAsync<bool>(bDoneHandle, CancellationToken.None)).Value;
+                CommandAborted = (await Plc.TcAds.ReadAnyAsync<bool>(bCommandAbortedHandle, CancellationToken.None)).Value;
+                ErrorId = (await Plc.TcAds.ReadAnyAsync<int>(bErrorIdHandle, CancellationToken.None)).Value;
+
             }
             AxisPosition = -999;
             AxisBusy = false;
@@ -170,5 +189,29 @@ namespace TwinCat_Motion_ADS
             Done = false;
             return;
         }
+
+        public bool PrintAxisStatus()
+        {
+            //await ReadAllStatuses(CancellationToken.None);
+            Console.WriteLine("Busy : " + AxisBusy + " \tError : " + Error + " \tDone : " + Done + " \tCommand Aborted : " + CommandAborted);
+            
+            if ((AxisBusy |Error|Done|CommandAborted)==false)
+            {
+                //all are false
+                Console.WriteLine("Statuses are valid");
+                return true;
+            }
+
+            if ((AxisBusy ^ Error ^ Done ^ CommandAborted) == false)
+            {
+                //Statuses are invalid
+                Console.WriteLine("Statuses are INVALID");
+                return false;
+            }
+            Console.WriteLine("Statuses are valid");
+            return true;
+        }
     }
+
+    
 }

@@ -122,6 +122,11 @@ namespace TwinCat_Motion_ADS.APPLICATION_WINDOWS
         {
             autoInterface.createConfiguration();
         }
+
+        private async void Button_CheckStatusesNC_Click(object sender, RoutedEventArgs e)
+        {
+            autoInterface.PrintNcStatuses();
+        }
     }
 
 
