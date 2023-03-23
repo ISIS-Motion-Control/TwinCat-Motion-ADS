@@ -12,12 +12,12 @@ using TwinCat_Motion_ADS.APPLICATION_WINDOWS;
 using System.IO;
 using System.Windows;
 using System.Xml;
-using System.Diagnostics.Eventing.Reader;
-using System.Windows.Forms;
+
 using System.Threading;
-using System.Windows.Threading;
+
 using TwinCAT.TypeSystem;
 using Application = System.Windows.Application;
+using System.CodeDom;
 
 namespace TwinCat_Motion_ADS
 {
@@ -54,7 +54,7 @@ namespace TwinCat_Motion_ADS
 
         private ITcSysManager15 SystemManager;
         private ITcConfigManager ConfigManager;
-        private Solution solution;
+        private Solution TwinCatSolution;
         private Project solutionProject;
         private ITcSmTreeItem9 NcItem;
         private ITcSmTreeItem9 AxesItem;
@@ -71,6 +71,7 @@ namespace TwinCat_Motion_ADS
         private const string PLCAPPSTATE_XML_NODE = "PlcAppState";
         private const string PLCPROJECT_PROJECT_ITEM_STRING = "TIPC^tc_project_app^tc_project_app Project";
         private const string PLCPROJECT_ITEM_STRING = "TIPC^tc_project_app";
+        private const string PLC_PREFIX = "TIPC^";
 
         //Config constants
         private const string PLC_DIRECTORY_SUFFIX = @"\plc";
@@ -79,15 +80,23 @@ namespace TwinCat_Motion_ADS
         private const string AXES_DIRECTORY_SUFFIX = @"\axes";
         private const string APPLICATION_DIRECTORY_SUFFIX = @"\applications";
         private const string AXES_XML_DIRECTORY_SUFFIX = @"\axisXmls";
-        private const string IO_XML_DIRECTORY_SUFFIX = @"\deviceXmls";
+        private const string IO_XML_DIRECTORY_SUFFIX = @"\deviceXmls\";
         private const string MAPPINGS_FILE = @"\mappings.xml";
         private const string IO_LIST_FILE = @"\ioList.csv";
 
         //Solution constants
 
         private const string PLC_APPLICATIONS_FOLDER = @"\solution\tc_project_app\POUs\Application_Specific\Applications";
+        private const string PLC_MAIN_PROG_ITEM = "TIPC^tc_project_app^tc_project_app Project^POUs^MAIN^PROG";
+        
+        private const string PLC_PROJECT_AXES_FOLDER = "TIPC^tc_project_app^tc_project_app Project^POUs^Application_Specific^Axes";
+        private const string PLC_PROJECT_APPLICATIONS_FOLDER = "TIPC^tc_project_app^tc_project_app Project^POUs^Application_Specific^Applications";
 
-
+        //Used for declarations
+        private const string PLC_MAIN_ITEM = "TIPC^tc_project_app^tc_project_app Project^POUs^MAIN";
+        private const string PLC_GVL_APP_ITEM = "TIPC^tc_project_app^tc_project_app Project^GVLs^GVL_APP";
+        private const string ADD_METHOD = "add";
+        private const string REPLACE_METHOD = "replace";
         #endregion
 
         #region Constructor
@@ -101,8 +110,8 @@ namespace TwinCat_Motion_ADS
 
         public void SetupSolutionObjects()
         {
-            solution = ActiveDTE.Solution;
-            solutionProject = solution.Projects.Item(1);
+            TwinCatSolution = ActiveDTE.Solution;
+            solutionProject = TwinCatSolution.Projects.Item(1);
             SystemManager = (ITcSysManager15)solutionProject.Object;
             ConfigManager = (ITcConfigManager)SystemManager.ConfigurationManager;
             NcItem = (ITcSmTreeItem9)SystemManager.LookupTreeItem("TINC");
@@ -261,12 +270,12 @@ namespace TwinCat_Motion_ADS
 
         #region PLC Actions
 
-        public bool LoginToPlc()
+        public async Task<bool> LoginToPlc()
         {
             PlcProjectProjectItem.ConsumeXml(CreatePlcCommandXml(PLCAction.LOGIN));
 
             //Confirm action was successful
-            if (!CheckWithTimeout(COMMAND_TIMEOUT, () => CheckStringMatchesXml(PlcProjectProjectItem, LOGGEDIN_XML_NODE, "true")))
+            if (await CheckWithTimeout(COMMAND_TIMEOUT, () => CheckStringMatchesXml(PlcProjectProjectItem, LOGGEDIN_XML_NODE, "true")) == false)
             {
                 Console.WriteLine("Failed to login");
                 return false;
@@ -274,12 +283,12 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public bool LogoutOfPlc()
+        public async Task<bool> LogoutOfPlc()
         {
             PlcProjectProjectItem.ConsumeXml(CreatePlcCommandXml(PLCAction.LOGOUT));
 
             //Confirm action was successful
-            if (!CheckWithTimeout(COMMAND_TIMEOUT, () => CheckStringMatchesXml(PlcProjectProjectItem, LOGGEDIN_XML_NODE, "false")))
+            if (await CheckWithTimeout(COMMAND_TIMEOUT, () => CheckStringMatchesXml(PlcProjectProjectItem, LOGGEDIN_XML_NODE, "false"))==false)
             {
                 Console.WriteLine("Failed to logout");
                 return false;
@@ -287,13 +296,13 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public bool StartPlc()
+        public async Task<bool> StartPlc()
         {
 
             PlcProjectProjectItem.ConsumeXml(CreatePlcCommandXml(PLCAction.START));
 
             //Confirm action was successful
-            if (!CheckWithTimeout(COMMAND_TIMEOUT, () => CheckStringMatchesXml(PlcProjectProjectItem, PLCAPPSTATE_XML_NODE, "Run")))
+            if (await CheckWithTimeout(COMMAND_TIMEOUT, () => CheckStringMatchesXml(PlcProjectProjectItem, PLCAPPSTATE_XML_NODE, "Run")) == false)
             {
                 Console.WriteLine("Failed to start");
                 return false;
@@ -301,13 +310,12 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public bool StopPlc()
+        public async Task<bool> StopPlc()
         {
-
             PlcProjectProjectItem.ConsumeXml(CreatePlcCommandXml(PLCAction.STOP));
 
             //Confirm action was successful
-            if (!CheckWithTimeout(COMMAND_TIMEOUT, () => CheckStringMatchesXml(PlcProjectProjectItem, PLCAPPSTATE_XML_NODE, "Stop")))
+            if (await CheckWithTimeout(COMMAND_TIMEOUT, () => CheckStringMatchesXml(PlcProjectProjectItem, PLCAPPSTATE_XML_NODE, "Stop"))==false)
             {
                 Console.WriteLine("Failed to stop");
                 return false;
@@ -321,6 +329,18 @@ namespace TwinCat_Motion_ADS
             plcProject.BootProjectAutostart = true;
             plcProject.GenerateBootProject(true);
         }
+
+        public void BuildPlcProject()
+        {
+            string plcPath;
+            string solutionName;
+            solutionName = Path.GetFileNameWithoutExtension(SolutionFolderPath);
+            //solutionName = new FileInfo(SlnPath).Name;
+            plcPath = SolutionFolderPath + @"\solution\" + PlcItem.Child[1].Name + @"\" + PlcItem.Child[1].Name + @".plcproj";
+            TwinCatSolution.SolutionBuild.BuildProject("Release|TwinCAT RT (x64)", plcPath, true);
+        }
+
+
 
         #endregion
 
@@ -361,7 +381,7 @@ namespace TwinCat_Motion_ADS
                 }
             }
 
-            if (!addNamedNcAxes())
+            if (!AddAllConfigNcAxes())
             {
                 Console.WriteLine("Issue adding axes");
                 return;
@@ -387,32 +407,32 @@ namespace TwinCat_Motion_ADS
             Console.WriteLine("All axes and io removed");
 
             //Add the IO from a CSV file
-            importIoList();
+            ImportIoList();
             Console.WriteLine("IO devices imported");
             //Run through all device xmls and import
-            importAllIoXmls();
+            ImportAllIoXmls();
             Console.WriteLine("IO import complete");
             //Setup axis parameters from available axis xmls
-            ncConsumeAllMaps();
+            NcImportAllAxisXtis();
             Console.WriteLine("NC Parameter import complete");
             //Add the plc "stuff"
-            plcImportDeclarations();
+            ImportConfigPlcDeclarations();
             Console.WriteLine("PLC declarations updated");
             //New PLC "stuff" to add
-            importApplications();
+            ImportConfigApplicationsProgs();
             Console.WriteLine("Application Specific PROGs imported");
-            importAxes();
+            ImportConfigAxesProgs();
             Console.WriteLine("Axis PROGs imported");
-            setupProgAction();
+            SetupMainProgAction();
             Console.WriteLine("PROG action updated");
 
-            buildPlcProject();
+            BuildPlcProject();
             Console.WriteLine("PLC compiled");
 
-            importXmlMap();
+            ImportConfigMappingsXML();
             Console.WriteLine("Import mappings complete");
 
-            saveAs();
+            SaveSolutionAs();
 
             SetProjectToBoot();
             Console.WriteLine("Project autostart set");
@@ -450,13 +470,9 @@ namespace TwinCat_Motion_ADS
             Console.WriteLine(SystemManager.IsTwinCATStarted());
         }
 
-        
-        
-        
-        
-        
-        //Should probably change to ASYNC
-        private bool CheckWithTimeout(int timeout, Func<Boolean> checkMethod)
+
+        #region HELPER METHODS
+        private async Task<bool> CheckWithTimeout(int timeout, Func<bool> checkMethod)
         {
             const int TIME_BETWEEN_CHECKS = 500;
             for (int i = 0; i < timeout / TIME_BETWEEN_CHECKS; i++)
@@ -466,26 +482,24 @@ namespace TwinCat_Motion_ADS
                     return true;
                 }
                 //this.utils.printErrors();
-                System.Threading.Thread.Sleep(TIME_BETWEEN_CHECKS);
+                await Task.Delay(TIME_BETWEEN_CHECKS);
             }
             return checkMethod();
         }
-        
-       
-
-        
 
         public void RevokeFilter()
         {
             MessageFilter.Revoke();
         }
+        #endregion
 
-        public bool saveAs()
+
+        public bool SaveSolutionAs()
         {
             string solutionName = Path.GetFileNameWithoutExtension(SolutionFolderPath);
             try
             {
-                solution.SaveAs(SolutionFolderPath + @"\solution.sln");
+                TwinCatSolution.SaveAs(SolutionFolderPath + @"\solution.sln");
                 //solution.SaveAs(SolutionFolderPath + @"\" + solutionName + @"\" + solutionName + ".sln");
                 return true;
             }
@@ -495,7 +509,12 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        public bool importXmlMap()
+
+        /// <summary>
+        /// Import the mappings files from the config
+        /// </summary>
+        /// <returns></returns>
+        public bool ImportConfigMappingsXML()
         {
             try
             {
@@ -510,78 +529,89 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        public void buildPlcProject()
+        
+        /// <summary>
+        /// Populates the PLC Main.Prog action to call each of the progs in application specific axes and applications folder
+        /// </summary>
+        /// <exception cref="ApplicationException"></exception>
+        public void SetupMainProgAction()
         {
-            string plcPath;
-            string solutionName;
-            solutionName = Path.GetFileNameWithoutExtension(SolutionFolderPath);
-            //solutionName = new FileInfo(SlnPath).Name;
-            plcPath = SolutionFolderPath +  @"\solution\" + PlcItem.Child[1].Name + @"\" + PlcItem.Child[1].Name + @".plcproj";
-            solution.SolutionBuild.BuildProject("Release|TwinCAT RT (x64)", plcPath, true);
-        }
-
-        public void setupProgAction()
-        {
+            //Try to locate the PLC MAIN.PROG item in the solution
             ITcSmTreeItem plcItem;
             try
             {
-                plcItem = SystemManager.LookupTreeItem("TIPC^tc_project_app^tc_project_app Project^POUs^MAIN^PROG");
+                plcItem = SystemManager.LookupTreeItem(PLC_MAIN_PROG_ITEM);
             }
             catch
             {
                 throw new ApplicationException($"Unable to find PROG action in solution");
             }
-            ITcPlcImplementation plcImp;
-            plcImp = (ITcPlcImplementation)plcItem;
 
-            //Need to build up the string
-            string impText = "";
-            //Axes first
-            ITcSmTreeItem axesPlcItem;
+            //Need to access the implementation section of MAIN.PROG
+            ITcPlcImplementation ImplementationSection;
+            ImplementationSection = (ITcPlcImplementation)plcItem;
+            //Placeholder string for creating implementation
+            string ImplementationText = "";
+
+            //Locate solution application specific axes folder
+            ITcSmTreeItem ApplicationSpecificAxesFolder;
             try
             {
-                axesPlcItem = SystemManager.LookupTreeItem("TIPC^tc_project_app^tc_project_app Project^POUs^Application_Specific^Axes");
+                ApplicationSpecificAxesFolder = SystemManager.LookupTreeItem(PLC_PROJECT_AXES_FOLDER);
             }
             catch
             {
                 throw new ApplicationException($"Couldn't find axes folder");
             }
-            for (int i = 1; i < axesPlcItem.ChildCount + 1; i++)
-            {
-                impText += axesPlcItem.Child[i].Name + @"();" + Environment.NewLine;
-            }
-            //Now Applications
-            ITcSmTreeItem appsPlcItem;
+
+            //Locate solution application specific applications folder
+            ITcSmTreeItem ApplicationSpecificAppsFolder;
             try
             {
-                appsPlcItem = SystemManager.LookupTreeItem("TIPC^tc_project_app^tc_project_app Project^POUs^Application_Specific^Applications");
+                ApplicationSpecificAppsFolder = SystemManager.LookupTreeItem(PLC_PROJECT_APPLICATIONS_FOLDER);
             }
             catch
             {
                 throw new ApplicationException($"Couldn't find applications folder");
             }
-            for (int i = 1; i < appsPlcItem.ChildCount + 1; i++)
+
+            //Populate the implementation text by calling each of the prog actions in the folders
+            for (int i = 1; i < ApplicationSpecificAxesFolder.ChildCount + 1; i++)
             {
-                impText += appsPlcItem.Child[i].Name + @"();" + Environment.NewLine;
+                ImplementationText += ApplicationSpecificAxesFolder.Child[i].Name + @"();" + Environment.NewLine;
             }
-            plcImp.ImplementationText = impText;
+
+            for (int i = 1; i < ApplicationSpecificAppsFolder.ChildCount + 1; i++)
+            {
+                ImplementationText += ApplicationSpecificAppsFolder.Child[i].Name + @"();" + Environment.NewLine;
+            }
+
+            //Set the implementation section text to the generated string
+            ImplementationSection.ImplementationText = ImplementationText;
 
         }
 
-        public void importAxes()
+        /// <summary>
+        /// Import axis progs from config
+        /// Monadic null check implemented and should be tested
+        /// </summary>
+        /// <exception cref="ApplicationException"></exception>
+        public void ImportConfigAxesProgs()
         {
-            String path = ConfigFolder + PLC_DIRECTORY_SUFFIX + AXES_DIRECTORY_SUFFIX;
+            string AxesConfigPath = ConfigFolder + PLC_DIRECTORY_SUFFIX + AXES_DIRECTORY_SUFFIX;
+
             ITcSmTreeItem plcItem;
             try
             {
-                plcItem = SystemManager.LookupTreeItem("TIPC^tc_project_app^tc_project_app Project^POUs^Application_Specific^Axes");
+                plcItem = SystemManager?.LookupTreeItem(PLC_PROJECT_AXES_FOLDER); 
             }
             catch
             {
                 throw new ApplicationException($"Unable to find Axes Application Specific directory in solution");
             }
+
             //Clear the folder in the solution explorer
-            if (plcItem.ChildCount > 0)
+            if (plcItem?.ChildCount > 0)
             {
                 while (plcItem.ChildCount > 0)
                 {
@@ -596,27 +626,34 @@ namespace TwinCat_Motion_ADS
                 }
             }
             //Import all the items
-            foreach (string filePath in Directory.GetFiles(path))
+            if (Directory.Exists(AxesConfigPath))
             {
-
-                plcItem.CreateChild(Path.GetFileNameWithoutExtension(filePath), 58, null, filePath);
+                foreach (string filePath in Directory.GetFiles(AxesConfigPath))
+                {
+                    plcItem?.CreateChild(Path.GetFileNameWithoutExtension(filePath), 58, null, filePath);
+                }
             }
         }
 
-        public void importApplications()
+        /// <summary>
+        /// Import application progs from config
+        /// </summary>
+        /// <exception cref="ApplicationException"></exception>
+        public void ImportConfigApplicationsProgs()
         {
             string path = ConfigFolder + PLC_DIRECTORY_SUFFIX + APPLICATION_DIRECTORY_SUFFIX;
+
             ITcSmTreeItem plcItem;
             try
             {
-                plcItem = SystemManager.LookupTreeItem("TIPC^tc_project_app^tc_project_app Project^POUs^Application_Specific^Applications");
+                plcItem = SystemManager?.LookupTreeItem(PLC_PROJECT_APPLICATIONS_FOLDER);
             }
             catch
             {
                 throw new ApplicationException($"ERROR HEREUnable to find Axes Application Specific directory in solution");
             }
             //Clear the folder in the solution explorer
-            if (plcItem.ChildCount > 0)
+            if (plcItem?.ChildCount > 0)
             {
                 while (plcItem.ChildCount > 0)
                 {
@@ -635,7 +672,7 @@ namespace TwinCat_Motion_ADS
             {
                 foreach (string filePath in Directory.GetFiles(path))
                 {
-                    plcItem.CreateChild(Path.GetFileNameWithoutExtension(filePath), 58, null, filePath);
+                    plcItem?.CreateChild(Path.GetFileNameWithoutExtension(filePath), 58, null, filePath);
                 }
             }
             else
@@ -644,36 +681,50 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        public void plcImportDeclarations()
+        /// <summary>
+        /// Import config plc declaration files in to solution
+        /// </summary>
+        /// <exception cref="ApplicationException"></exception>
+        public void ImportConfigPlcDeclarations()
         {
             string directoryPath = ConfigFolder + PLC_DIRECTORY_SUFFIX + DECLARATION_DIRECTORY_SUFFIX;
+
             if (!Directory.Exists(directoryPath))
             {
                 throw new ApplicationException($"Folder not found {directoryPath}");
             }
             foreach (string file in Directory.GetFiles(directoryPath))
             {
-                modifyDeclaration(file);
+                ModifyPlcDeclaration(file);
             }
         }
 
-        public void modifyDeclaration(string decFile)
+        /// <summary>
+        /// Helper method for ImportConfigPlcDeclarations for individual file import
+        /// </summary>
+        /// <param name="decFile"></param>
+        /// <exception cref="ApplicationException"></exception>
+        private void ModifyPlcDeclaration(string decFile)
         {
             //check file exists
             if (!File.Exists(decFile))
             {
                 throw new ApplicationException($"PLC file {decFile} could not be found.");
             }
+
+            //Locate the PLC item with matching name
             string plcItemName = File.ReadLines(decFile).First();
             ITcSmTreeItem plcItem;
             try
             {
-                plcItem = SystemManager.LookupTreeItem("TIPC^" + plcItemName);
+                plcItem = SystemManager.LookupTreeItem(plcItemName); //removed PLC prefix as should just be put in to file  - warning this will break all old config files!!
             }
             catch
             {
                 throw new ApplicationException($"Unable to find item {plcItemName}");
             }
+
+            //Cast to decleration
             ITcPlcDeclaration plcItemDec;
             try
             {
@@ -684,13 +735,17 @@ namespace TwinCat_Motion_ADS
                 throw new ApplicationException($"Unable to create declaration field for item {plcItemName}");
             }
 
+            //placeholder string
             string declarationText = "";
+
+            //for each line in file (ignore first line) add it to the declarationText string
             int lineCount = File.ReadLines(decFile).Count();
             for (int i = 2; i < lineCount; i++)
             {
                 declarationText += Environment.NewLine + File.ReadLines(decFile).ElementAt(i);
             }
 
+            //Decide if adding to delcaration or replacing (first line of text file)
             if (File.ReadLines(decFile).ElementAt(1) == "add")
             {
                 string existingText = plcItemDec.DeclarationText;
@@ -705,12 +760,15 @@ namespace TwinCat_Motion_ADS
                 throw new ApplicationException("No valid add/replace method found in text file");
             }
         }
-
-        
-
-        public void ncConsumeAllMaps()
+       
+        /// <summary>
+        /// Import and consume all NC xml files from config
+        /// </summary>
+        /// <exception cref="ApplicationException"></exception>
+        public void NcImportAllAxisXtis()
         {
             string axisFolder = ConfigFolder + AXES_XML_DIRECTORY_SUFFIX;
+
             if (!Directory.Exists(axisFolder))
             {
                 throw new ApplicationException($"Folder not found: {axisFolder}");
@@ -718,20 +776,27 @@ namespace TwinCat_Motion_ADS
 
             foreach (string file in Directory.GetFiles(axisFolder))
             {
-                ncAxisMapSearchConsume(file);
+                NcImportAxisXti(file);
             }
         }
 
-
-        public void ncAxisMapSearchConsume(string xmlFile)
+        /// <summary>
+        /// Locates named axes in the NC project from xmlFilePath and imports parameters
+        /// </summary>
+        /// <param name="xmlFilePath"></param>
+        /// <exception cref="ApplicationException"></exception>
+        private void NcImportAxisXti(string xmlFilePath)
         {
-            ITcSmTreeItem axis;
+            //Create placeholder xmlDoc and validate xmlFile input
             XmlDocument axisXml = new XmlDocument();
-            if (!File.Exists(xmlFile))
+            if (!File.Exists(xmlFilePath))
             {
-                throw new ApplicationException($"IO Xml file {xmlFile} could not be found.");
+                throw new ApplicationException($"IO Xml file {xmlFilePath} could not be found.");
             }
-            string axisName = Path.GetFileNameWithoutExtension(xmlFile);
+
+            //Get axis name from file and find in NC project
+            string axisName = Path.GetFileNameWithoutExtension(xmlFilePath);
+            ITcSmTreeItem axis;
             try
             {
                 axis = AxesItem.LookupChild(axisName);
@@ -740,7 +805,9 @@ namespace TwinCat_Motion_ADS
             {
                 throw new ApplicationException($"Not able to find {axisName}.");
             }
-            axisXml.Load(xmlFile);
+
+            //Load XmlDoc from xmlFilePath
+            axisXml.Load(xmlFilePath);
             try
             {
                 axis.ConsumeXml(axisXml.OuterXml);
@@ -751,9 +818,12 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        public void importAllIoXmls()
+        /// <summary>
+        /// Import and consume all IO xml files from config
+        /// </summary>
+        public void ImportAllIoXmls()
         {
-            string deviceFolder = ConfigFolder + @"\deviceXmls\";
+            string deviceFolder = ConfigFolder + IO_XML_DIRECTORY_SUFFIX;
             if (!Directory.Exists(deviceFolder))
             {
                 Console.WriteLine($"WARNING: Folder not found: {deviceFolder}, No devices will be loaded");
@@ -762,19 +832,27 @@ namespace TwinCat_Motion_ADS
             {
                 foreach (string file in Directory.GetFiles(deviceFolder))
                 {
-                    importIoXmls(file);
+                    ImportIoXmls(file);
                 }
             }
         }
         
-        public void importIoXmls(string xmlFile)
+        /// <summary>
+        /// Located named IO in the IO project from xmlFilePath and import setup
+        /// </summary>
+        /// <param name="xmlFilepath"></param>
+        /// <exception cref="ApplicationException"></exception>
+        public void ImportIoXmls(string xmlFilepath)
         {
-            if (!File.Exists(xmlFile))
+            //Check valid file path
+            if (!File.Exists(xmlFilepath))
             {
-                throw new ApplicationException($"IO Xml file {xmlFile} could not be found.");
+                throw new ApplicationException($"IO Xml file {xmlFilepath} could not be found.");
             }
 
-            string deviceName = Path.GetFileNameWithoutExtension(xmlFile);
+            //Get device name from file name
+            string deviceName = Path.GetFileNameWithoutExtension(xmlFilepath);
+            //Placeholder io tree item
             ITcSmTreeItem currentIo = null;
 
             //Need to look for a match "somewhere"
@@ -806,7 +884,7 @@ namespace TwinCat_Motion_ADS
                     }
                 }
             }
-            //If still not found, go for next level
+            //If still not found, go for next level lookup
             if (currentIo == null)
             {
                 for (int i = 1; i <= IoItem.ChildCount; i++)
@@ -835,8 +913,9 @@ namespace TwinCat_Motion_ADS
                 throw new ApplicationException($"Could not find device {deviceName}");
             }
 
+            //If we're here, we've found a match for the device name in currentIo object
             XmlDocument ioXml = new XmlDocument();
-            ioXml.Load(xmlFile);
+            ioXml.Load(xmlFilepath);
             try
             {
                 currentIo.ConsumeXml(ioXml.OuterXml);
@@ -848,11 +927,13 @@ namespace TwinCat_Motion_ADS
 
         }
 
-        
-        public void importIoList()
+        /// <summary>
+        /// Populate the IO section of the solution from the config IO list csv file
+        /// A bit overly complicated as devices can nest under other devices
+        /// </summary>
+        /// <exception cref="ApplicationException"></exception>
+        public void ImportIoList()
         {
-            //Should I check for existing IO first?
-
             //Check that the file exists first!
             if (!File.Exists(ConfigFolder + IO_LIST_FILE))
             {
@@ -873,6 +954,8 @@ namespace TwinCat_Motion_ADS
             string[][] ioDataListArray = ioDataList.ToArray();
 
             //To create children we need to keep references to the parents to use later
+            //Every time we load in an item, create a list for it to refer back to
+
             List<ITcSmTreeItem> termLevel = new List<ITcSmTreeItem>();
             //For each "row/device" in array
             for (int i = 0; i < ioDataListArray.GetLength(0); i++)
@@ -932,6 +1015,9 @@ namespace TwinCat_Motion_ADS
             }
         }
 
+        /// <summary>
+        /// Clear all IO from the solution IO project
+        /// </summary>
         private void DeleteIoItems()
         {
             if (IoItem.ChildCount == 0)
@@ -952,43 +1038,57 @@ namespace TwinCat_Motion_ADS
             }
         }
         
-
-        public bool addNamedNcAxes()
+        /// <summary>
+        /// Populate NC with Axes from config folder
+        /// </summary>
+        /// <returns></returns>
+        public bool AddAllConfigNcAxes()
         {
             string axisFolder = ConfigFolder + AXES_XML_DIRECTORY_SUFFIX;
+            //Check folder is valid
             if(!Directory.Exists(axisFolder))
             {
                 Console.WriteLine("Axis folder not found");
                 return false;
             }
+            //For each axis file in folder add to the NC, return if fail
             foreach (var file in Directory.GetFiles(axisFolder))
             {
-                if (!addNamedNcAxis(Path.GetFileNameWithoutExtension(file))) return false;
+                if (!AddNamedNcAxis(Path.GetFileNameWithoutExtension(file))) return false;
             }
             return true;
         }
-        public bool addNamedNcAxis(string axisName)
+
+        /// <summary>
+        /// Add single axis to NC with name
+        /// </summary>
+        /// <param name="axisName"></param>
+        /// <returns></returns>
+        public bool AddNamedNcAxis(string axisName)
         {
             try
             {
-                AxesItem.CreateChild(axisName, 1);
+                AxesItem?.CreateChild(axisName, 1);
                 return true;
             }
             catch { return false; }
         }
 
-
+        /// <summary>
+        /// Clear all NC axes from solution
+        /// </summary>
+        /// <exception cref="ApplicationException"></exception>
         public void DeleteNcAxes()
         {
-            if (AxesItem.ChildCount == 0)
+            if (AxesItem?.ChildCount == 0)
             {
                 throw new ApplicationException("Already no axes in tree");
             }
-            while (AxesItem.ChildCount != 0)
+            while (AxesItem?.ChildCount != 0)
             {
                 try
                 {
-                    AxesItem.DeleteChild(AxesItem.Child[1].Name);
+                    AxesItem?.DeleteChild(AxesItem.Child[1].Name);
                 }
                 catch
                 {
@@ -997,64 +1097,74 @@ namespace TwinCat_Motion_ADS
 
             }
         }
-
-        
-
-        public void startRestart()
+       
+        /// <summary>
+        /// Start and restart TwinCAT
+        /// </summary>
+        public void StartRestartTwincat()
         {
-            SystemManager.StartRestartTwinCAT();
+            SystemManager?.StartRestartTwinCAT();
         }
 
-        public void setupConfigFolder()
+        /// <summary>
+        /// Setup the selected folder with the correct folder structure for configuration
+        /// </summary>
+        public void SetupConfigurationFolder()
         {
+            //If still default string, user has not selected valid location
             if (ConfigFolder == @"\Config")
             {
-                Console.WriteLine("Config folder path empty");
+                Console.WriteLine("Config folder path not set");
                 return;
             }
-            Directory.CreateDirectory(ConfigFolder + @"\axisXmls");
-            Directory.CreateDirectory(ConfigFolder + @"\deviceXmls");
-            Directory.CreateDirectory(ConfigFolder + @"\plc\declarations");
-            Directory.CreateDirectory(ConfigFolder + @"\plc\implementations");
-            Directory.CreateDirectory(ConfigFolder + @"\plc\axes");
-            Directory.CreateDirectory(ConfigFolder + @"\plc\applications");
+
+            Directory.CreateDirectory(ConfigFolder + AXES_XML_DIRECTORY_SUFFIX);
+            Directory.CreateDirectory(ConfigFolder + IO_XML_DIRECTORY_SUFFIX);
+            Directory.CreateDirectory(ConfigFolder + PLC_DIRECTORY_SUFFIX + DECLARATION_DIRECTORY_SUFFIX);
+            Directory.CreateDirectory(ConfigFolder + PLC_DIRECTORY_SUFFIX + IMPLEMENTATION_DIRECTORY_SUFFIX);
+            Directory.CreateDirectory(ConfigFolder + PLC_DIRECTORY_SUFFIX + AXES_DIRECTORY_SUFFIX);
+            Directory.CreateDirectory(ConfigFolder + PLC_DIRECTORY_SUFFIX + APPLICATION_DIRECTORY_SUFFIX);
         }
 
-        public void createConfiguration()
+
+        public void CreateSolutionConfiguration()
         {
             //CHECK CONFIG NOT EMPTY FIRST!!!
             if (ConfigFolder == @"\Config")
             {
-                Console.WriteLine("You have not selected a configuration folder location", "Oopsie", MessageBoxButtons.OK);
+                Console.WriteLine("You have not selected a configuration folder location");
                 return;
             }
 
-            //If no open project tell the user to open one
-            if (solution == null)
+            //Check solution is populated
+            if (TwinCatSolution == null)
             {
                 Console.WriteLine("No solution linked");
-                //MessageBox.Show("Please open the solution first", "Oopsie", MessageBoxButtons.OK);
-                //return;
-                //openSolution();
+                return;
             }
+
+            //If no message filter registered, then register one
             if (!MessageFilter.IsRegistered)
                 MessageFilter.Register();
 
-            setupConfigFolder();
-            exportXmlMap();
-            clearMap();
-            exportAllAxisXmls();
-            exportAllIoXmls();
-            exportIoList();
-            exportPlcDec();
+            SetupConfigurationFolder();
+            ExportMappingsAsXml();
+            ClearMappings();
+            ExportAllAxisXmls();
+            ExportAllIoXmls();
+            ExportIoCsvList();
+            CreateMainAndGvlDeclaration();
             exportAxes();
             ExportPlcApplications();
             //cleanUp();
-            Console.WriteLine("Export complete." + Environment.NewLine, "Configuration export", MessageBoxButtons.OK);
+            Console.WriteLine("Export complete." + Environment.NewLine);
         }
 
-
-        public bool exportXmlMap()
+        /// <summary>
+        /// Export solution mappings (variable links)
+        /// </summary>
+        /// <returns></returns>
+        public bool ExportMappingsAsXml()
         {
             try
             {
@@ -1069,7 +1179,11 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        public bool clearMap()
+        /// <summary>
+        /// Clear mappings in solution
+        /// </summary>
+        /// <returns></returns>
+        public bool ClearMappings()
         {
             try
             {
@@ -1082,27 +1196,42 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        public void exportAllAxisXmls()
+        /// <summary>
+        /// Export all NC axes to config folder
+        /// </summary>
+        public void ExportAllAxisXmls()
         {
-            for (int i = 0; i < getAxisCount(); i++)
+            for (int i = 0; i < GetAxisCount(); i++)
             {
-                exportAxisXml(i);
+                ExportAxisXml(i);
             }
         }
 
-        public void exportAxisXml(int axisNumber)
+        /// <summary>
+        /// Helper method for ExportAllAxisXmls
+        /// Exports specific numbered axis
+        /// </summary>
+        /// <param name="axisNumber"></param>
+        private void ExportAxisXml(int axisNumber)
         {
             ITcSmTreeItem axisName = AxesItem.Child[axisNumber + 1];
             string xmlDescription = axisName.ProduceXml();
-            File.WriteAllText(ConfigFolder + @"\" + AXES_XML_DIRECTORY_SUFFIX + @"\" + axisName.Name + @".xml", xmlDescription);
+            File.WriteAllText(ConfigFolder + AXES_XML_DIRECTORY_SUFFIX + @"\" + axisName.Name + @".xml", xmlDescription);    //might have too many slashes so I removed one between config and AXES_XML
         }
 
-        public int getAxisCount()
+        /// <summary>
+        /// Get the number of axes in the NC project of Twincat solution
+        /// </summary>
+        /// <returns></returns>
+        public int GetAxisCount()
         {
             return AxesItem.ChildCount;
         }
 
-        public void exportAllIoXmls()
+        /// <summary>
+        /// Export xml files for all IO devices in IO project of TwinCAT solution
+        /// </summary>
+        public void ExportAllIoXmls()
         {
             int tier1DeviceLayer;   //number of devices in IO tree
             int tier2CouplerLayer; //number of couplers and terminals under a device
@@ -1113,20 +1242,20 @@ namespace TwinCat_Motion_ADS
             for (int i = 1; i <= tier1DeviceLayer; i++)
             {
                 ioName = IoItem.Child[i];
-                exportIoXml(ioName);
+                ExportIoXml(ioName);
                 tier2CouplerLayer = IoItem.Child[i].ChildCount;
 
                 for (int j = 1; j <= tier2CouplerLayer; j++)
                 {
                     ioName = IoItem.Child[i].Child[j];
-                    exportIoXml(ioName);
+                    ExportIoXml(ioName);
                     tier3TerminalLayer = IoItem.Child[i].Child[j].ChildCount;
                     //Iterate here
 
                     for (int k = 1; k <= tier3TerminalLayer; k++)
                     {
                         ioName = IoItem.Child[i].Child[j].Child[k];
-                        exportIoXml(ioName);
+                        ExportIoXml(ioName);
                     }
                     //Then add child count to tier2
                     j += tier3TerminalLayer;
@@ -1134,13 +1263,20 @@ namespace TwinCat_Motion_ADS
             }
         }
 
-        public void exportIoXml(ITcSmTreeItem ioName)
+        /// <summary>
+        /// Create an XML file in the configuration folder for an inputted IoDevice
+        /// </summary>
+        /// <param name="ioDevice"></param>
+        public void ExportIoXml(ITcSmTreeItem ioDevice)
         {
-            string xmlDescription = ioName.ProduceXml();
-            File.WriteAllText(ConfigFolder + @"\" + IO_XML_DIRECTORY_SUFFIX + @"\" + ioName.Name + @".xml", xmlDescription);
+            string xmlDescription = ioDevice.ProduceXml();
+            File.WriteAllText(ConfigFolder + IO_XML_DIRECTORY_SUFFIX + ioDevice.Name + @".xml", xmlDescription);
         }
 
-        public void exportIoList()
+        /// <summary>
+        /// Create a CSV list of IO devices in TwinCAT solution IO project
+        /// </summary>
+        public void ExportIoCsvList()
         {
             int tier1DeviceLayer;   //number of devices in IO tree
             int tier2CouplerLayer; //number of couplers and terminals under a device
@@ -1152,19 +1288,19 @@ namespace TwinCat_Motion_ADS
             for (int i = 1; i <= tier1DeviceLayer; i++)
             {
                 ioName = IoItem.Child[i];
-                ioList.Add(getIoData("0", ioName));
+                ioList.Add(GetIoData("0", ioName));
                 tier2CouplerLayer = IoItem.Child[i].ChildCount;
 
                 for (int j = 1; j <= tier2CouplerLayer; j++)
                 {
                     ioName = IoItem.Child[i].Child[j];
-                    ioList.Add(getIoData("1", ioName));
+                    ioList.Add(GetIoData("1", ioName));
                     tier3TerminalLayer = IoItem.Child[i].Child[j].ChildCount;
 
                     for (int k = 1; k <= tier3TerminalLayer; k++)
                     {
                         ioName = IoItem.Child[i].Child[j].Child[k];
-                        ioList.Add(getIoData("2", ioName));
+                        ioList.Add(GetIoData("2", ioName));
                     }
                     //Then add child count to tier2
                     j += tier3TerminalLayer;
@@ -1174,16 +1310,23 @@ namespace TwinCat_Motion_ADS
             File.WriteAllLines(path, ioList.ToArray());
         }
 
-        public String getIoData(String tierLevel, ITcSmTreeItem ioName)
+        /// <summary>
+        /// Helper method for ExportIoCsvList
+        /// Grabs all the data for an inputted device item and outputs as string used in CSV file
+        /// </summary>
+        /// <param name="tierLevel"></param>
+        /// <param name="ioName"></param>
+        /// <returns></returns>
+        private string GetIoData(string tierLevel, ITcSmTreeItem ioName)
         {
             //Need to get product revision from XML
             XmlDocument ioXml = new XmlDocument();
             ioXml.LoadXml(ioName.ProduceXml());
-            String productRevision;
-            String name;
-            String subType;
-            String strB4; //not utilised but needs to be set. Can be used to state where in tree the device should appear when created.
-            String ioListString;
+            string productRevision;
+            string name;
+            string subType;
+            string strB4; //not utilised but needs to be set. Can be used to state where in tree the device should appear when created.
+            string ioListString;
 
             name = ioName.Name;
             subType = (ioName.ItemSubType).ToString();
@@ -1203,16 +1346,19 @@ namespace TwinCat_Motion_ADS
             return ioListString;
         }
 
-
-        public void exportPlcDec()
+        /// <summary>
+        /// Creates declaration configuration files for MAIN and GVL
+        /// </summary>
+        /// <exception cref="ApplicationException"></exception>
+        public void CreateMainAndGvlDeclaration()
         {
-            //Create two files for GVL and MAIN. 
+            //Create two files for GVL and MAIN. Probably don't need Main anymore with how we use application specific PROGS? look to delete that bit
             //GVL will be an actual copy of project GVL
             //Main will just be a template file
-            String path = ConfigFolder + PLC_DIRECTORY_SUFFIX + DECLARATION_DIRECTORY_SUFFIX;
-            String fileName = @"\mainDeclation.txt";
+            string path = ConfigFolder + PLC_DIRECTORY_SUFFIX + DECLARATION_DIRECTORY_SUFFIX;
+            string fileName = @"\mainDeclaration.txt";
 
-            String declaration = "tc_project_app^tc_project_app Project^POUs^MAIN" + Environment.NewLine + "add";
+            string declaration = PLC_MAIN_ITEM + Environment.NewLine + ADD_METHOD;
 
             File.WriteAllText(path + fileName, declaration);
 
@@ -1220,7 +1366,7 @@ namespace TwinCat_Motion_ADS
             ITcSmTreeItem plcItem;
             try
             {
-                plcItem = SystemManager.LookupTreeItem("TIPC^tc_project_app^tc_project_app Project^GVLs^GVL_APP");
+                plcItem = SystemManager.LookupTreeItem(PLC_GVL_APP_ITEM);
             }
             catch
             {
@@ -1235,18 +1381,18 @@ namespace TwinCat_Motion_ADS
             {
                 throw new ApplicationException($"Unable to create declaration field for item GVL_APP");
             }
-            declaration = "tc_project_app^tc_project_app Project^GVLs^GVL_APP" + Environment.NewLine + "replace" + Environment.NewLine + plcItemDec.DeclarationText;
+            declaration = PLC_GVL_APP_ITEM + Environment.NewLine + REPLACE_METHOD + Environment.NewLine + plcItemDec.DeclarationText;
             File.WriteAllText(path + fileName, declaration);
         }
 
         public void exportAxes()
         {
-            String path = ConfigFolder + PLC_DIRECTORY_SUFFIX + AXES_DIRECTORY_SUFFIX;
+            string path = ConfigFolder + PLC_DIRECTORY_SUFFIX + AXES_DIRECTORY_SUFFIX;
             if (Directory.Exists(path) == false)
             {
                 Directory.CreateDirectory(ConfigFolder + @"\plc\axes");//not just create path???
             }
-            String axesFolder = SolutionFolderPath + @"\solution\tc_project_app\POUs\Application_Specific\Axes";
+            string axesFolder = SolutionFolderPath + @"\solution\tc_project_app\POUs\Application_Specific\Axes";
             foreach (string file in Directory.GetFiles(path))
             {
                 File.Delete(file);
@@ -1256,7 +1402,8 @@ namespace TwinCat_Motion_ADS
             { File.Copy(filePath, filePath.Replace(axesFolder, path)); }
         }
 
-        
+
+        #region NC Axis Status readout for testing
         public void PrintNcStatuses()
         {
             if (NcAxis == null)
@@ -1314,6 +1461,8 @@ namespace TwinCat_Motion_ADS
             loggingToken?.Cancel();
         }
 
+        #endregion
+
         #region CONFIG EXPORT METHODS
         public void ExportPlcApplications()
         {
@@ -1336,11 +1485,23 @@ namespace TwinCat_Motion_ADS
             foreach (string filePath in Directory.GetFiles(appsFolder))
             { File.Copy(filePath, filePath.Replace(appsFolder, path)); }
         }
-        
-        
-        
-        
+
+
+
+
         #endregion
 
+
+
+        #region METHOD IDEAS
+        //Create progs for each NC axis
+        //automatically populate ApplicationSpecific^Axes folder with named axes (with template)
+
+        //Create Axis_Names_GVL
+        //Create and populate a new GVL with all the NC axis names and INTS assigned
+
+        //Call all axis progs
+        //Method to automatically call all axis progs in the MAIN.Prog
+        #endregion  
     }
 }

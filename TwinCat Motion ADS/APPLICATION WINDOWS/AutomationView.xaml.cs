@@ -120,7 +120,7 @@ namespace TwinCat_Motion_ADS.APPLICATION_WINDOWS
 
         private void Button_CreateConfig_Click(object sender, RoutedEventArgs e)
         {
-            autoInterface.createConfiguration();
+            autoInterface.CreateSolutionConfiguration();
         }
 
         private void Button_CheckStatusesNC_Click(object sender, RoutedEventArgs e)
@@ -136,6 +136,11 @@ namespace TwinCat_Motion_ADS.APPLICATION_WINDOWS
         private void Button_StopLogging_Click(object sender, RoutedEventArgs e)
         {
             autoInterface?.StopStatusLogging();
+        }
+
+        private void Button_SetupConfig_Click(object sender, RoutedEventArgs e)
+        {
+            autoInterface?.SetupConfigurationFolder();
         }
     }
 
