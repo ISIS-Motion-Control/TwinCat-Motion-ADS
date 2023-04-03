@@ -87,9 +87,11 @@ namespace TwinCat_Motion_ADS
         //Solution constants
 
         private const string PLC_APPLICATIONS_FOLDER = @"\solution\tc_project_app\POUs\Application_Specific\Applications";
+        private const string PLC_AXES_FOLDER = @"\solution\tc_project_app\POUs\Application_Specific\Axes";
         private const string PLC_MAIN_PROG_ITEM = "TIPC^tc_project_app^tc_project_app Project^POUs^MAIN^PROG";
         
         private const string PLC_PROJECT_AXES_FOLDER = "TIPC^tc_project_app^tc_project_app Project^POUs^Application_Specific^Axes";
+
         private const string PLC_PROJECT_APPLICATIONS_FOLDER = "TIPC^tc_project_app^tc_project_app Project^POUs^Application_Specific^Applications";
 
         //Used for declarations
@@ -337,7 +339,14 @@ namespace TwinCat_Motion_ADS
             solutionName = Path.GetFileNameWithoutExtension(SolutionFolderPath);
             //solutionName = new FileInfo(SlnPath).Name;
             plcPath = SolutionFolderPath + @"\solution\" + PlcItem.Child[1].Name + @"\" + PlcItem.Child[1].Name + @".plcproj";
-            TwinCatSolution.SolutionBuild.BuildProject("Release|TwinCAT RT (x64)", plcPath, true);
+            try
+            {
+                TwinCatSolution.SolutionBuild.BuildProject("Release|TwinCAT RT (x64)", plcPath, true);
+            }
+            catch
+            {
+                Console.WriteLine("Something went wrong");
+            }
         }
 
 
@@ -445,7 +454,7 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
-                throw new ApplicationException("Unable to activate configuration");
+                Console.WriteLine("Unable to activate configuration");
             }
             try
             {
@@ -454,7 +463,7 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
-                throw new ApplicationException("Issue starting controller");
+                Console.WriteLine("Issue starting controller");
             }
             Console.WriteLine(SystemManager.IsTwinCATStarted());
             if (SystemManager.IsTwinCATStarted())
@@ -576,14 +585,52 @@ namespace TwinCat_Motion_ADS
             }
 
             //Populate the implementation text by calling each of the prog actions in the folders
+
+            //THIS NEEDS CHANGING. WE NEED TO KNOW WHAT SUBTYPE WE ARE LOOKING AT NOW THAT I'M INCLUDING FOLDERS
             for (int i = 1; i < ApplicationSpecificAxesFolder.ChildCount + 1; i++)
             {
-                ImplementationText += ApplicationSpecificAxesFolder.Child[i].Name + @"();" + Environment.NewLine;
-            }
+                ITcSmTreeItem currentItem = ApplicationSpecificAxesFolder.Child[i];
+                if (currentItem.ItemType == 602)
+                {
+                    ImplementationText += ApplicationSpecificAxesFolder.Child[i].Name + @"();" + Environment.NewLine;
+                }
 
+                if(currentItem.ItemType == 601)
+                {
+                    
+                    for (int j = 1; j <currentItem.ChildCount+1; j++)
+                    {                       
+                        ITcSmTreeItem subItem = currentItem.Child[j];
+                        if (subItem.ItemType == 602)
+                        {
+                            ImplementationText += subItem.Name + @"();" + Environment.NewLine;
+                        }
+                    }
+                }
+                
+                
+            }
+            
             for (int i = 1; i < ApplicationSpecificAppsFolder.ChildCount + 1; i++)
             {
-                ImplementationText += ApplicationSpecificAppsFolder.Child[i].Name + @"();" + Environment.NewLine;
+                ITcSmTreeItem currentItem = ApplicationSpecificAppsFolder.Child[i];
+
+                if (currentItem.ItemType == 602)
+                {
+                    ImplementationText += ApplicationSpecificAppsFolder.Child[i].Name + @"();" + Environment.NewLine;
+                }
+
+                if (currentItem.ItemType == 601)
+                {
+                    for (int j = 1; j < currentItem.ChildCount + 1; j++)
+                    {
+                        ITcSmTreeItem subItem = currentItem.Child[j];
+                        if (subItem.ItemType == 602)
+                        {
+                            ImplementationText += subItem.Name + @"();" + Environment.NewLine;
+                        }
+                    }
+                }
             }
 
             //Set the implementation section text to the generated string
@@ -621,7 +668,7 @@ namespace TwinCat_Motion_ADS
                     }
                     catch
                     {
-                        throw new ApplicationException("Unable to delete Axis PLC Item");
+                        Console.WriteLine("Unable to delete Axis PLC Item");
                     }
                 }
             }
@@ -632,6 +679,19 @@ namespace TwinCat_Motion_ADS
                 {
                     plcItem?.CreateChild(Path.GetFileNameWithoutExtension(filePath), 58, null, filePath);
                 }
+
+                foreach (string folder in Directory.GetDirectories(AxesConfigPath))
+                {
+                    DirectoryInfo info = new(folder);
+
+                    ITcSmTreeItem solutionFolderItem = plcItem?.CreateChild(info.Name, 601, null, null);
+                    
+                    foreach (string filePath in Directory.GetFiles(folder))
+                    {
+                        solutionFolderItem.CreateChild(Path.GetFileNameWithoutExtension(filePath), 58, null, filePath);
+                    }
+                }
+
             }
         }
 
@@ -663,7 +723,7 @@ namespace TwinCat_Motion_ADS
                     }
                     catch
                     {
-                        throw new ApplicationException("Error, Unable to delete Application_Specific PLC Item");
+                        Console.WriteLine("Error, Unable to delete Application_Specific PLC Item");
                     }
                 }
             }
@@ -673,6 +733,18 @@ namespace TwinCat_Motion_ADS
                 foreach (string filePath in Directory.GetFiles(path))
                 {
                     plcItem?.CreateChild(Path.GetFileNameWithoutExtension(filePath), 58, null, filePath);
+                }
+
+                foreach (string folder in Directory.GetDirectories(path))
+                {
+                    DirectoryInfo info = new(folder);
+
+                    ITcSmTreeItem solutionFolderItem = plcItem?.CreateChild(info.Name, 601, null, null);
+
+                    foreach (string filePath in Directory.GetFiles(folder))
+                    {
+                        solutionFolderItem.CreateChild(Path.GetFileNameWithoutExtension(filePath), 58, null, filePath);
+                    }
                 }
             }
             else
@@ -922,7 +994,7 @@ namespace TwinCat_Motion_ADS
             }
             catch
             {
-                throw new ApplicationException($"Failed to load xml for {deviceName}");
+                Console.WriteLine($"Failed to load xml for {deviceName}");
             }
 
         }
@@ -1154,10 +1226,10 @@ namespace TwinCat_Motion_ADS
             ExportAllIoXmls();
             ExportIoCsvList();
             CreateMainAndGvlDeclaration();
-            exportAxes();
+            ExportPlcAxes();
             ExportPlcApplications();
             //cleanUp();
-            Console.WriteLine("Export complete." + Environment.NewLine);
+            Console.WriteLine("Export complete.");
         }
 
         /// <summary>
@@ -1385,23 +1457,7 @@ namespace TwinCat_Motion_ADS
             File.WriteAllText(path + fileName, declaration);
         }
 
-        public void exportAxes()
-        {
-            string path = ConfigFolder + PLC_DIRECTORY_SUFFIX + AXES_DIRECTORY_SUFFIX;
-            if (Directory.Exists(path) == false)
-            {
-                Directory.CreateDirectory(ConfigFolder + @"\plc\axes");//not just create path???
-            }
-            string axesFolder = SolutionFolderPath + @"\solution\tc_project_app\POUs\Application_Specific\Axes";
-            foreach (string file in Directory.GetFiles(path))
-            {
-                File.Delete(file);
-            }
-
-            foreach (string filePath in Directory.GetFiles(axesFolder))
-            { File.Copy(filePath, filePath.Replace(axesFolder, path)); }
-        }
-
+        
 
         #region NC Axis Status readout for testing
         public void PrintNcStatuses()
@@ -1481,11 +1537,78 @@ namespace TwinCat_Motion_ADS
             {
                 File.Delete(file);
             }
+            foreach (string folder in Directory.GetDirectories(path))
+            {
+                foreach (string file in Directory.GetFiles(folder))
+                {
+                    File.Delete(file);
+                }
+                Directory.Delete(folder);
+            }
+
             //for each file in applications folder, make a copy of it in config
             foreach (string filePath in Directory.GetFiles(appsFolder))
-            { File.Copy(filePath, filePath.Replace(appsFolder, path)); }
+            { File.Copy(filePath, filePath.Replace(appsFolder, path));}
+            
+            //One folder deep
+            foreach (string folder in Directory.GetDirectories(appsFolder))
+            {
+                //create the directory in the config folder
+                DirectoryInfo info = new DirectoryInfo(folder);
+                string tempPath = path + @"\" + info.Name;
+
+                Directory.CreateDirectory(tempPath);
+
+                foreach (string file in Directory.GetFiles(folder))
+                {
+                    File.Copy(file, file.Replace(folder,tempPath));
+                }
+
+            }           
         }
 
+        /// <summary>
+        /// Export PLC axes folder
+        /// </summary>
+        public void ExportPlcAxes()
+        {
+            string path = ConfigFolder + PLC_DIRECTORY_SUFFIX + AXES_DIRECTORY_SUFFIX;
+            if (Directory.Exists(path) == false)
+            {
+                Directory.CreateDirectory(ConfigFolder + PLC_DIRECTORY_SUFFIX + AXES_DIRECTORY_SUFFIX);
+            }
+            string axesFolder = SolutionFolderPath + PLC_AXES_FOLDER;
+
+            foreach (string file in Directory.GetFiles(path))
+            {
+                File.Delete(file);
+            }
+            foreach (string folder in Directory.GetDirectories(path))
+            {
+                foreach (string file in Directory.GetFiles(folder))
+                {
+                    File.Delete(file);
+                }
+                Directory.Delete(folder);
+            }
+
+            foreach (string filePath in Directory.GetFiles(axesFolder))
+            { File.Copy(filePath, filePath.Replace(axesFolder, path)); }
+
+            foreach (string folder in Directory.GetDirectories(axesFolder))
+            {
+                //create the directory in the config folder
+                DirectoryInfo info = new DirectoryInfo(folder);
+                string tempPath = path + @"\" + info.Name;
+
+                Directory.CreateDirectory(tempPath);
+
+                foreach (string file in Directory.GetFiles(folder))
+                {
+                    File.Copy(file, file.Replace(folder, tempPath));
+                }
+            }
+        }
 
 
 
