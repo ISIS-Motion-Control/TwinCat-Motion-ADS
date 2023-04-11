@@ -152,6 +152,22 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
+        public async Task<bool> CheckForCommandAborted(CancellationToken wToken)
+        {
+            bool commandAborted = CommandAborted;
+            while (commandAborted != true)
+            {
+                commandAborted = CommandAborted;
+                if (wToken.IsCancellationRequested)
+                {
+                    throw new TaskCanceledException();
+                }
+                await Task.Delay(defaultReadTime, wToken);
+            }
+            Console.WriteLine("Axis command aborted");
+            return true;
+        }
+
         private readonly CancellationTokenSource readToken = new();
 
         public void ReadStatuses()

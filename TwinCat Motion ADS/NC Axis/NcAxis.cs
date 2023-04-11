@@ -20,7 +20,7 @@ namespace TwinCat_Motion_ADS
         const byte eMoveAbsolute = 0;
         const byte eMoveRelative = 1;
         const byte eMoveVelocity = 3;
-        //const byte eHome = 10;
+        const byte eHome = 10;
         #endregion
 
         #region variableHandles
@@ -41,6 +41,9 @@ namespace TwinCat_Motion_ADS
         private uint bEnableHandle;
         private uint bResetHandle;
         private uint bCommandAbortedHandle;
+
+        public TestStatus CommandResult = TestStatus.Inactive;  //holder for command status result for code testing
+
         #endregion
         
         //Current axis ID
@@ -138,21 +141,26 @@ namespace TwinCat_Motion_ADS
             await Plc.TcAds.WriteAnyAsync(bResetHandle, true, CancellationToken.None);
         }
 
-        public async Task<bool> MoveAbsolute(double position, double velocity)
+        public async Task<bool> MoveAbsolute(double position, double velocity, bool testOverride = false)
         {
             if (!ValidCommand()) return false;
-            if (AxisBusy)
+
+            if(testOverride == false)
             {
-                return false;   //command fails if axis already busy
+                if (AxisBusy)
+                {
+                    return false;   //command fails if axis already busy
+                }
+                if (Error)
+                {
+                    return false;
+                }
+                if (velocity == 0)
+                {
+                    return false;
+                }
             }
-            if (Error)
-            {
-                return false;
-            }
-            if(velocity == 0)
-            {
-                return false;
-            }
+            
             
 
             var commandTask = SetCommand(eMoveAbsolute);
@@ -182,19 +190,23 @@ namespace TwinCat_Motion_ADS
             return true;
         }
         
-        public async Task<bool> MoveRelative(double position, double velocity)
+        public async Task<bool> MoveRelative(double position, double velocity, bool testOverride = false)
         {
             if (!ValidCommand()) return false;
-            if (AxisBusy)
+            if (testOverride == false)
             {
-                return false;   //command fails if axis already busy
+                if (AxisBusy)
+                {
+                    return false;   //command fails if axis already busy
+                }
+                if (Error)
+                {
+                    return false;
+                }
+                if (velocity <= 0)
+                { return false; }
             }
-            if (Error)
-            {
-                return false;
-            }
-            if (velocity <= 0)
-            { return false; }
+            
             var commandTask = SetCommand(eMoveRelative);
             var velocityTask = SetVelocity(velocity);
             var positionTask = SetPosition(position);
@@ -222,16 +234,18 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> MoveAbsoluteAndWait(double position, double velocity, int timeout = 0)
+        public async Task<bool> MoveAbsoluteAndWait(double position, double velocity, int timeout = 0, bool testOverride = false)
         {
             if (!ValidCommand()) return false;
             CancellationTokenSource ct = new();
 
-            if (await MoveAbsolute(position, velocity))
+            if (await MoveAbsolute(position, velocity, testOverride))
             {
+                CommandResult = TestStatus.Initiated;
                 await Task.Delay(40);   //delay to system to allow PLC to react to move command
                 Task<bool> errorTask = CheckForError(ct.Token);
                 Task<bool> doneTask = WaitForDone(ct.Token);
+                Task<bool> commandAbortedTask = CheckForCommandAborted(ct.Token);
                 Task<bool> cancellationTask = CancelTestTask(ct.Token);
                 Task<bool> limitTask;
                 List<Task> waitingTask;
@@ -249,29 +263,32 @@ namespace TwinCat_Motion_ADS
                 if (timeout > 0)
                 {
                     Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token);
-                    waitingTask = new List<Task> { doneTask, errorTask,limitTask, timeoutTask, cancellationTask };
+                    waitingTask = new List<Task> { doneTask, errorTask,limitTask, timeoutTask, cancellationTask, commandAbortedTask };
                 }
                 else
                 {
-                    waitingTask = new List<Task> { doneTask, errorTask,limitTask, cancellationTask };
+                    waitingTask = new List<Task> { doneTask, errorTask,limitTask, cancellationTask, commandAbortedTask };
                 }
                 
                 if(await Task.WhenAny(waitingTask)==doneTask)
                 {
                     Console.WriteLine("Move absolute complete");
                     ct.Cancel();
+                    CommandResult = TestStatus.Done;
                     return true;
                 }
                 else if(await Task.WhenAny(waitingTask) == errorTask)
                 {
                     Console.WriteLine("Error on move absolute");
                     ct.Cancel();
+                    CommandResult = TestStatus.Error;
                     return false;
                 }
                 else if(await Task.WhenAny(waitingTask) == limitTask)
                 {
                     Console.WriteLine("Limit hit before position reached");
                     ct.Cancel();
+                    CommandResult = TestStatus.LimitHit;
                     return false;
                 }
                 else if(await Task.WhenAny(waitingTask) == cancellationTask)
@@ -280,6 +297,14 @@ namespace TwinCat_Motion_ADS
                     
                     ct.Cancel();
                     await MoveStop();
+                    CommandResult = TestStatus.Cancelled;
+                    return false;
+                }
+                else if(await Task.WhenAny(waitingTask)== commandAbortedTask)
+                {
+                    Console.WriteLine("Command aborted on move absolute");
+                    ct.Cancel();
+                    CommandResult = TestStatus.CommandAborted;
                     return false;
                 }
                 else
@@ -294,21 +319,25 @@ namespace TwinCat_Motion_ADS
             return false;
         }
 
-        public async Task<bool> MoveVelocity(double velocity)
+        public async Task<bool> MoveVelocity(double velocity, bool testOverride = false)
         {
             if (!ValidCommand()) return false;
-            if (AxisBusy)
+            if(testOverride == false)
             {
-                return false;   //command fails if axis already busy
+                if (AxisBusy)
+                {
+                    return false;   //command fails if axis already busy
+                }
+                if (Error)
+                {
+                    return false;
+                }
+                if (velocity == 0)
+                {
+                    return false;
+                }
             }
-            if (Error)
-            {
-                return false;
-            }
-            if (velocity == 0)
-            {
-                return false;
-            }
+            
             var commandTask = SetCommand(eMoveVelocity);
             var velocityTask = SetVelocity(velocity);
             var velocityTasks = new List<Task> { commandTask, velocityTask };
@@ -1552,5 +1581,16 @@ namespace TwinCat_Motion_ADS
             testSettings.ExportSettingsXml(filePath, "1");
         }
         #endregion
+    }
+    public enum TestStatus
+    {
+        Initiated,
+        Done,
+        Busy,
+        Error,
+        CommandAborted,
+        LimitHit,
+        Cancelled,
+        Inactive
     }
 }
