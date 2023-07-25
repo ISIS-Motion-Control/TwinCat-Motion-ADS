@@ -157,7 +157,7 @@ namespace Renishaw_XL80_App
             //Set default console to the laser listbox
             Console.SetOut(lbw);
 
-            ConnectToServer();
+            //ConnectToServer();
 
             try
             {
@@ -501,8 +501,10 @@ namespace Renishaw_XL80_App
             DeviceInfo info = new DeviceInfo();
             try
             {
+                Console.WriteLine("TEST");
                 if (Laser.Connect(ref info))
                 {
+                    Console.WriteLine("HIT");
                     m_edlen = new Edlen(Laser.GetVacuumWavelength());
                     Console.WriteLine("Laser - " + info.SerialNumber + " connected");
                     Console.WriteLine("Vacuum wavelength = " + m_edlen.VacuumWavelength.ToString("F9"));
