@@ -20,59 +20,29 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Windows.Threading;
-using Renishaw.IO.Bluetooth;
-using Renishaw.IO;
-using System.Threading.Tasks;
-using Renishaw.Calibration.Devices.XR;
-using Renishaw.Calibration.Devices.Infrastructure;
-using System.Runtime.CompilerServices;
-using System.Windows.Data;
 
 namespace Renishaw_XL80_App
 {
-    public class MyDelay : IDelay
-    {
-        public async Task Delay(int milliseconds)
-        {
-            await Task.Delay(milliseconds);
-        }
-
-        public async Task Delay(int milliseconds, CancellationToken token)
-        {
-            await Task.Delay(milliseconds, token);;
-        }
-    }
-
     [CallbackBehavior(UseSynchronizationContext = false)]
-    public partial class MainWindow : Window, ILaserSystemCallback, IWeatherStationCallback, INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
-
+    public partial class MainWindow : Window, ILaserSystemCallback, IWeatherStationCallback
+    {      
         private const int GWL_STYLE = -16;
         private const int WS_SYSMENU = 0x80000;
         [DllImport("user32.dll", SetLastError = true)]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
         [DllImport("user32.dll")]
         private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
         
         //Local hosts are required to establish and setup the USB connection
         LocalXCHost xcHost = null;
         LocalXLHost xlHost = null;
-        
-        
 
         //Measurement systems and custom renishaw classes
         private WeatherStationClient m_ws;
         private LaserSystemClient m_laser;
-
-
         private Edlen m_edlen;
         private MaterialExpansion m_expansion;
-
 
         private bool _Connected;
         public bool Connected
@@ -88,35 +58,6 @@ namespace Renishaw_XL80_App
             private set { _WeatherConnected = value; }
         }
 
-        private double _XrVelocity = 5.0;
-        public double XrVelocity
-        {
-            get { return _XrVelocity; }
-            private set { 
-                if (double.TryParse(value.ToString(), out _))
-                {
-                    _XrVelocity = value;
-                    OnPropertyChanged();
-                    MessageBox.Show("Value changed to: " + value.ToString());
-                }
-                
-            }
-        }
-
-        public string XrVelocityString
-        {
-            get { return _XrVelocity.ToString(); }
-            set
-            {
-                
-                if (double.TryParse(value.ToString(), out _))
-                {
-                    _XrVelocity = double.Parse(value);
-                    OnPropertyChanged();
-                }
-
-            }
-        }
 
         private SynchronizationContext m_SynchronizationContext;
 
@@ -129,15 +70,12 @@ namespace Renishaw_XL80_App
         //Custom "console" text writer class to allow writing timestamped data to a listbox
         ListBoxWriter lbw;
         ListBoxWriter lbw_Weather;
-        ListBoxWriter lbw_XR;
         public ObservableCollection<ListBoxStatusItem> consoleStringList = new ObservableCollection<ListBoxStatusItem>();
         public ObservableCollection<ListBoxStatusItem> consoleStringList_Weather = new ObservableCollection<ListBoxStatusItem>();
-        public ObservableCollection<ListBoxStatusItem> consoleStringList_XR = new ObservableCollection<ListBoxStatusItem>();
-
+        
         //constructor
         public MainWindow()
         {
-            
             InitializeComponent();
             m_SynchronizationContext = SynchronizationContext.Current;
             
@@ -150,14 +88,10 @@ namespace Renishaw_XL80_App
             lbw_Weather = new ListBoxWriter(consoleListBoxWeather);
             consoleListBoxWeather.ItemsSource = consoleStringList_Weather;
 
-            //Console for the XR
-            lbw_XR = new ListBoxWriter(consoleListBoxXr);
-            consoleListBoxXr.ItemsSource = consoleStringList_XR;
-
             //Set default console to the laser listbox
             Console.SetOut(lbw);
 
-            //ConnectToServer();
+            ConnectToServer();
 
             try
             {
@@ -168,19 +102,9 @@ namespace Renishaw_XL80_App
             {
                 MessageBox.Show("Unable to create XLHost");
             }
-
-            Binding VelocityTextboxBind = new Binding();
-            VelocityTextboxBind.Mode = BindingMode.TwoWay;
-            VelocityTextboxBind.Source = this;
-            VelocityTextboxBind.Path = new PropertyPath("XrVelocityString");
-            VelocityTextboxBind.UpdateSourceTrigger = UpdateSourceTrigger.LostFocus;
-            BindingOperations.SetBinding(textbox_xrVelocity, TextBox.TextProperty, VelocityTextboxBind);
-
-            
         }
-        
-        
 
+       
         private async void SendMessage(string value)
         {
             if (SendInProgress) return;
@@ -301,7 +225,7 @@ namespace Renishaw_XL80_App
             SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_SYSMENU);
         }
 
-        private void Window_Closing(object sender, CancelEventArgs e)
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (xlHost != null)
             {
@@ -501,10 +425,8 @@ namespace Renishaw_XL80_App
             DeviceInfo info = new DeviceInfo();
             try
             {
-                Console.WriteLine("TEST");
                 if (Laser.Connect(ref info))
                 {
-                    Console.WriteLine("HIT");
                     m_edlen = new Edlen(Laser.GetVacuumWavelength());
                     Console.WriteLine("Laser - " + info.SerialNumber + " connected");
                     Console.WriteLine("Vacuum wavelength = " + m_edlen.VacuumWavelength.ToString("F9"));
@@ -759,226 +681,7 @@ namespace Renishaw_XL80_App
             lbw_Weather.WriteLine("Material temperature[1]: " + record[1].ToString());
             lbw_Weather.WriteLine("Material temperature[2]: " + record[2].ToString());
         }
-
-
-
-
-
         #endregion
-
-        #region XR20 logic
-        public BluetoothEndPoint XR20_Endpoint;
-        public XR20BluetoothConnector xrConnector;
-        private List<BluetoothDeviceType> bluetoothDevices = new List<BluetoothDeviceType> { BluetoothDeviceType.XR20_W };
-        private CancellationTokenSource bluetoothSearchCT;
-        public loadingWindow _loadingWindow = new loadingWindow();
-        BluetoothDeviceDiscoverer discoverer;
-        private async void button_xr_search_Click(object sender, RoutedEventArgs e)
-        {
-            bluetoothSearchCT = new CancellationTokenSource();
-            discoverer = new BluetoothDeviceDiscoverer();
-            _loadingWindow.Show();
-
-            _loadingWindow.CancelRequested += CancelSearch;
-            discoverer.ScanForBluetoothDevicesAsync(bluetoothDevices, BluetoothDeviceFound, bluetoothSearchCT.Token);
-        }
-
-        public void CancelSearch(object sender, EventArgs e)
-        {
-            try
-            {
-                bluetoothSearchCT.Cancel();
-                _loadingWindow.Hide();
-                discoverer.Dispose();                
-            }
-            catch
-            {
-                return;
-            }
-        }
-
-        private async void BluetoothDeviceFound(DiscoveredBluetoothDevice foundDevice)
-        {
-            await Application.Current.Dispatcher.BeginInvoke(
-            DispatcherPriority.Background,
-            new Action(() => {
-                _loadingWindow.Hide();
-            }));
-            
-            MessageBoxResult result = MessageBox.Show("Device found with serial: " + foundDevice.SerialNumber +"\nDo you want to connect?","Device found",MessageBoxButton.YesNo);
-            if (result == MessageBoxResult.Yes)
-            {
-                ConnectToBleDevice(foundDevice);
-            }
-        }
-
-        XRDevice xrDevice;
-        private async void ConnectToBleDevice(DiscoveredBluetoothDevice device)
-        {
-            BluetoothEndPoint bleEndpoint = device.EndPoint;
-            BluetoothConnector bleConnector = new BluetoothConnector();
-            RealDelay realDelay = new RealDelay();
-            XR20BluetoothConnector xrBleConnector = new XR20BluetoothConnector(bleConnector, realDelay);
-            RealTimer realTimer = new RealTimer();
-            xrDevice = new XRDevice(bleEndpoint, xrBleConnector, realTimer);
-            await xrDevice.Open();
-            await Application.Current.Dispatcher.BeginInvoke(
-            DispatcherPriority.Background,
-            new Action(() => {
-                lbw_XR.WriteLine("Connection status: " + xrDevice.ConnectionStatus);
-            }));
-     
-            SubscribeToEvent(xrDevice);
-            GetXrBatteryLevel(CancellationToken.None);
-        }
-
-
-
-        public async Task GetXrBatteryLevel(CancellationToken ct)
-        {
-            while(!ct.IsCancellationRequested)
-            {
-                if (xrDevice == null) return;
-                WriteBatteryLevel(xrDevice.BatteryLevel);                    
-                await Task.Delay(100);
-            }
-            return;
-        }
-        public void WriteBatteryLevel(int level)
-        {
-            Application.Current.Dispatcher.BeginInvoke(
-               DispatcherPriority.Background,
-               new Action(() => {
-                   textbox_xrBatteryLevel.Text = level.ToString();
-               }));
-        }
-            
-        
-
-        private void SubscribeToEvent(XRDevice xrDevice) => xrDevice.LatestReadingUpdated += this.Xr20ReadingUpdate;
-        private void Xr20ReadingUpdate(object sender, EventArgs args)
-        {
-            XR20Reading reading = (sender as XRDevice).LatestReading;
-            Application.Current.Dispatcher.BeginInvoke(
-            DispatcherPriority.Background,
-            new Action(() => {
-                textbox_xrReadingValue.Text = reading.Position.ToString();
-                textbox_xrReadingStatus.Text = reading.Status.ToString();
-            }));
-        }
-
-
-        private async void button_xrReference_Click(object sender, RoutedEventArgs e)
-        {
-            if (xrDevice == null) return;
-            try
-            {
-                Task refTask = xrDevice.ReferenceAsync(CancellationToken.None);
-
-                await refTask;
-                if (refTask.IsCompleted)
-                {
-                    lbw_XR.WriteLine("Reference move complete");
-                }
-                await xrDevice.DisableServosAsync(CancellationToken.None);
-            }
-            catch
-            {
-                lbw_XR.WriteLine("Reference Timeout");
-                await xrDevice.DisableServosAsync(CancellationToken.None);
-                return;
-            }
-        }
-
-        private async void button_xrLock_Click(object sender, RoutedEventArgs e)
-        {
-            if (xrDevice == null) return;
-            try
-            {
-                await xrDevice.LockAsync(CancellationToken.None);
-            }
-            catch
-            {
-                lbw_XR.WriteLine("Lock timeout");
-                return;
-            }
-            lbw_XR.WriteLine("Rotation locked");
-        }
-
-        private async void button_xrUnlock_Click(object sender, RoutedEventArgs e)
-        {
-            if (xrDevice == null) return;
-            try
-            {
-                await xrDevice.UnlockAsync(CancellationToken.None);
-            }
-            catch
-            {
-                lbw_XR.WriteLine("Unlock timeout");
-                return;
-            }
-            lbw_XR.WriteLine("Rotation unlocked");
-        }
-
-        private async void button_xrDisableServos_Click(object sender, RoutedEventArgs e)
-        {
-            if (xrDevice == null) return;
-            try
-            {
-                await xrDevice.DisableServosAsync(CancellationToken.None);
-            }
-            catch
-            {
-                lbw_XR.WriteLine("Disable servos timeout");
-                return;
-            }
-            lbw_XR.WriteLine("Servos disabled");
-        }
-
-        private void button_xrDatum_Click(object sender, RoutedEventArgs e)
-        {
-            if (xrDevice == null) return;
-            try
-            {
-                xrDevice.Datum();
-            }
-            catch
-            {
-                lbw_XR.WriteLine("Unable to datum");
-                return;
-            }
-        }
-
-
-
-
-        #endregion
-
-        private void button_xrClearScreen_Click(object sender, RoutedEventArgs e)
-        {
-            consoleStringList_XR.Clear();
-        }
-
-        private void button_xrConnectionStatus_Click(object sender, RoutedEventArgs e)
-        {
-            ConnectionStatus status = new ConnectionStatus();
-            status = xrDevice.ConnectionStatus;
-            lbw_XR.WriteLine(status.ToString());
-        }
-
-        private void button_xrSweepAntiClockwise_Click(object sender, RoutedEventArgs e)
-        {
-            if (xrDevice == null) return;
-            xrDevice.StartSweepAsync(Renishaw.Calibration.Devices.Constants.RotaryDirectionKind.Anticlockwise, XrVelocity);
-        }
-
-        private void button_xrSweepClockwise_Click(object sender, RoutedEventArgs e)
-        {
-            if (xrDevice == null) return;
-            xrDevice.StartSweepAsync(Renishaw.Calibration.Devices.Constants.RotaryDirectionKind.Clockwise, XrVelocity);
-
-        }
-
     }
 
     public class ListBoxStatusItem
