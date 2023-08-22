@@ -129,6 +129,38 @@ namespace TwinCat_Motion_ADS
                     }
                     break;
 
+                case DeviceTypes.KeyenceTMX5000:
+                    CommonRs232Window();
+                    //Create stack panels to show the channel settings
+                    StackPanel allChannelsTMX = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
+                    StackPanel col1ChannelsTMX = new() { Orientation = Orientation.Vertical };
+                    StackPanel col2ChannelsTMX = new() { Orientation = Orientation.Vertical, Margin = new Thickness(10, 0, 0, 0) };
+
+                    //Add stack panels to screen
+                    deviceSettings.Children.Add(allChannelsTMX);
+                    allChannelsTMX.Children.Add(col1ChannelsTMX);
+                    allChannelsTMX.Children.Add(col2ChannelsTMX);
+
+                    //Populate a list to contain all channel UI elements
+                    List<KeyenceChannelTMX> keyenceChannelsTMX = new();
+                    for (int i = 0; i < ((MD_KeyenceTMX5000)MDevice).KEYENCE_MAX_CHANNELS; i++)
+                    {
+                        keyenceChannelsTMX.Add(new(i + 1, ((MD_KeyenceTMX5000)MDevice)));
+                    }
+                    //Populate the UI columns based on channel numbers (8 channels per column)
+                    foreach (KeyenceChannelTMX kc in keyenceChannelsTMX)
+                    {
+                        if (kc.channelID < 9)
+                        {
+                            col1ChannelsTMX.Children.Add(kc.sp);
+                        }
+                        else if (kc.channelID > 8 && kc.channelID < 17)
+                        {
+                            col2ChannelsTMX.Children.Add(kc.sp);
+                        }
+                    }
+                    break;
+
                 case DeviceTypes.Beckhoff:
                     //Create stack panel for 1st setting
                     StackPanel setting1 = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(5, 5, 0, 0) };
@@ -413,6 +445,42 @@ namespace TwinCat_Motion_ADS
             else
             {
                 tbContent = ((MD_KeyenceTM3000)source).ChName[channel - 1];
+            }
+
+            //Bind and setup UI elements
+            XamlUI.TextboxBinding(tb, source, tbpp);
+            XamlUI.SetupTextBox(ref tb, tbContent, 100);
+            XamlUI.CheckBoxBinding(cbContent, cb, source, cbpp);
+
+            //Add elements to stackpanel
+            sp.Children.Add(tb);
+            sp.Children.Add(cb);
+        }
+    }
+    class KeyenceChannelTMX
+    {
+        public int channelID;
+        public StackPanel sp = new() { Orientation = Orientation.Horizontal };
+        private TextBox tb = new();
+        private CheckBox cb = new();
+
+        public KeyenceChannelTMX(int channel, object source)
+        {
+            channelID = channel;
+            //Setup strings for content and property paths
+            //string tbpp = "Ch" + channel + "Name";
+            string tbpp = "ChName[" + (channel - 1) + "]";
+            string cbContent = "Ch" + channel;
+            string cbpp = "ChConnected[" + (channel - 1) + "]";
+            string tbContent;
+            //Don't want to reset name field unless it's empty
+            if (string.IsNullOrEmpty(((MD_KeyenceTMX5000)source).ChName[channel - 1]))
+            {
+                tbContent = "*Ch" + channel + "*";
+            }
+            else
+            {
+                tbContent = ((MD_KeyenceTMX5000)source).ChName[channel - 1];
             }
 
             //Bind and setup UI elements

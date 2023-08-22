@@ -1008,7 +1008,12 @@ namespace TwinCat_Motion_ADS
                 if (IsTestCancelled())
                 {
                     testRunning = false;
-                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
+                    try
+                    {
+                        SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
+                    }
+                    catch { }
+                    
                     return false;
                 }
                
@@ -1025,7 +1030,9 @@ namespace TwinCat_Motion_ADS
                     Console.WriteLine("Failed to move to reversal position");
                     testRunning = false;
                     stopWatch.Stop();
-                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
+                    try { SendHttpRequest(testSettings.TestTitle.Val, "Test failed"); }
+                    catch { }
+                    
                     return false;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.SettleTimeSeconds.Val));
@@ -1034,25 +1041,35 @@ namespace TwinCat_Motion_ADS
                 if (await UniDirectionalSingleCycle(testSettings, cycleCount, TargetPosition, devices, csvFileFullPath) == false)
                 {
                     testRunning = false;
-                    SendHttpRequest(testSettings.TestTitle.Val, "Test failed");
+                    try { SendHttpRequest(testSettings.TestTitle.Val, "Test failed"); }
+                    catch { }
+                    
                     return false;
                 }
                 //Delay between cycles
                 await Task.Delay(TimeSpan.FromSeconds(testSettings.CycleDelaySeconds.Val)); //inter-cycle delay wait
                 if (cycleCount == 1)
                 {
-                    SendHttpRequest(testSettings.TestTitle.Val, "First cycle complete");
+                    try { SendHttpRequest(testSettings.TestTitle.Val, "First cycle complete"); }
+                    catch { }
+                    
                 }
                 else
                 {
-                    SendHttpRequest(testSettings.TestTitle.Val, "Cycle " + cycleCount + " complete\n \nEstimated finish at " + EstimatedTimeRemaining.EstimatedEndTime.ToString());
+                    try
+                    {
+                        SendHttpRequest(testSettings.TestTitle.Val, "Cycle " + cycleCount + " complete\n \nEstimated finish at " + EstimatedTimeRemaining.EstimatedEndTime.ToString());
+                    }
+                    catch { }
                 }
             }
             TestProgress = 1;
             testRunning = false;
             stopWatch.Stop();
             Console.WriteLine("Test Complete. Test took " + stopWatch.Elapsed + "ms");
-            SendHttpRequest(testSettings.TestTitle.Val, "Test complete");
+            try { SendHttpRequest(testSettings.TestTitle.Val, "Test complete"); }
+            catch { }
+            
             return true;
         }
 

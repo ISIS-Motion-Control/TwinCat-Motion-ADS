@@ -9,12 +9,12 @@ using System;
 
 namespace TwinCat_Motion_ADS.MeasurementDevice
 {    
-    public class MD_KeyenceTM3000 : BaseRs232MeasurementDevice, I_MeasurementDevice
+    public class MD_KeyenceTMX5000 : BaseRs232MeasurementDevice, I_MeasurementDevice
     {
-        public MD_KeyenceTM3000(string baudRate = "115200")
+        public MD_KeyenceTMX5000(string baudRate = "115200")
         {
             BaudRate = baudRate;
-            DeviceType = DeviceTypes.KeyenceTM3000;
+            DeviceType = DeviceTypes.KeyenceTMX5000;
 
             ChConnected = new bool[KEYENCE_MAX_CHANNELS];
             ChName = new string[KEYENCE_MAX_CHANNELS];
@@ -100,20 +100,30 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
         public async Task<string> GetMeasureAsync(int measurementChannel, int timeoutMilliSeconds = defaultTimeout)
         {
             CancellationTokenSource ct = new CancellationTokenSource();
-            ////Create a generic message buffer of the command MM,0000000000000000 (16 measurement channels)
-            var txBuf = new byte[] { 0x4D, 0x4D, 0x2C, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x0D };
-            ////For the specified measurement channel, set the buffer value from 0 to 1
-            txBuf[measurementChannel + 2] = 0x31;
+
+            //Send GM,0,1,ID as my message. Tool channels appear to come in as 200,201,202,203 etc
+            var txBuf = new byte[] { 0x47, 0x4D, 0x2C, 0x30, 0x2C, 0x31, 0x2C, 0x30, 0x30, 0x30, 0x0D };
+            txBuf[7] = 0x32;
+            if (measurementChannel>10)
+            {
+                txBuf[8] = 0x31;
+                txBuf[9] = Convert.ToByte(measurementChannel + 37);
+            }
+            else
+            {
+                txBuf[8] = 0x30;
+                txBuf[9] = Convert.ToByte(measurementChannel + 47);
+            }
             
             //create a buffer to hold the returned value
-            var rxBuf = new byte[29];
-            rxBuf = await ReadAsyncBuff(txBuf, 29, ct, timeoutMilliSeconds);
-            if (rxBuf.Length != 29) //Device should always return 29 bytes for a single channel read
+            var rxBuf = new byte[15];
+            rxBuf = await ReadAsyncBuff(txBuf, 15, ct, timeoutMilliSeconds);
+            if (rxBuf.Length != 15) //Device should always return 29 bytes for a single channel read
             {
                 return "Measurement failed";
             }
             byte[] measureBuf = new byte[9]; //setup a buffer for extracting just the 8 bytes of measurement data
-            System.Array.Copy(rxBuf, 20, measureBuf, 0, 8);
+            System.Array.Copy(rxBuf, 5, measureBuf, 0, 9);
             var str = System.Text.Encoding.Default.GetString(measureBuf); //convert measurement buffer to a string
             return str;
         }
@@ -125,7 +135,8 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
             {
 
                 SerialPort.DiscardInBuffer();
-                SerialPort.Write(cmd, 0, 20);   //Should be 20 bytes for a read
+                //SerialPort.Write(cmd, 0, 20);   //Should be 20 bytes for a read
+                SerialPort.Write(cmd, 0, 11);
                 while (SerialPort.BytesToRead < rb)
                 {
                     if (ct.Token.IsCancellationRequested)
