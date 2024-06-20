@@ -216,6 +216,8 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
         DigimaticIndicator,
         [StringValue("KeyenceTM3000")]
         KeyenceTM3000,
+        [StringValue("KeyenceTMX5000")]
+        KeyenceTMX5000,
         [StringValue("Beckhoff")]
         Beckhoff,
         [StringValue("MotionChannel")]

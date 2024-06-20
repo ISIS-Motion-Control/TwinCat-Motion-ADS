@@ -17,7 +17,12 @@
                         Content="Init. Air Axis" 
                             Margin="0,10,0,0"
                             Style="{StaticResource myDefaultButton}" Click="InitialisePneumatic_Click"/>
-            <Button x:Name="extendCylinder_button" 
+                <Button x:Name="toggleAirOnBehaviour" 
+                        Focusable="False" 
+                        Content="Invert air on logic"
+                            Margin="0,10,0,0"
+                            Style="{StaticResource myDefaultButton}" Click="toggleAirOnBehaviour_Click"/>
+                <Button x:Name="extendCylinder_button" 
                         Focusable="False" 
                         Content="Extend cylinder"
                             Margin="0,10,0,0"
@@ -65,18 +70,30 @@
                                       Style="{StaticResource checkBoxTheme}"/>
             </StackPanel>
         <StackPanel>
-            <CheckBox x:Name="CylinderAir" 
+                <CheckBox x:Name="airOnLogic" 
+      Content="Air on to extend" 
+      HorizontalAlignment="Left" 
+      IsEnabled="False"
+      Height="20"
+      Margin="10,20,0,0"
+      Style="{StaticResource checkBoxTheme}"/>
+                <CheckBox x:Name="CylinderAir" 
                               Content="Cylinder AIR ON" 
                               HorizontalAlignment="Left" 
                               IsEnabled="False"
                               Height="20"
                               Margin="10,20,0,0"
                               Style="{StaticResource checkBoxTheme}"/>
-            <CheckBox x:Name="pneumaticExtended" 
+                <TextBlock Text="NORMALLY CLOSED SWITCHES" HorizontalAlignment="Center"
+                   TextAlignment="Right"
+                   Margin="2,20,2,0"
+                   Foreground="White"
+                           FontSize="16"/>
+                <CheckBox x:Name="pneumaticExtended" 
                               Content="ExtendedLimit" 
                               HorizontalAlignment="Left" 
                               Height="20"
-                              Margin="10,20,0,0"
+                              Margin="10,2,0,0"
                               IsEnabled="False"
                               Style="{StaticResource checkBoxTheme}"/>
             <CheckBox x:Name="pneumaticRetracted" 
@@ -86,6 +103,7 @@
                               Height="20"
                               Margin="10,20,0,0"
                               Style="{StaticResource checkBoxTheme}"/>
+            
 
         </StackPanel>
             <StackPanel Margin="15,0,0,0">

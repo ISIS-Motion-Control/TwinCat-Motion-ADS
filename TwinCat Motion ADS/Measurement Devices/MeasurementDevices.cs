@@ -41,6 +41,11 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
                     MeasurementDeviceList.Add(newDevice);
                     break;
 
+                case DeviceTypes.KeyenceTMX5000:
+                    newDevice = new MD_KeyenceTMX5000();
+                    MeasurementDeviceList.Add(newDevice);
+                    break;
+
                 case DeviceTypes.Beckhoff:   //Multi-channel device                    
                     newDevice = new MD_Beckhoff();
                     MeasurementDeviceList.Add(newDevice);
@@ -79,6 +84,10 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
 
                 case DeviceTypes.KeyenceTM3000: //Multi Channel device
                     MeasurementDeviceList[i] = new MD_KeyenceTM3000();
+                    break;
+
+                case DeviceTypes.KeyenceTMX5000: //Multi Channel device
+                    MeasurementDeviceList[i] = new MD_KeyenceTMX5000();
                     break;
 
                 case DeviceTypes.Beckhoff:   //Multi-channel device                    
@@ -341,6 +350,8 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
                         break;
                     case DeviceTypes.RenishawXL80:
                         //No settings to export
+                        break;
+                    default:
                         break;
                 }
             }
