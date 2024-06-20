@@ -37,6 +37,13 @@ namespace TwinCat_Motion_ADS
             set { _cylinder = value; OnPropertyChanged(); }
         }
 
+        private bool _airOnToExtend = true;
+        public bool AirOnToExtend
+        {
+            get { return _airOnToExtend; }
+            set { _airOnToExtend = value; OnPropertyChanged(); }
+        }
+
         public PneumaticAxis(PLC plc)
         {
             try
@@ -53,10 +60,18 @@ namespace TwinCat_Motion_ADS
 
         }
 
-        private async Task CylinderActuation(bool extend)
-        {      
-            await Plc.TcAds.WriteAnyAsync(bCylinder_Handle, extend, CancellationToken.None);
+        public void ToggleAirBehaviour()
+        {
+            AirOnToExtend = !AirOnToExtend;
         }
+
+        private async Task CylinderActuation(bool extend)
+        {   
+            if (AirOnToExtend) { await Plc.TcAds.WriteAnyAsync(bCylinder_Handle, extend, CancellationToken.None); }
+            else { await Plc.TcAds.WriteAnyAsync(bCylinder_Handle, !extend, CancellationToken.None); }
+            
+        }
+
         public async Task<bool> ExtendCylinder(bool ignoreLimits = false)
         {
             if (!ValidCommand()) return false;
@@ -246,7 +261,7 @@ namespace TwinCat_Motion_ADS
                     //do a read of DTIs (both should be in extend position)
                     //These will not be highly synchronised reads, very low "read rate".
 
-                    PneumaticEnd2EndCSVv2 tmpCSV = new PneumaticEnd2EndCSVv2((uint)i, (uint)j, "Extending", ExtendedLimit, RetractedLimit, stopwatch.Elapsed);
+                    PneumaticEnd2EndCSVv2 tmpCSV = new PneumaticEnd2EndCSVv2((uint)i, (uint)j, "Extended", ExtendedLimit, RetractedLimit, stopwatch.Elapsed);
                     if (await WriteToCSVAIR(formattedTitle2, tmpCSV, md) == false)
                     {
                         Console.WriteLine("Failed to write data to file, exiting test");
@@ -269,12 +284,29 @@ namespace TwinCat_Motion_ADS
                     return false;
                 }
                 stopwatch.Stop();
-                PneumaticEnd2EndCSVv2 tmpCSVretract = new PneumaticEnd2EndCSVv2((uint)i, 0, "Retracting", ExtendedLimit, RetractedLimit, stopwatch.Elapsed);
+                for (int j = 0; j < ts.SettlingReads.Val; j++)
+                {
+                    //do a read of DTIs (both should be in extend position)
+                    //These will not be highly synchronised reads, very low "read rate".
+
+                    PneumaticEnd2EndCSVv2 tmpCSV = new PneumaticEnd2EndCSVv2((uint)i, (uint)j, "Retracted", ExtendedLimit, RetractedLimit, stopwatch.Elapsed);
+                    if (await WriteToCSVAIR(formattedTitle2, tmpCSV, md) == false)
+                    {
+                        Console.WriteLine("Failed to write data to file, exiting test");
+                        return false;
+                    }
+
+
+                    await Task.Delay((int)ts.ReadDelayMs.Val);
+                }
+                //Used to only one shot the read
+                /*PneumaticEnd2EndCSVv2 tmpCSVretract = new PneumaticEnd2EndCSVv2((uint)i, 0, "Retracting", ExtendedLimit, RetractedLimit, stopwatch.Elapsed);
                 if (await WriteToCSVAIR(formattedTitle2, tmpCSVretract, md) == false)
                 {
                     Console.WriteLine("Failed to write data to file, exiting test");
                     return false;
-                }
+                }*/
+
             //Retract finished and logged. Write to csv
             //Write the cycle data
             

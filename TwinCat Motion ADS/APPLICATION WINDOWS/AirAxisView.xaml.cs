@@ -38,6 +38,7 @@ namespace TwinCat_Motion_ADS
             XamlUI.CheckBoxBinding("Extended Limit", pneumaticExtended, pneumaticAxis, "ExtendedLimit", BindingMode.OneWay);
             XamlUI.CheckBoxBinding("Retracted Limit", pneumaticRetracted, pneumaticAxis, "RetractedLimit", BindingMode.OneWay);
             XamlUI.CheckBoxBinding("Actuator", CylinderAir, pneumaticAxis, "Cylinder", BindingMode.OneWay);
+            XamlUI.CheckBoxBinding("Air on to extend", airOnLogic, pneumaticAxis, "AirOnToExtend", BindingMode.OneWay);
             XamlUI.TextboxBinding(cycles, TestSettings.Cycles, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(settlingReads, TestSettings.SettlingReads, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(readDelay, TestSettings.ReadDelayMs, "UiVal", UpdateSourceTrigger.LostFocus);
@@ -62,20 +63,36 @@ namespace TwinCat_Motion_ADS
             pneumaticAxis.ReadStatuses();
         }
 
+        private void toggleAirOnBehaviour_Click(object sender, RoutedEventArgs e)
+        {
+            if (pneumaticAxis != null)
+            {
+                pneumaticAxis.ToggleAirBehaviour();
+            }
+        }
+
         private async void ExtendCylinderButton_Click(object sender, RoutedEventArgs e)
         {
-            if (await pneumaticAxis.ExtendCylinderAndWait() == false)
+            if (pneumaticAxis != null)
             {
-                Console.WriteLine("FAILED");
+                if (await pneumaticAxis.ExtendCylinderAndWait() == false)
+                {
+                    Console.WriteLine("FAILED");
+                }
             }
+            
         }
 
         private async void RetractCylinderButton_Click(object sender, RoutedEventArgs e)
         {
-            if (await pneumaticAxis.RetractCylinderAndWait() == false)
+            if (pneumaticAxis != null)
             {
-                Console.WriteLine("FAILED");
+                if (await pneumaticAxis.RetractCylinderAndWait() == false)
+                {
+                    Console.WriteLine("FAILED");
+                }
             }
+            
         }
 
         private async void ShutterLimitToLimitTestButton_Click(object sender, RoutedEventArgs e)
@@ -95,5 +112,7 @@ namespace TwinCat_Motion_ADS
             Console.WriteLine(selectedFolder);
             pneumaticAxis.TestDirectory = selectedFolder;
         }
+
+        
     }
 }
