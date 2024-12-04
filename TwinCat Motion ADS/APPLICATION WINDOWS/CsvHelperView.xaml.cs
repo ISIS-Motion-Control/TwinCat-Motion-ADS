@@ -109,16 +109,16 @@ namespace TwinCat_Motion_ADS
             XAxisDec.UiVal = Properties.Settings.Default.xAxisDec;
 
             //Bind UI textboxes to axis properties
-            XamlUI.TextboxBinding(SettingY_Scale_Max, YAxisMax, "UiVal");
-            XamlUI.TextboxBinding(SettingY_Scale_Min, YAxisMin, "UiVal");
-            XamlUI.TextboxBinding(SettingY_Scale_Sep, YAxisSep, "UiVal");
+            XamlUI.TextboxBinding(SettingY_Scale_Max, YAxisMax, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(SettingY_Scale_Min, YAxisMin, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(SettingY_Scale_Sep, YAxisSep, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(SettingY_Title, YAxisTitle, "UiVal");
-            XamlUI.TextboxBinding(SettingX_Scale_Max, XAxisMax, "UiVal");
-            XamlUI.TextboxBinding(SettingX_Scale_Min, XAxisMin, "UiVal");
-            XamlUI.TextboxBinding(SettingX_Scale_Sep, XAxisSep, "UiVal");
+            XamlUI.TextboxBinding(SettingX_Scale_Max, XAxisMax, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(SettingX_Scale_Min, XAxisMin, "UiVal",UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(SettingX_Scale_Sep, XAxisSep, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(SettingX_Title, XAxisTitle, "UiVal");
-            XamlUI.TextboxBinding(SettingY_Scale_Dec, YAxisDec, "UiVal");
-            XamlUI.TextboxBinding(SettingX_Scale_Dec, XAxisDec, "UiVal");
+            XamlUI.TextboxBinding(SettingY_Scale_Dec, YAxisDec, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(SettingX_Scale_Dec, XAxisDec, "UiVal", UpdateSourceTrigger.LostFocus);
         }
         #endregion
 

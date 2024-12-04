@@ -82,6 +82,7 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
             }
             Console.WriteLine("Connected to channel");
             Connected = true;
+            UpdateChannelList();
             return true;
         }
 

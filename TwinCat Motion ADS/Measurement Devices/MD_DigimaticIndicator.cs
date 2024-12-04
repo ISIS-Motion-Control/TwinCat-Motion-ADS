@@ -3,6 +3,7 @@ using System.Threading;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System;
+using System.Data;
 
 namespace TwinCat_Motion_ADS.MeasurementDevice
 {
@@ -16,6 +17,15 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
         private const int defaultTimeout = 1000;
         private const int readDelay = 25;   //Give buffer time to fill
 
+        new public bool Connect()
+        {
+            bool bPlaceholder;
+            bPlaceholder = base.Connect();
+            if (bPlaceholder) { UpdateChannelList(); }
+            return bPlaceholder;
+            
+        }
+        
         public async Task<string> GetChannelMeasurement(int channelNumber = 0)
         {
             if (!Connected)

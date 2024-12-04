@@ -19,6 +19,8 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
         public bool Connect()
         {
             Connected = true;
+            
+            UpdateChannelList();
             return true;
         }
 
