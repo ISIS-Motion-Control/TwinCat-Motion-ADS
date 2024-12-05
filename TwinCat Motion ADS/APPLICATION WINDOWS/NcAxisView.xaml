@@ -56,6 +56,7 @@
                             <Button x:Name="stopMove" Focusable="False" Content="Stop" Click="AxisCommand_Click" Margin="0,10,0,0" Style="{StaticResource myDefaultButton}"/>
                             <Button x:Name="highLimReversal" Focusable="False" Content="HighLimReversal" Click="AxisCommand_Click" Margin="0,10,0,0" Style="{StaticResource myDefaultButton}"/>
                             <Button x:Name="lowLimReversal" Focusable="False" Content="LowLimReversal" Click="AxisCommand_Click" Margin="0,10,0,0" Style="{StaticResource myDefaultButton}"/>
+                            <Button x:Name="homeButton" Focusable="False" Content="Home Axis" Click="AxisCommand_Click" Margin="0,10,0,0" Style="{StaticResource myDefaultButton}"/>
                         </StackPanel>
                         <!--Column 2 buttons-->
                         <StackPanel x:Name="testButtons" Margin="15,0,0,0">

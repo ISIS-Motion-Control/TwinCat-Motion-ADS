@@ -20,7 +20,7 @@ namespace TwinCat_Motion_ADS
         const byte eMoveAbsolute = 0;
         const byte eMoveRelative = 1;
         const byte eMoveVelocity = 3;
-        //const byte eHome = 10;
+        const byte eHome = 10;
         #endregion
 
         #region variableHandles
@@ -132,6 +132,80 @@ namespace TwinCat_Motion_ADS
         {
             if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(bResetHandle, true, CancellationToken.None);
+        }
+
+        public async Task<bool> HomeAxis()
+        {
+            if (!ValidCommand()) return false;
+            if (AxisBusy)
+            {
+                return false;   //command fails if axis already busy
+            }
+            if (Error)
+            {
+                return false;
+            }
+            await SetCommand(eHome);
+            await Execute();
+            return true;
+        }
+        public async Task<bool> HomeAxisAndWait(int timeout = 0)
+        {
+            if (!ValidCommand()) return false;
+            CancellationTokenSource ct = new();
+
+            if (await HomeAxis())
+            {
+                await ReadStatusesOneShot(CancellationToken.None);
+                await Task.Delay(40);   //delay to system to allow PLC to react to move command
+                Task<bool> errorTask = CheckForError(ct.Token);
+                Task<bool> doneTask = WaitForDone(ct.Token);
+                Task<bool> cancellationTask = CancelTestTask(ct.Token);
+                List<Task> waitingTask;
+
+
+                //Check if we need a timeout task
+                if (timeout > 0)
+                {
+                    Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token);
+                    waitingTask = new List<Task> { doneTask, errorTask, timeoutTask, cancellationTask };
+                }
+                else
+                {
+                    waitingTask = new List<Task> { doneTask, errorTask, cancellationTask };
+                }
+
+                if (await Task.WhenAny(waitingTask) == doneTask)
+                {
+                    Console.WriteLine("Home complete");
+                    ct.Cancel();
+                    return true;
+                }
+                else if (await Task.WhenAny(waitingTask) == errorTask)
+                {
+                    Console.WriteLine("Error on Home");
+                    ct.Cancel();
+                    return false;
+                }
+
+                else if (await Task.WhenAny(waitingTask) == cancellationTask)
+                {
+                    await Task.Delay(20);
+
+                    ct.Cancel();
+                    await MoveStop();
+                    return false;
+                }
+                else
+                {
+                    Console.WriteLine("Timeout on home");
+                    await MoveStop();
+                    ct.Cancel();
+                    return false;
+                }
+            }
+            Console.WriteLine("Axis busy - command rejected");
+            return false;
         }
 
         public async Task<bool> MoveAbsolute(double position, double velocity)
@@ -1647,6 +1721,8 @@ namespace TwinCat_Motion_ADS
         {
             testSettings.ExportSettingsXml(filePath, "1");
         }
+
+        
         #endregion
     }
 }

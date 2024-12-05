@@ -192,6 +192,10 @@ namespace TwinCat_Motion_ADS
                 await testAxis.LowLimitReversal(Convert.ToDouble(windowVelocity.SettingValue.Text), Convert.ToInt32(SettingTimeout.SettingValue.Text), Convert.ToInt32(SettingReversalExtraSeconds.SettingValue.Text), Convert.ToInt32(SettingReversalSettlingSeconds.SettingValue.Text));
                 Console.WriteLine(testAxis.AxisPosition);
             }
+            else if(sender as Button == homeButton)
+            {
+                await testAxis.HomeAxisAndWait();
+            }
         }
 
         private async void LimitToLimitTest_Click(object sender, RoutedEventArgs e)
