@@ -50,6 +50,7 @@ namespace TwinCat_Motion_ADS.MeasurementDevice
                 RenishawServer = new NamedPipeServerStream("RenishawXL80_Pipe");
                 reader = new StreamReader(RenishawServer);
                 writer = new StreamWriter(RenishawServer);
+                
                 string exeName = "Renishaw_XL80_App.exe";
                 string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, exeName);
                 MessageBox.Show(path);

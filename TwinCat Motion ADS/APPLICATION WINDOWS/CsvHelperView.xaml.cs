@@ -83,6 +83,9 @@ namespace TwinCat_Motion_ADS
         public SettingUint XAxisDec { get; set; } = new("xAxisDec");
         #endregion
 
+        private AccuracyLimits AccuracyLimits;
+        private RepeatabilityMeasure RepeatabilityMeasure;
+
         #region Constructors
         public CsvHelperView()
         {
@@ -615,7 +618,7 @@ namespace TwinCat_Motion_ADS
 
                     ScatterSeries<ObservablePoint> myLine = new ScatterSeries<ObservablePoint> { Name = e.SeriesName + " (" + filter + ")", Values = new List<ObservablePoint>() };
                     myLine.Values = (dataPoints);
-                    myLine.GeometrySize = 2;
+                    myLine.GeometrySize = 1;
 
                     SeriesCollection.Add(myLine);
                 }
@@ -698,7 +701,9 @@ namespace TwinCat_Motion_ADS
                 
             }
             accuracyVal = maxVal - minVal;
+            
             AccuracyLimits accuracyLimits = new(maxVal, minVal, accuracyVal);
+            AccuracyLimits = accuracyLimits;
             Console.WriteLine(accuracyVal);
             string accuracyString = string.Format("{0:0.000}", accuracyVal);
             AccuracyVal.Text = accuracyString;
@@ -746,7 +751,7 @@ namespace TwinCat_Motion_ADS
 
 
             }
-
+            RepeatabilityMeasure = worseRepeatability;
             Console.WriteLine(repeatVal);
             string repeatabilityString = string.Format("{0:0.000}", repeatVal);
             RepeatabilityVal.Text = repeatabilityString;
@@ -817,14 +822,30 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("No header item selected");
                 return;
             }
-            RepeatabilityMeasure repeatability = CalculateRepeatability(csvHeaderList.SelectedItem.ToString(), "TargetPosition");
-            AccuracyLimits accuracy = CalculateAccuracy(csvHeaderList.SelectedItem.ToString());
+            RepeatabilityMeasure repeatability;
+            AccuracyLimits accuracy;
+            if ((AccuracyLimits == null) & (RepeatabilityMeasure == null)){
+                repeatability = CalculateRepeatability(csvHeaderList.SelectedItem.ToString(), "TargetPosition");
+                accuracy = CalculateAccuracy(csvHeaderList.SelectedItem.ToString());
+            }
+            else
+            {
+                repeatability = RepeatabilityMeasure;
+                accuracy = AccuracyLimits;
+            }
+            
 
             SolidColorPaint linePaint = new SolidColorPaint
             {
                 Color = SKColors.Red,
                 StrokeThickness = 3,
                 PathEffect = new DashEffect(new float[] { 6, 6 })
+            }; 
+            SolidColorPaint repeatabilityLinePaint = new SolidColorPaint
+            {
+                Color = SKColors.Orange,
+                StrokeThickness = 4,
+                PathEffect = new DashEffect(new float[] { 0, 0 })
             };
 
 
@@ -836,7 +857,7 @@ namespace TwinCat_Motion_ADS
                 Yj = repeatability.MaxError
             };
 
-            repeatabilitySection.Stroke = linePaint;
+            repeatabilitySection.Stroke = repeatabilityLinePaint;
 
 
             RectangularSection accuracyHighSection = new RectangularSection()
