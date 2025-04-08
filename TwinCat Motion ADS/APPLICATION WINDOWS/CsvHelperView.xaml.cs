@@ -83,6 +83,9 @@ namespace TwinCat_Motion_ADS
         public SettingUint XAxisDec { get; set; } = new("xAxisDec");
         #endregion
 
+        private AccuracyLimits AccuracyLimits;
+        private RepeatabilityMeasure RepeatabilityMeasure;
+
         #region Constructors
         public CsvHelperView()
         {
@@ -109,16 +112,16 @@ namespace TwinCat_Motion_ADS
             XAxisDec.UiVal = Properties.Settings.Default.xAxisDec;
 
             //Bind UI textboxes to axis properties
-            XamlUI.TextboxBinding(SettingY_Scale_Max, YAxisMax, "UiVal");
-            XamlUI.TextboxBinding(SettingY_Scale_Min, YAxisMin, "UiVal");
-            XamlUI.TextboxBinding(SettingY_Scale_Sep, YAxisSep, "UiVal");
+            XamlUI.TextboxBinding(SettingY_Scale_Max, YAxisMax, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(SettingY_Scale_Min, YAxisMin, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(SettingY_Scale_Sep, YAxisSep, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(SettingY_Title, YAxisTitle, "UiVal");
-            XamlUI.TextboxBinding(SettingX_Scale_Max, XAxisMax, "UiVal");
-            XamlUI.TextboxBinding(SettingX_Scale_Min, XAxisMin, "UiVal");
-            XamlUI.TextboxBinding(SettingX_Scale_Sep, XAxisSep, "UiVal");
+            XamlUI.TextboxBinding(SettingX_Scale_Max, XAxisMax, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(SettingX_Scale_Min, XAxisMin, "UiVal",UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(SettingX_Scale_Sep, XAxisSep, "UiVal", UpdateSourceTrigger.LostFocus);
             XamlUI.TextboxBinding(SettingX_Title, XAxisTitle, "UiVal");
-            XamlUI.TextboxBinding(SettingY_Scale_Dec, YAxisDec, "UiVal");
-            XamlUI.TextboxBinding(SettingX_Scale_Dec, XAxisDec, "UiVal");
+            XamlUI.TextboxBinding(SettingY_Scale_Dec, YAxisDec, "UiVal", UpdateSourceTrigger.LostFocus);
+            XamlUI.TextboxBinding(SettingX_Scale_Dec, XAxisDec, "UiVal", UpdateSourceTrigger.LostFocus);
         }
         #endregion
 
@@ -190,7 +193,7 @@ namespace TwinCat_Motion_ADS
             {
                 return;
             }
-
+            dataFileVal.Text = Path.GetFileNameWithoutExtension(selectedFile); 
             //Populate the datatable with CSV data and update the UI data grid
             try
             {
@@ -337,7 +340,7 @@ namespace TwinCat_Motion_ADS
                 return;
             }
             CalculateAccuracy(csvHeaderList.SelectedItem.ToString());
-            CalculateRepeatability(csvHeaderList.SelectedItem.ToString(), "TargetPosition");
+            CalculateRepeatability(csvHeaderList.SelectedItem.ToString(), "TargetPosition", "Step");
         }
         #endregion
 
@@ -615,7 +618,7 @@ namespace TwinCat_Motion_ADS
 
                     ScatterSeries<ObservablePoint> myLine = new ScatterSeries<ObservablePoint> { Name = e.SeriesName + " (" + filter + ")", Values = new List<ObservablePoint>() };
                     myLine.Values = (dataPoints);
-                    myLine.GeometrySize = 2;
+                    myLine.GeometrySize = 1;
 
                     SeriesCollection.Add(myLine);
                 }
@@ -686,7 +689,13 @@ namespace TwinCat_Motion_ADS
             double maxVal = 0;
             double minVal = 0;
             double accuracyVal;
-            
+            //Don't want zero as the limit
+            if (double.TryParse((string)dt.Rows[1][columnName], out _))
+            {
+                maxVal = double.Parse((string)dt.Rows[1][columnName]);
+                minVal = double.Parse((string)dt.Rows[1][columnName]);
+            }
+                
 
             foreach (DataRow row in dt.Rows)
             {
@@ -698,14 +707,16 @@ namespace TwinCat_Motion_ADS
                 
             }
             accuracyVal = maxVal - minVal;
+            
             AccuracyLimits accuracyLimits = new(maxVal, minVal, accuracyVal);
+            AccuracyLimits = accuracyLimits;
             Console.WriteLine(accuracyVal);
             string accuracyString = string.Format("{0:0.000}", accuracyVal);
             AccuracyVal.Text = accuracyString;
             return accuracyLimits;
         }
 
-        public RepeatabilityMeasure CalculateRepeatability(string errorColumn, string targetColumn)
+        public RepeatabilityMeasure CalculateRepeatability(string errorColumn, string targetColumn, string stepColumn)
         {
             //want to group things by their target
             ObservableCollection<RepeatabilityMeasure> repeatabilityMeasures = new ObservableCollection<RepeatabilityMeasure>();
@@ -715,7 +726,7 @@ namespace TwinCat_Motion_ADS
                 bool matchFound = false;
                 foreach(RepeatabilityMeasure targetRow in repeatabilityMeasures)
                 {
-                    if(targetRow.TargetPosition == double.Parse((string)row[targetColumn]))
+                    if(targetRow.Step == double.Parse((string)row[stepColumn]))
                     {
                         matchFound = true; //Don't need to add a new entry
                         if (double.Parse((string)row[errorColumn]) > targetRow.MaxError) targetRow.MaxError = double.Parse((string)row[errorColumn]);
@@ -724,11 +735,11 @@ namespace TwinCat_Motion_ADS
                 }
                 if(!matchFound)
                 {
-                    repeatabilityMeasures.Add(new(double.Parse((string)row[targetColumn]), double.Parse((string)row[errorColumn]), double.Parse((string)row[errorColumn])));
+                    repeatabilityMeasures.Add(new(double.Parse((string)row["TargetPosition"]), double.Parse((string)row[errorColumn]), double.Parse((string)row[errorColumn]), double.Parse((string)row[stepColumn])));
                 }
             }
 
-            RepeatabilityMeasure worseRepeatability = new(0,0,0);
+            RepeatabilityMeasure worseRepeatability = new(0,0,0,0);
             double? repeatVal = 999; 
             Console.WriteLine("List size is: " + repeatabilityMeasures.Count);
             foreach(RepeatabilityMeasure measure in repeatabilityMeasures)
@@ -742,11 +753,12 @@ namespace TwinCat_Motion_ADS
                     worseRepeatability.MinError = measure.MinError;
                     worseRepeatability.MaxError = measure.MaxError;
                     worseRepeatability.Repeatability = measure.Repeatability;
+                    worseRepeatability.Step = measure.Step;
                 }
 
 
             }
-
+            RepeatabilityMeasure = worseRepeatability;
             Console.WriteLine(repeatVal);
             string repeatabilityString = string.Format("{0:0.000}", repeatVal);
             RepeatabilityVal.Text = repeatabilityString;
@@ -817,14 +829,30 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("No header item selected");
                 return;
             }
-            RepeatabilityMeasure repeatability = CalculateRepeatability(csvHeaderList.SelectedItem.ToString(), "TargetPosition");
-            AccuracyLimits accuracy = CalculateAccuracy(csvHeaderList.SelectedItem.ToString());
+            RepeatabilityMeasure repeatability;
+            AccuracyLimits accuracy;
+            if ((AccuracyLimits == null) & (RepeatabilityMeasure == null)){
+                repeatability = CalculateRepeatability(csvHeaderList.SelectedItem.ToString(), "TargetPosition", "Step");
+                accuracy = CalculateAccuracy(csvHeaderList.SelectedItem.ToString());
+            }
+            else
+            {
+                repeatability = RepeatabilityMeasure;
+                accuracy = AccuracyLimits;
+            }
+            
 
             SolidColorPaint linePaint = new SolidColorPaint
             {
                 Color = SKColors.Red,
                 StrokeThickness = 3,
                 PathEffect = new DashEffect(new float[] { 6, 6 })
+            }; 
+            SolidColorPaint repeatabilityLinePaint = new SolidColorPaint
+            {
+                Color = SKColors.Orange,
+                StrokeThickness = 4,
+                PathEffect = new DashEffect(new float[] { 0, 0 })
             };
 
 
@@ -836,7 +864,7 @@ namespace TwinCat_Motion_ADS
                 Yj = repeatability.MaxError
             };
 
-            repeatabilitySection.Stroke = linePaint;
+            repeatabilitySection.Stroke = repeatabilityLinePaint;
 
 
             RectangularSection accuracyHighSection = new RectangularSection()
@@ -885,6 +913,90 @@ namespace TwinCat_Motion_ADS
         {
             EditLineWindow editWindow = new(SeriesCollection, Sections);
             editWindow.Show();
+        }
+
+        private void Button_AutoFitX_Click(object sender, RoutedEventArgs e)
+        {
+            double paddingVal = 0.05;
+            double maxVal = 0;
+            double minVal = 0;
+            if (csvHeaderList.SelectedItem == null)
+            {
+                Console.WriteLine("No item selected");
+                return;
+            }
+            string columnName = csvHeaderList.SelectedItem.ToString();
+
+
+            //Don't want zero as the limit
+            if (double.TryParse((string)dt.Rows[1][columnName], out _))
+            {
+                maxVal = double.Parse((string)dt.Rows[1][columnName]);
+                minVal = double.Parse((string)dt.Rows[1][columnName]);
+            }
+
+
+            foreach (DataRow row in dt.Rows)
+            {
+                if (double.TryParse((string)row[columnName], out _))
+                {
+                    if (double.Parse((string)row[columnName]) > maxVal) maxVal = double.Parse((string)row[columnName]);
+                    if (double.Parse((string)row[columnName]) < minVal) minVal = double.Parse((string)row[columnName]);
+                }
+
+            }
+
+            Console.WriteLine("X max = " + maxVal);
+            Console.WriteLine("X min = " + minVal);
+            
+            double minMaxDiff = maxVal- minVal;
+            minVal = minVal - (minMaxDiff * paddingVal);
+            maxVal = maxVal + (minMaxDiff * paddingVal);
+
+            XAxisMax.Val = maxVal;
+            XAxisMin.Val = minVal;
+        }
+
+        private void Button_AutoFitY_Click(object sender, RoutedEventArgs e)
+        {
+            double paddingVal = 0.05;
+            double maxVal = 0;
+            double minVal = 0;
+            if (csvHeaderList.SelectedItem == null)
+            {
+                Console.WriteLine("No item selected");
+                return;
+            }
+            string columnName = csvHeaderList.SelectedItem.ToString();
+
+
+            //Don't want zero as the limit
+            if (double.TryParse((string)dt.Rows[1][columnName], out _))
+            {
+                maxVal = double.Parse((string)dt.Rows[1][columnName]);
+                minVal = double.Parse((string)dt.Rows[1][columnName]);
+            }
+
+
+            foreach (DataRow row in dt.Rows)
+            {
+                if (double.TryParse((string)row[columnName], out _))
+                {
+                    if (double.Parse((string)row[columnName]) > maxVal) maxVal = double.Parse((string)row[columnName]);
+                    if (double.Parse((string)row[columnName]) < minVal) minVal = double.Parse((string)row[columnName]);
+                }
+
+            }
+
+            Console.WriteLine("Y max = " + maxVal);
+            Console.WriteLine("Y min = " + minVal);
+
+            double minMaxDiff = maxVal - minVal;
+            minVal = minVal - (minMaxDiff * paddingVal);
+            maxVal = maxVal + (minMaxDiff * paddingVal);
+
+            YAxisMax.Val = maxVal;
+            YAxisMin.Val = minVal;
         }
     }
     public class NewDataArgs : EventArgs
@@ -948,15 +1060,17 @@ namespace TwinCat_Motion_ADS
     public class RepeatabilityMeasure
     {
         public double TargetPosition;
+        public double Step;
         public double MaxError = 999;
         public double MinError = 999;
         public double Repeatability;
 
-        public RepeatabilityMeasure(double targetPosition, double maxError, double minError)
+        public RepeatabilityMeasure(double targetPosition, double maxError, double minError, double step)
         {
             TargetPosition = targetPosition;
             MaxError = maxError;
             MinError = minError;
+            Step = step;
         }
     }
 

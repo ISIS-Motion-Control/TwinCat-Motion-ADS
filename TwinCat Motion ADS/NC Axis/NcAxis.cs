@@ -15,12 +15,15 @@ namespace TwinCat_Motion_ADS
     public partial class NcAxis : TestAdmin
     {
         public bool testRunning = false;
+        private CancellationTokenSource newCommandIssuedCT = new CancellationTokenSource();
+        //private bool MoveToHighInProgress = false;
+        //bool MoveToLowInProgress = false;
 
         #region commandValues
         const byte eMoveAbsolute = 0;
         const byte eMoveRelative = 1;
         const byte eMoveVelocity = 3;
-        //const byte eHome = 10;
+        const byte eHome = 10;
         #endregion
 
         #region variableHandles
@@ -98,6 +101,15 @@ namespace TwinCat_Motion_ADS
 
         #region Basic Commands
 
+        private bool newCommandIssued()
+        {
+            newCommandIssuedCT.Cancel();
+            if (!ValidCommand()) return false;
+            newCommandIssuedCT.Dispose();
+            newCommandIssuedCT = new();
+            return true;
+        }
+
         private async Task SetCommand(byte command)
         {
             if (!ValidCommand()) return;
@@ -134,8 +146,26 @@ namespace TwinCat_Motion_ADS
             await Plc.TcAds.WriteAnyAsync(bResetHandle, true, CancellationToken.None);
         }
 
+        public async Task<bool> HomeAxis()
+        {
+            
+            if (!ValidCommand()) return false;
+            if (AxisBusy)
+            {
+                return false;   //command fails if axis already busy
+            }
+            if (Error)
+            {
+                return false;
+            }
+            await SetCommand(eHome);
+            await Execute();
+            return true;
+        }
+       
         public async Task<bool> MoveAbsolute(double position, double velocity)
         {
+
             if (!ValidCommand()) return false;
             if (AxisBusy)
             {
@@ -218,79 +248,6 @@ namespace TwinCat_Motion_ADS
             return true;
         }
 
-        public async Task<bool> MoveAbsoluteAndWait(double position, double velocity, int timeout = 0)
-        {
-            if (!ValidCommand()) return false;
-            CancellationTokenSource ct = new();
-
-            if (await MoveAbsolute(position, velocity))
-            {
-                await ReadStatusesOneShot(CancellationToken.None);
-                await Task.Delay(40);   //delay to system to allow PLC to react to move command
-                Task<bool> errorTask = CheckForError(ct.Token);
-                Task<bool> doneTask = WaitForDone(ct.Token);
-                Task<bool> cancellationTask = CancelTestTask(ct.Token);
-                Task<bool> limitTask;
-                List<Task> waitingTask;
-
-                double currentPosition = AxisPosition;
-                if (position>currentPosition)
-                {
-                    limitTask = CheckFwLimitTask(true, ct.Token);
-                }
-                else
-                {
-                    limitTask = CheckBwLimitTask(true, ct.Token);
-                }
-                //Check if we need a timeout task
-                if (timeout > 0)
-                {
-                    Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token);
-                    waitingTask = new List<Task> { doneTask, errorTask,limitTask, timeoutTask, cancellationTask };
-                }
-                else
-                {
-                    waitingTask = new List<Task> { doneTask, errorTask,limitTask, cancellationTask };
-                }
-                
-                if(await Task.WhenAny(waitingTask)==doneTask)
-                {
-                    Console.WriteLine("Move absolute complete");
-                    ct.Cancel();
-                    return true;
-                }
-                else if(await Task.WhenAny(waitingTask) == errorTask)
-                {
-                    Console.WriteLine("Error on move absolute");
-                    ct.Cancel();
-                    return false;
-                }
-                else if(await Task.WhenAny(waitingTask) == limitTask)
-                {
-                    Console.WriteLine("Limit hit before position reached");
-                    ct.Cancel();
-                    return false;
-                }
-                else if(await Task.WhenAny(waitingTask) == cancellationTask)
-                {
-                    await Task.Delay(20);
-                    
-                    ct.Cancel();
-                    await MoveStop();
-                    return false;
-                }
-                else
-                {
-                    Console.WriteLine("Timeout on moveabs");
-                    await MoveStop();
-                    ct.Cancel();
-                    return false;
-                }
-            }
-            Console.WriteLine("Axis busy - command rejected");
-            return false;
-        }
-
         public async Task<bool> MoveVelocity(double velocity)
         {
             await ReadStatusesOneShot(CancellationToken.None);
@@ -332,14 +289,92 @@ namespace TwinCat_Motion_ADS
         {
             if (!ValidCommand()) return;
             await Plc.TcAds.WriteAnyAsync(bStopHandle, true, CancellationToken.None);
+            newCommandIssuedCT.Cancel();
         }
 
         #endregion
 
         #region Advanced Commands
+        public async Task<bool> MoveAbsoluteAndWait(double position, double velocity, int timeout = 0)
+        {
+            if (!newCommandIssued()) return false;
+            CancellationTokenSource ct = new();
+
+            if (await MoveAbsolute(position, velocity))
+            {
+                await ReadStatusesOneShot(CancellationToken.None);
+                await Task.Delay(40);   //delay to system to allow PLC to react to move command
+                Task<bool> errorTask = CheckForError(ct.Token);
+                Task<bool> doneTask = WaitForDone(ct.Token);
+                Task<bool> cancellationTask = CancelTestTask(newCommandIssuedCT.Token);
+                Task<bool> limitTask;
+                List<Task> waitingTask;
+
+                double currentPosition = AxisPosition;
+                if (position > currentPosition)
+                {
+                    limitTask = CheckFwLimitTask(true, ct.Token);
+                }
+                else
+                {
+                    limitTask = CheckBwLimitTask(true, ct.Token);
+                }
+                //Check if we need a timeout task
+                if (timeout > 0)
+                {
+                    Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token);
+                    waitingTask = new List<Task> { doneTask, errorTask, limitTask, timeoutTask, cancellationTask };
+                }
+                else
+                {
+                    waitingTask = new List<Task> { doneTask, errorTask, limitTask, cancellationTask };
+                }
+
+                if (await Task.WhenAny(waitingTask) == doneTask)
+                {
+                    Console.WriteLine("Move absolute complete");
+                    ct.Cancel();
+                    newCommandIssuedCT.Cancel();
+                    return true;
+                }
+                else if (await Task.WhenAny(waitingTask) == errorTask)
+                {
+                    Console.WriteLine("Error on move absolute");
+                    ct.Cancel();
+                    newCommandIssuedCT.Cancel();
+                    return false;
+                }
+                else if (await Task.WhenAny(waitingTask) == limitTask)
+                {
+                    Console.WriteLine("Limit hit before position reached");
+                    ct.Cancel();
+                    newCommandIssuedCT.Cancel();
+                    return false;
+                }
+                else if (await Task.WhenAny(waitingTask) == cancellationTask)
+                {
+                    await Task.Delay(20);
+
+                    ct.Cancel();
+                    await MoveStop();
+                    return false;
+                }
+                else
+                {
+                    Console.WriteLine("Timeout on move absolute");
+                    await MoveStop();
+                    newCommandIssuedCT.Cancel();
+                    ct.Cancel();
+                    return false;
+                }
+            }
+            Console.WriteLine("Axis busy - command rejected");
+            return false;
+        }
+        
         public async Task<bool> MoveRelativeAndWait(double position, double velocity, int timeout=0)
         {
-            if (!ValidCommand()) return false;
+            if (!newCommandIssued()) return false;
             CancellationTokenSource ct = new();
 
             if (await MoveRelative(position,velocity))
@@ -347,7 +382,7 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(40);
                 Task<bool> doneTask = WaitForDone(ct.Token);
                 Task<bool> errorTask = CheckForError(ct.Token);
-                Task<bool> cancellationTask = CancelTestTask(ct.Token);
+                Task<bool> cancellationTask = CancelTestTask(newCommandIssuedCT.Token);
                 Task<bool> limitTask;
                 List<Task> waitingTask;
                 
@@ -374,18 +409,21 @@ namespace TwinCat_Motion_ADS
                 if (await Task.WhenAny(waitingTask) == doneTask)
                 {
                     Console.WriteLine("Move relative complete");
+                    newCommandIssuedCT.Cancel();
                     ct.Cancel();
                     return true;
                 }
                 else if (await Task.WhenAny(waitingTask) == errorTask)
                 {
                     Console.WriteLine("Error on move relative");
+                    newCommandIssuedCT.Cancel();
                     ct.Cancel();
                     return false;
                 }
                 else if (await Task.WhenAny(waitingTask) == limitTask)
                 {
                     Console.WriteLine("Limit hit before position reached");
+                    newCommandIssuedCT.Cancel();
                     ct.Cancel();
                     return false;
                 }
@@ -399,8 +437,9 @@ namespace TwinCat_Motion_ADS
                 }
                 else
                 {
-                    Console.WriteLine("Timeout on moverel");
+                    Console.WriteLine("Timeout on move relative");
                     await MoveStop();
+                    newCommandIssuedCT.Cancel();
                     ct.Cancel();
                     return false;
                 }
@@ -411,7 +450,7 @@ namespace TwinCat_Motion_ADS
         
         public async Task<bool> MoveToHighLimit(double velocity, int timeout)
         {
-            if (!ValidCommand()) return false;
+            if (!newCommandIssued()) return false;
             //Check to see if already on the high limit
             if (AxisFwEnabled == false)
             {
@@ -440,7 +479,8 @@ namespace TwinCat_Motion_ADS
             await ReadStatusesOneShot(CancellationToken.None);
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckFwLimitTask(true,ct.Token);
-            Task<bool> CancelationTask = CancelTestTask(ct.Token);
+            //Task<bool> CancelationTask = CancelTestTask(ct.Token);
+            Task<bool> CancelationTask = CancelTestTask(newCommandIssuedCT.Token);
             Task<bool> errorTask = CheckForError(ct.Token);
             List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task. 
@@ -456,26 +496,28 @@ namespace TwinCat_Motion_ADS
             if(await Task.WhenAny(waitingTask)==limitTask)
             {
                 Console.WriteLine("High limit reached");
+                newCommandIssuedCT.Cancel();
                 ct.Cancel();
                 return true;
             }
             else if (await Task.WhenAny(waitingTask) == errorTask)
             {
                 Console.WriteLine("Error on move to high limit");
+                newCommandIssuedCT.Cancel();
                 ct.Cancel();
                 return false;
             }
             else if (await Task.WhenAny(waitingTask) == CancelationTask)
             {
                 await Task.Delay(20);
-                ct.Cancel();
-                
+                ct.Cancel();                
                 await MoveStop();
                 return false;
             }
             else//Timeout on command
             {
                 await Task.Delay(20);
+                newCommandIssuedCT.Cancel();
                 ct.Cancel();
                 Console.WriteLine("Timeout on move to high limit");
                 await MoveStop();
@@ -485,7 +527,7 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> MoveToLowLimit(double velocity, int timeout)
         {
-            if (!ValidCommand()) return false;
+            if (!newCommandIssued()) return false;
             //Check to see if already on the low limit
             if (AxisBwEnabled == false)
             {
@@ -508,12 +550,13 @@ namespace TwinCat_Motion_ADS
                 Console.WriteLine("Command rejected");
                 return false;
             };
+
             //Start a task to check the BwEnabled bool that only returns when flag is hit (BwEnabled == false)
             //Update statuses here
             await ReadStatusesOneShot(CancellationToken.None);
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckBwLimitTask(true, ct.Token);
-            Task<bool> cancellationTask = CancelTestTask(ct.Token);
+            Task<bool> cancellationTask = CancelTestTask(newCommandIssuedCT.Token);
             Task<bool> errorTask = CheckForError(ct.Token);
             List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task.
@@ -529,6 +572,7 @@ namespace TwinCat_Motion_ADS
             if (await Task.WhenAny(waitingTask) == limitTask)
             {
                 Console.WriteLine("Low limit hit");
+                newCommandIssuedCT.Cancel();
                 ct.Cancel();
                 return true;
             }
@@ -536,19 +580,20 @@ namespace TwinCat_Motion_ADS
             {
                 Console.WriteLine("Error on move to low limit");
                 ct.Cancel();
+                newCommandIssuedCT.Cancel();
                 return false;
             }
             else if(await Task.WhenAny(waitingTask) == cancellationTask)
             {
                 await Task.Delay(20);
-                ct.Cancel();
-                
+                ct.Cancel();                
                 await MoveStop();
                 return false;
             }
             else //Timeout on command
             {
                 await Task.Delay(20);
+                newCommandIssuedCT.Cancel();
                 ct.Cancel();
                 Console.WriteLine("Timeout on move to lower limit");
                 await MoveStop();
@@ -558,13 +603,13 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> HighLimitReversal(double velocity, int timeout, int extraReversalTime, int settleTime)
         {
-            if (!ValidCommand()) return false;
+            if (!newCommandIssued()) return false;
             //Only allow the command if already on the high limit
-            /* if (await read_bFwEnabled() == true)
-             {
-                 Console.WriteLine("Not on high limit. Reversal command rejected");
-                 return false;
-             }*/
+            /*if (await CheckFwLimitTask(false,CancellationToken.None) == true)
+            {
+                Console.WriteLine("Not on high limit. Reversal command rejected");
+                return false;
+            }*/
             //Correct the velocity setting if needed
             if (velocity < 0)
             {
@@ -588,7 +633,7 @@ namespace TwinCat_Motion_ADS
             CancellationTokenSource ct = new();
             Task<bool> limitTask = CheckFwLimitTask(false, ct.Token);
             Task<bool> errorTask = CheckForError(ct.Token);
-            Task<bool> cancellationTask = CancelTestTask(ct.Token);
+            Task<bool> cancellationTask = CancelTestTask(newCommandIssuedCT.Token);
             List<Task> waitingTask;
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if (timeout == 0)
@@ -605,11 +650,13 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(TimeSpan.FromSeconds(extraReversalTime));
                 await MoveStop();
                 ct.Cancel();
+                newCommandIssuedCT.Cancel();
             }
             else if (await Task.WhenAny(waitingTask) == errorTask)
             {
                 Console.WriteLine("Error on high limit reversal");
                 ct.Cancel();
+                newCommandIssuedCT.Cancel();
                 return false;
             }
             else if (await Task.WhenAny(waitingTask) == cancellationTask)
@@ -635,10 +682,12 @@ namespace TwinCat_Motion_ADS
             }
             //Restart the checkFwEnable task to find when it is hit. Run at much faster rate
             waitingTask.Clear();
+            newCommandIssuedCT.Dispose();
+            newCommandIssuedCT = new();
             CancellationTokenSource ct2 = new();
             limitTask = CheckFwLimitTask(true, ct2.Token);
             errorTask = CheckForError(ct2.Token);
-            cancellationTask = CancelTestTask(ct2.Token);
+            cancellationTask = CancelTestTask(newCommandIssuedCT.Token);
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if (timeout == 0)
             {
@@ -653,12 +702,14 @@ namespace TwinCat_Motion_ADS
             {
                 await Task.Delay(TimeSpan.FromSeconds(settleTime));
                 ct2.Cancel();
+                newCommandIssuedCT.Cancel();
                 return true;
             }
             else if (await Task.WhenAny(waitingTask) == errorTask)
             {
                 Console.WriteLine("Error on high limit reversal");
                 ct.Cancel();
+                newCommandIssuedCT.Cancel();
                 return false;
             }
             else if (await Task.WhenAny(waitingTask) == cancellationTask)
@@ -680,13 +731,13 @@ namespace TwinCat_Motion_ADS
 
         public async Task<bool> LowLimitReversal(double velocity, int timeout, int extraReversalTime, int settleTime)
         {
-            if (!ValidCommand()) return false;
+            if (!newCommandIssued()) return false;
             //Only allow the command if already on the low limit
-            /* if (await read_bBwEnabled() == true)
-             {
-                 Console.WriteLine("Not on low limit. Reversal command rejected");
-                 return false;
-             }*/
+            /*if (await CheckBwLimitTask(false, CancellationToken.None) == true)
+            {
+                Console.WriteLine("Not on low limit. Reversal command rejected");
+                return false;
+            }*/
             //Correct the velocity setting if needed
             if (velocity > 0)
             {
@@ -727,11 +778,13 @@ namespace TwinCat_Motion_ADS
                 await Task.Delay(TimeSpan.FromSeconds(extraReversalTime));
                 await MoveStop();
                 ct.Cancel();
+                newCommandIssuedCT.Cancel();
             }
             else if (await Task.WhenAny(waitingTask) == errorTask)
             {
                 Console.WriteLine("Error on low limit reversal");
                 ct.Cancel();
+                newCommandIssuedCT.Cancel();
                 return false;
             }
             else if (await Task.WhenAny(waitingTask) == cancellationTask)
@@ -756,10 +809,12 @@ namespace TwinCat_Motion_ADS
             }
             //Restart the checkBwEnable task to find when it is hit. Run at much faster rate
             waitingTask.Clear();
+            newCommandIssuedCT.Dispose();
+            newCommandIssuedCT = new();
             CancellationTokenSource ct2 = new();
             limitTask = CheckBwLimitTask(true, ct2.Token);
             errorTask = CheckForError(ct2.Token);
-            cancellationTask = CancelTestTask(ct2.Token);
+            cancellationTask = CancelTestTask(newCommandIssuedCT.Token);
             //Create a new task to monitor a timeoutTask and the fw limit task. 
             if (timeout == 0)
             {
@@ -774,12 +829,14 @@ namespace TwinCat_Motion_ADS
             {
                 await Task.Delay(TimeSpan.FromSeconds(settleTime));
                 ct2.Cancel();
+                newCommandIssuedCT.Cancel();
                 return true;
             }
             else if (await Task.WhenAny(waitingTask) == errorTask)
             {
                 Console.WriteLine("Error on high limit reversal");
                 ct.Cancel();
+                newCommandIssuedCT.Cancel();
                 return false;
             }
             else if (await Task.WhenAny(waitingTask) == cancellationTask)
@@ -798,6 +855,69 @@ namespace TwinCat_Motion_ADS
                 return false;
             }
         }
+
+        public async Task<bool> HomeAxisAndWait(int timeout = 0)
+        {
+            if (!newCommandIssued()) return false;
+            CancellationTokenSource ct = new();
+
+            if (await HomeAxis())
+            {
+                await ReadStatusesOneShot(CancellationToken.None);
+                await Task.Delay(40);   //delay to system to allow PLC to react to move command
+                Task<bool> errorTask = CheckForError(ct.Token);
+                Task<bool> doneTask = WaitForDone(ct.Token);
+                Task<bool> cancellationTask = CancelTestTask(newCommandIssuedCT.Token);
+                List<Task> waitingTask;
+
+
+                //Check if we need a timeout task
+                if (timeout > 0)
+                {
+                    Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeout), ct.Token);
+                    waitingTask = new List<Task> { doneTask, errorTask, timeoutTask, cancellationTask };
+                }
+                else
+                {
+                    waitingTask = new List<Task> { doneTask, errorTask, cancellationTask };
+                }
+
+                if (await Task.WhenAny(waitingTask) == doneTask)
+                {
+                    Console.WriteLine("Home complete");
+                    ct.Cancel();
+                    newCommandIssuedCT.Cancel();
+                    return true;
+                }
+                else if (await Task.WhenAny(waitingTask) == errorTask)
+                {
+                    Console.WriteLine("Error on Home");
+                    ct.Cancel();
+                    newCommandIssuedCT.Cancel();
+                    return false;
+                }
+
+                else if (await Task.WhenAny(waitingTask) == cancellationTask)
+                {
+                    await Task.Delay(20);
+
+                    ct.Cancel();
+                    await MoveStop();
+                    return false;
+                }
+                else
+                {
+                    Console.WriteLine("Timeout on home");
+                    await MoveStop();
+                    ct.Cancel();
+                    newCommandIssuedCT.Cancel();
+                    return false;
+                }
+            }
+            Console.WriteLine("Axis busy - command rejected");
+            return false;
+        }
+
         #endregion
 
 
@@ -815,7 +935,7 @@ namespace TwinCat_Motion_ADS
 
 
 
-        public async Task<bool> LimitToLimitTestwithReversingSequence(NcTestSettings testSettings, MeasurementDevices devices = null)
+            public async Task<bool> LimitToLimitTestwithReversingSequence(NcTestSettings testSettings, MeasurementDevices devices = null)
         {
             //check there is a valid plc connection
             if (!ValidCommand()) return false;
@@ -1479,12 +1599,10 @@ namespace TwinCat_Motion_ADS
             bool checkValid = true;
             if (ts.Cycles.Val <= 0)
             {
+                Console.WriteLine("Cycle count cannot be <=0");
                 checkValid = false;
             }
-            if (ts.NumberOfSteps.Val <= 0)
-            {
-                checkValid = false;
-            }
+
             ts.Velocity.Val = Math.Abs(ts.Velocity.Val);
             if (ts.Velocity.Val == 0)
             {
@@ -1495,17 +1613,17 @@ namespace TwinCat_Motion_ADS
                 case TestTypes.EndToEnd:
                     if(ts.ReversalVelocity.Val<=0)
                     {
-                        Console.WriteLine("Reversal velocity cannont be <= 0");
+                        Console.WriteLine("Reversal velocity cannot be <= 0");
                         checkValid = false;
                     }
                     if(ts.ReversalExtraTimeSeconds.Val<=0)
                     {
-                        Console.WriteLine("Reversal time cannont be <= 0");
+                        Console.WriteLine("Reversal time cannot be <= 0");
                         checkValid = false;
                     }
                     if(ts.ReversalSettleTimeSeconds.Val<=0)
                     {
-                        Console.WriteLine("Reversal settle time cannont be <= 0");
+                        Console.WriteLine("Reversal settle time cannot be <= 0");
                         checkValid = false;
                     }
                     break;
@@ -1648,6 +1766,8 @@ namespace TwinCat_Motion_ADS
         {
             testSettings.ExportSettingsXml(filePath, "1");
         }
+
+        
         #endregion
     }
 }

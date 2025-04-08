@@ -74,7 +74,7 @@ namespace TwinCat_Motion_ADS
 
             if(TestList.SelectedIndex != -1)
             {
-                if(testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.NoneSelected || testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.UserPrompt)
+                if(testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.NoneSelected || testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.UserPrompt || testItems[TestList.SelectedIndex].TestSettings.TestType.Val == TestTypes.HomeCommand)
                 {
                     enableFlag = false;
                 }
@@ -411,6 +411,9 @@ namespace TwinCat_Motion_ADS
                             TestList.IsEnabled = true;
                             return;
                         }
+                        break;
+                    case TestTypes.HomeCommand:
+                        testResult = await NcAxis.HomeAxisAndWait();
                         break;
                 }
                 testCounter++;
