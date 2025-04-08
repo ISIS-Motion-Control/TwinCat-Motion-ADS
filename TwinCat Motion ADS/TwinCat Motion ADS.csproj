@@ -30,6 +30,8 @@
     <None Remove="APPLICATION WINDOWS\End2End.png" />
     <None Remove="APPLICATION WINDOWS\Scaling.png" />
     <None Remove="APPLICATION WINDOWS\Unidirectional.png" />
+    <None Remove="APPLICATION WINDOWS\XLimit.png" />
+    <None Remove="APPLICATION WINDOWS\YLimit.png" />
     <None Remove="babyIbex.jpg" />
     <None Remove="ibexHead.jpg" />
     <None Remove="ImageAssets\accuracy.png" />
@@ -104,6 +106,8 @@
     <Resource Include="APPLICATION WINDOWS\Help screen windows\ImageAssets\End2End.png" />
     <Resource Include="APPLICATION WINDOWS\Help screen windows\ImageAssets\Scaling.png" />
     <Resource Include="APPLICATION WINDOWS\Help screen windows\ImageAssets\Unidirectional.png" />
+    <Resource Include="APPLICATION WINDOWS\XLimit.png" />
+    <Resource Include="APPLICATION WINDOWS\YLimit.png" />
     <Resource Include="ImageAssets\babyIbex.jpg" />
     <Resource Include="ImageAssets\ibexHead.jpg" />
   </ItemGroup>

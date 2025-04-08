@@ -123,6 +123,11 @@
                     <lvc:CartesianChart x:Name="TestChart" Series="{Binding SeriesCollection}" Sections="{Binding Sections}" Height="500" Width="955" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2">
 
                     </lvc:CartesianChart>
+                    <StackPanel Orientation="Horizontal" x:Name="dataFileName" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="600,10,0,0" Background="LightGray" Height="20" Width="350">
+                        <TextBlock   Text="Filename: " HorizontalAlignment="Left" Margin="2,0,0,0" Width="60"/>
+                        <TextBlock x:Name="dataFileVal" Text="placeholder"  HorizontalAlignment="Right" Margin="2,0,0,2" FontSize="8"/>
+                        
+                    </StackPanel>
                     <StackPanel x:Name="performanceStackPanel" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="680,50,0,0" Background="LightGray" Height="40" Width="120">
                         <StackPanel Orientation="Horizontal" Width="120">
                             <TextBlock   Text="Accuracy: " HorizontalAlignment="Left" Margin="2,0,0,0" Width="80"/>
@@ -209,6 +214,22 @@
                         </Style>
                     </Button.Resources>
                     <Image Source="/ImageAssets/support.png" Margin="0,0,0,0" Width="18"/>
+                </Button>
+                <Button Height="25" Width="40" Click="Button_AutoFitX_Click" Margin="2,0,0,2" ToolTip="AutoFit-X">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/APPLICATION WINDOWS/XLimit.png" Margin="0,0,0,0" Width="18"/>
+                </Button>
+                <Button Height="25" Width="40" Click="Button_AutoFitY_Click" Margin="2,0,0,2" ToolTip="AutoFit-Y">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="2"/>
+                        </Style>
+                    </Button.Resources>
+                    <Image Source="/APPLICATION WINDOWS/YLimit.png" Margin="0,0,0,0" Width="18"/>
                 </Button>
             </StackPanel>
         </StackPanel>
