@@ -95,6 +95,19 @@
             <Setter Property="Height" Value="40px" />
         </Style>
 
+        <Style x:Key="testButtonStyle" TargetType="Button">
+            <Style.Triggers>
+                <!-- When Checkbox is checked, change background color to Green -->
+                <DataTrigger Binding="{Binding IsChecked, ElementName=myCheckBox}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource Background-dark}"/>
+                </DataTrigger>
+                <!-- When Checkbox is unchecked, change background color to Red -->
+                <DataTrigger Binding="{Binding IsChecked, ElementName=myCheckBox}" Value="False">
+                    <Setter Property="Background" Value="{StaticResource Background-light}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
     </Window.Resources>
 
     <Border CornerRadius="10" Background="#FF9FC1C9" Focusable="True">
@@ -140,6 +153,8 @@
                 <TextBox x:Name="amsNetIdTb" Height="20" Width="150" VerticalAlignment="Top" Margin="10,5,0,0"/>
                 <Button x:Name="connect2PlcButton" Focusable="False" Content="Connect to PLC" Click="ConnectToPlc_Click" Height="20" FontSize="16" VerticalAlignment="Top" Margin="10,5,0,0" Style="{StaticResource myDefaultButton}"/>
                 <Button x:Name="clearScreenButton" Focusable="False" Content="Clear Screen" Click="clearScreenButton_Click" Height="20" FontSize="16" VerticalAlignment="Top" Margin="10,5,0,0" Style="{StaticResource myDefaultButton}"/>
+                <CheckBox x:Name="myCheckBox"/>
+                <Button Content="Testing" Height="20" Width="120" Style="{StaticResource testButtonStyle}"/>
             </StackPanel>
 
             <!-- Content control window -->

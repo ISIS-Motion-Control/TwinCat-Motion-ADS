@@ -13,15 +13,19 @@
     <Compile Remove="Fonts\**" />
     <Compile Remove="Images\**" />
     <Compile Remove="APPLICATION WINDOWS\Model\**" />
+    <Compile Remove="Renishaw References\**" />
     <EmbeddedResource Remove="Fonts\**" />
     <EmbeddedResource Remove="Images\**" />
     <EmbeddedResource Remove="APPLICATION WINDOWS\Model\**" />
+    <EmbeddedResource Remove="Renishaw References\**" />
     <None Remove="Fonts\**" />
     <None Remove="Images\**" />
     <None Remove="APPLICATION WINDOWS\Model\**" />
+    <None Remove="Renishaw References\**" />
     <Page Remove="Fonts\**" />
     <Page Remove="Images\**" />
     <Page Remove="APPLICATION WINDOWS\Model\**" />
+    <Page Remove="Renishaw References\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -191,10 +195,6 @@
     <Page Update="APPLICATION WINDOWS\User Controls\SettingControlMainWindow.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Renishaw References\" />
   </ItemGroup>
 
 </Project>
