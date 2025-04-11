@@ -12,8 +12,7 @@
                 <ResourceDictionary Source="Theme/blueButtonTheme.xaml"/>
                 <ResourceDictionary Source="Theme/checkBoxTheme.xaml"/>
                 <ResourceDictionary Source="Theme/TextBlockTheme.xaml"/>
-                <ResourceDictionary Source="Theme/LightModeColours.xaml"/>
-                <ResourceDictionary Source="Theme/DarkModeColours.xaml"/>
+                <ResourceDictionary Source="Theme/Light.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

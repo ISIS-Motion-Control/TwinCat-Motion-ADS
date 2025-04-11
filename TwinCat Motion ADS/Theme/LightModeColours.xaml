@@ -1,8 +1,0 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Color x:Key="AccentColor">#2D2D30</Color>
-    <Color x:Key="WhiteColor">#2D2D30</Color>
-    <Color x:Key="BlackColor">#FFFFFF</Color>
-    <SolidColorBrush x:Key="Background-dark">#2D2D30</SolidColorBrush>
-    <SolidColorBrush x:Key="Background-light">#999999</SolidColorBrush>
-</ResourceDictionary>

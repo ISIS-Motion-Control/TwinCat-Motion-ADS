@@ -346,5 +346,15 @@ namespace TwinCat_Motion_ADS
             
             HelpWindow.Show();
         }
+
+        private void LightThemeClick(object sender, RoutedEventArgs e)
+        {
+            AppTheme.ChangeTheme(new Uri("Theme/Light.xaml",UriKind.Relative));
+        }
+
+        private void DarkThemeClick(object sender, RoutedEventArgs e)
+        {
+            AppTheme.ChangeTheme(new Uri("Theme/Dark.xaml", UriKind.Relative));
+        }
     }
 }
